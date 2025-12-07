@@ -1,0 +1,203 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm",
+    "schematicCollections": ["angular-eslint"]
+  },
+  "newProjectRoot": "apps",
+  "projects": {
+    "acl": {
+      "projectType": "library",
+      "root": "libs/@amiral-corelab/acl",
+      "sourceRoot": "libs/@amiral-corelab/acl/src",
+      "prefix": "acl",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/@amiral-corelab/acl/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "libs/@amiral-corelab/acl/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "libs/@amiral-corelab/acl/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["libs/@amiral-corelab/acl/**/*.ts", "libs/@amiral-corelab/acl/**/*.html"],
+            "eslintConfig": "libs/@amiral-corelab/acl/eslint.config.mjs"
+          }
+        },
+        "storybook": {
+          "builder": "@storybook/angular:start-storybook",
+          "options": {
+            "configDir": "libs/@amiral-corelab/acl/.storybook",
+            "browserTarget": "acl:build",
+            "compodoc": false,
+            "port": 6006,
+            "stylePreprocessorOptions": {
+              "includePaths": ["libs"]
+            },
+            "styles": ["libs/@amiral-corelab/acl/src/lib/styles/index.scss"]
+          }
+        },
+        "build-storybook": {
+          "builder": "@storybook/angular:build-storybook",
+          "options": {
+            "configDir": "libs/@amiral-corelab/acl/.storybook",
+            "browserTarget": "acl:build",
+            "compodoc": false,
+            "outputDir": "storybook-static"
+          }
+        }
+      },
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true,
+          "type": ""
+        },
+        "@schematics/angular:component": {
+          "type": "component",
+          "skipTests": true,
+          "viewEncapsulation": "None",
+          "style": "scss",
+          "standalone": true,
+          "inlineTemplate": false,
+          "inlineStyle": false,
+          "changeDetection": "OnPush",
+          "displayBlock": true
+        },
+        "@schematics/angular:directive": {
+          "standalone": true,
+          "skipTests": true,
+          "type": "directive"
+        },
+        "@schematics/angular:enum": {
+          "type": "enum"
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true,
+          "flat": true,
+          "functional": true,
+          "implements": ["CanActivate"],
+          "typeSeparator": "."
+        },
+        "@schematics/angular:interceptor": {
+          "typeSeparator": ".",
+          "functional": true,
+          "skipTests": true
+        },
+        "@schematics/angular:interface": {
+          "type": "model"
+        },
+        "@schematics/angular:library": {
+          "standalone": true,
+          "entryFile": "index",
+          "prefix": "acl"
+        },
+        "@schematics/angular:pipe": {
+          "standalone": true,
+          "skipTests": true,
+          "typeSeparator": "."
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true,
+          "functional": true,
+          "typeSeparator": "."
+        },
+        "@schematics/angular:service": {
+          "skipTests": true,
+          "type": "service"
+        },
+        "@schematics/angular:web-worker": {
+          "snippet": true
+        }
+      }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:application": {
+      "inlineStyle": false,
+      "inlineTemplate": false,
+      "minimal": true,
+      "skipTests": true,
+      "ssr": false,
+      "standalone": true,
+      "style": "scss",
+      "zoneless": true,
+      "viewEncapsulation": "None",
+      "strict": true,
+      "routing": true
+    },
+    "@schematics/angular:class": {
+      "skipTests": true,
+      "type": ""
+    },
+    "@schematics/angular:component": {
+      "type": "component",
+      "skipTests": true,
+      "viewEncapsulation": "None",
+      "style": "scss",
+      "standalone": true,
+      "inlineTemplate": false,
+      "inlineStyle": false,
+      "changeDetection": "OnPush",
+      "displayBlock": true
+    },
+    "@schematics/angular:directive": {
+      "standalone": true,
+      "skipTests": true,
+      "type": "directive"
+    },
+    "@schematics/angular:enum": {
+      "type": "enum"
+    },
+    "@schematics/angular:guard": {
+      "skipTests": true,
+      "flat": true,
+      "functional": true,
+      "implements": ["CanActivate"],
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": ".",
+      "functional": true,
+      "skipTests": true
+    },
+    "@schematics/angular:interface": {
+      "type": "model"
+    },
+    "@schematics/angular:library": {
+      "standalone": true,
+      "entryFile": "index",
+      "prefix": "acl"
+    },
+    "@schematics/angular:pipe": {
+      "standalone": true,
+      "skipTests": true,
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "skipTests": true,
+      "functional": true,
+      "typeSeparator": "."
+    },
+    "@schematics/angular:service": {
+      "skipTests": true,
+      "type": "service"
+    },
+    "@schematics/angular:web-worker": {
+      "snippet": true
+    }
+  }
+}

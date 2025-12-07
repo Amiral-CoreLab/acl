@@ -1,0 +1,26 @@
+{
+  "name": "@amiral-corelab/acl",
+  "version": "0.0.0",
+  "peerDependencies": {
+    "@angular/common": "^21.0.3",
+    "@angular/core": "^21.0.3"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "sass": "./src/lib/styles/index.scss"
+    },
+    "./styles/color": {
+      "sass": "./styles/_color.scss"
+    },
+    "./styles/variables": {
+      "sass": "./styles/_variables.scss"
+    },
+    "./styles/typography": {
+      "sass": "./styles/_typography.scss"
+    }
+  }
+}
