@@ -30,5 +30,8 @@ jobs:
       - name: Prepare Storybook
         run: npm run acl:storybook &
 
+      - name: Wait for Storybook
+        run: npx wait-on http://localhost:6006
+
       - name: Run tests + API scripts
         run: ci:check
