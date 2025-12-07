@@ -28,7 +28,7 @@ jobs:
         run: npm i
 
       - name: Prepare Storybook
-        run: npm run acl:storybook-ci
+        run: npm run acl:storybook &
 
       - name: Run tests + API scripts
         run: ci:check
