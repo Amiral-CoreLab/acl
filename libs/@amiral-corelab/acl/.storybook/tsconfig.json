@@ -6,6 +6,13 @@
     "resolveJsonModule": true
   },
   "exclude": ["../src/test.ts", "../src/**/*.spec.ts"],
-  "include": ["./preview.ts", "../src/**/*.stories.*", "../src/**/*.ts", "../src/**/*.d.ts", "../src/types/svg.d.ts"],
+  "include": [
+    "./main.ts",
+    "./preview.ts",
+    "../src/**/*.stories.*",
+    "../src/**/*.ts",
+    "../src/**/*.d.ts",
+    "../src/types/svg.d.ts"
+  ],
   "files": ["./typings.d.ts"]
 }

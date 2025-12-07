@@ -26,9 +26,10 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "libs/@amiral-corelab/acl/tsconfig.spec.json"
+            "tsConfig": "libs/@amiral-corelab/acl/tsconfig.spec.json",
+            "runnerConfig": true
           }
         },
         "lint": {
@@ -59,68 +60,6 @@
             "compodoc": false,
             "outputDir": "storybook-static"
           }
-        }
-      },
-      "schematics": {
-        "@schematics/angular:class": {
-          "skipTests": true,
-          "type": ""
-        },
-        "@schematics/angular:component": {
-          "type": "component",
-          "skipTests": true,
-          "viewEncapsulation": "None",
-          "style": "scss",
-          "standalone": true,
-          "inlineTemplate": false,
-          "inlineStyle": false,
-          "changeDetection": "OnPush",
-          "displayBlock": true
-        },
-        "@schematics/angular:directive": {
-          "standalone": true,
-          "skipTests": true,
-          "type": "directive"
-        },
-        "@schematics/angular:enum": {
-          "type": "enum"
-        },
-        "@schematics/angular:guard": {
-          "skipTests": true,
-          "flat": true,
-          "functional": true,
-          "implements": ["CanActivate"],
-          "typeSeparator": "."
-        },
-        "@schematics/angular:interceptor": {
-          "typeSeparator": ".",
-          "functional": true,
-          "skipTests": true
-        },
-        "@schematics/angular:interface": {
-          "type": "model"
-        },
-        "@schematics/angular:library": {
-          "standalone": true,
-          "entryFile": "index",
-          "prefix": "acl"
-        },
-        "@schematics/angular:pipe": {
-          "standalone": true,
-          "skipTests": true,
-          "typeSeparator": "."
-        },
-        "@schematics/angular:resolver": {
-          "skipTests": true,
-          "functional": true,
-          "typeSeparator": "."
-        },
-        "@schematics/angular:service": {
-          "skipTests": true,
-          "type": "service"
-        },
-        "@schematics/angular:web-worker": {
-          "snippet": true
         }
       }
     }
