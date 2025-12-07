@@ -71,6 +71,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
 
       - name: 🟦 Setup Node.js
         uses: actions/setup-node@v6
@@ -102,10 +103,13 @@ jobs:
       - name: 🧪 Validate Figma Specs (Snapshot checks)
         run: npm run tools:figma-spec
 
-      - name: 💾 Commit Generated Figma Assets
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "chore: update Figma-generated assets" || echo "No changes to commit"
-          git push
+      - name: 🔎 Show changed files
+        run: git status --short
+
+      #- name: 💾 Commit Generated Figma Assets
+      #  run: |
+      #    git config user.name "github-actions[bot]"
+      #    git config user.email "github-actions[bot]@users.noreply.github.com"
+      #    git add -A
+      #    git commit -m "chore: update Figma-generated assets" || echo "No changes to commit"
+      #    git push origin HEAD:${{ github.head_ref }}
