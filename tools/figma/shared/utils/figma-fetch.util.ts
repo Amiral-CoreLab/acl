@@ -1,11 +1,7 @@
-import { config } from 'dotenv';
-import { assert, sleep } from '@core';
+import { sleep } from '@core';
+import { getEnvUtil } from '../../../shared';
 
-config();
-
-const { FIGMA_ACCESS_TOKEN } = process.env;
-
-assert(FIGMA_ACCESS_TOKEN !== undefined, 'FIGMA_ACCESS_TOKEN is not set!');
+const { FIGMA_ACCESS_TOKEN } = getEnvUtil('FIGMA_ACCESS_TOKEN');
 
 export const figmaFetchUtil = async <T>(url: string): Promise<T> => {
   for (let i = 0; i < 5; i += 1) {
