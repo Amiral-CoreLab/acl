@@ -58,7 +58,8 @@
             "configDir": "libs/@amiral-corelab/acl/.storybook",
             "browserTarget": "acl:build",
             "compodoc": false,
-            "outputDir": "storybook-static"
+            "outputDir": "storybook-static",
+            "styles": ["libs/@amiral-corelab/acl/src/lib/styles/index.scss"]
           }
         }
       }
