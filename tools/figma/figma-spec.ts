@@ -1,13 +1,13 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { assert, isNotUndefined, roundTo, toKebabCase } from '@core';
+import { assert, capitalize, isNotUndefined, roundTo, toKebabCase } from '@core';
 import { exit } from 'node:process';
 import { chromium, firefox, webkit } from 'playwright';
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
-import { generateFileUtil } from '../shared';
+import { generateFileUtil, ToolConsole } from '../shared';
 
+const toolConsole = new ToolConsole('Figma spec');
 const componentsPath = 'libs/@amiral-corelab/acl/src/lib/components';
-
 const specFiles = (
   await Promise.all(
     (await readdir(componentsPath, { withFileTypes: true }))
@@ -57,6 +57,8 @@ for (const browserName of ['chromium', 'firefox', 'webkit'] as const) {
     } else {
       browser = await webkit.launch();
     }
+
+    toolConsole.log(`${capitalize(browserName)} launched!`);
 
     const page = await browser.newPage();
 
@@ -128,6 +130,8 @@ for (const browserName of ['chromium', 'firefox', 'webkit'] as const) {
         actual: `${mdxPath}/spec/${actualName}`,
         diff: `${mdxPath}/spec/${diffName}`,
       });
+
+      toolConsole.log(`${capitalize(browserName)} - ${componentId} - ${specId} (${100 - diffPercentage}%)`);
     }
   } catch (e) {
     error = e;
@@ -171,4 +175,8 @@ for (const [componentId, specs] of Object.entries(specMdx)) {
     overwrite: true,
     header: false,
   });
+
+  toolConsole.log(`${componentId}.spec.mdx saved!`);
 }
+
+toolConsole.end();

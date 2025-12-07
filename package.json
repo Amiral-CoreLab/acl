@@ -3,15 +3,22 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
-    "storybook": "ng run acl:storybook",
-    "storybook:host": "ng run acl:storybook --host=0.0.0.0",
-    "storybook:build": "ng run acl:build-storybook",
+    "acl:build": "ng run acl:build",
+    "acl:storybook": "ng run acl:storybook",
+    "acl:storybook-host": "ng run acl:storybook --host=0.0.0.0",
+    "acl:storybook-build": "ng run acl:build-storybook",
+    "acl:test": "ng run acl:test --watch=false --coverage",
+    "acl:lint": "ng run acl:lint",
+    "acl:lint-styles": "stylelint libs/@amiral-corelab/acl/**/*.scss",
     "tools:harmonizer": "tsx tools/color/harmonizer/harmonizer.ts",
     "tools:svgo": "npx svgo -f generated/icons -r --config=tools/svgo/svgo.config.ts && tsx tools/svgo/svg-to-scss.ts",
     "tools:figma-icon": "tsx tools/figma/figma-icon.ts && npm run tools:svgo",
     "tools:figma-color": "tsx tools/figma/figma-color.ts",
     "tools:figma-component": "tsx tools/figma/figma-component.ts",
-    "tools:figma-spec": "tsx tools/figma/figma-spec.ts"
+    "tools:figma-spec": "tsx tools/figma/figma-spec.ts",
+    "ci:rerun": "tsx tools/github/wait-ci-rerun.ts",
+    "ci:wait-on": "tsx tools/github/wait-on.ts",
+    "ci:check": "npm run tools:figma-icon && npm run tools:figma-color && npm run tools:figma-component && npm run tools:figma-spec && npm run acl:build && npm run acl:storybook-build && npm run acl:test && npm run acl:lint && npm run acl:lint-styles"
   },
   "private": true,
   "dependencies": {
@@ -37,7 +44,8 @@
     "@storybook/angular": "10.1.4",
     "@types/culori": "4.0.1",
     "@types/pixelmatch": "5.2.6",
-    "@types/pngjs": "^6.0.5",
+    "@types/pngjs": "6.0.5",
+    "@vitest/coverage-v8": "4.0.15",
     "angular-eslint": "21.0.1",
     "apcach": "0.6.4",
     "chalk": "5.6.2",
@@ -48,10 +56,11 @@
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-storybook": "10.1.4",
     "globals": "16.5.0",
+    "jsdom": "27.2.0",
     "ng-packagr": "21.0.0",
     "pixelmatch": "7.1.0",
     "playwright": "1.57.0",
-    "pngjs": "^7.0.0",
+    "pngjs": "7.0.0",
     "prettier": "3.7.4",
     "storybook": "10.1.4",
     "stylelint": "16.26.1",
@@ -62,6 +71,7 @@
     "svgo": "4.0.0",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.48.1"
+    "typescript-eslint": "8.48.1",
+    "vitest": "4.0.15"
   }
 }
