@@ -1,0 +1,45 @@
+@use '../../styles/color';
+@use '../../styles/component';
+@use '../../styles/state';
+
+@layer component {
+  acl-input-radio {
+    @include component.base;
+
+    & > input[type='radio'] {
+      @include component.base;
+      @include state.focus;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1rem;
+      aspect-ratio: 1;
+      margin: 0;
+      appearance: none;
+      cursor: pointer;
+      background-color: color.$background-input;
+      border: solid 2px color.$text-default;
+      border-radius: 50%;
+
+      &::after {
+        position: absolute;
+        display: none;
+        width: 8px;
+        aspect-ratio: 1;
+        content: '';
+        background-color: color.$primary-default;
+        border-radius: 50%;
+      }
+
+      &:checked {
+        pointer-events: none;
+        border-color: color.$primary-default;
+
+        &::after {
+          display: block;
+        }
+      }
+    }
+  }
+}
