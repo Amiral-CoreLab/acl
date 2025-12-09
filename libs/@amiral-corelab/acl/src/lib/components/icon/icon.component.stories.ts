@@ -39,9 +39,12 @@ type Story = StoryObj<IconComponent>;
 
 export const Default: Story = {};
 
-export const SpecDefault: Story = {};
+export const SpecDefault: Story = {
+  parameters: { docs: { disable: true } },
+};
 
 export const SpecColorRed: Story = {
+  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [IconComponent],
@@ -62,6 +65,7 @@ export const SpecColorRed: Story = {
 };
 
 export const SpecSize64px: Story = {
+  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [IconComponent],
