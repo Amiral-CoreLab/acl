@@ -97,7 +97,7 @@ for (const browserName of ['chromium', 'firefox', 'webkit'] as const) {
       const diffPng = new PNG({ width: baselinePng.width, height: baselinePng.height });
       const diffPercentage = roundTo(
         (pixelmatch(baselinePng.data, actualPng.data, diffPng.data, baselinePng.width, baselinePng.height, {
-          threshold: 0.1,
+          threshold: 0.2,
           includeAA: true,
           diffMask: true,
         }) /

@@ -53,8 +53,8 @@ const images = await figmaFetchUtil<GetImagesResponse>(
 toolConsole.log(`'images' fetch ok!`);
 
 for (const componentName of fileComponents.meta.components
-  .filter((x) => x.containing_frame?.pageName === 'Components')
-  .map((x) => x.name)) {
+  .filter((x) => x.containing_frame?.pageName === 'Components' || Boolean(x.containing_frame?.name))
+  .map((x) => x.containing_frame?.name ?? x.name)) {
   const componentNameKebab = toKebabCase(componentName);
   const storiesPath = `${pathsConstant.libComponents}/${componentNameKebab}/${componentNameKebab}.component.stories.ts`;
   const specMap = componentSpecMap[componentNameKebab] ?? {};
@@ -121,6 +121,15 @@ for (const componentName of fileComponents.meta.components
   await generateFileUtil(
     `${pathsConstant.libComponents}/${componentNameKebab}/${componentNameKebab}.component.scss`,
     getScssFileUtil(componentName),
+    {
+      header: false,
+    },
+  );
+
+  await generateFileUtil(
+    `${pathsConstant.libComponents}/${componentNameKebab}/index.ts`,
+    `export * from './${componentNameKebab}.component';
+`,
     {
       header: false,
     },
