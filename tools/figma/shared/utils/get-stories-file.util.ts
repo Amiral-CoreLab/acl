@@ -4,7 +4,11 @@ export const getStoriesFileUtil = (name: string, specNames: string[]): string =>
   const componentName = `${toPascalCase(name)}Component`;
   const kebabName = toKebabCase(name);
   const specStories = specNames
-    .map((specName) => `export const Spec${toPascalCase(specName)}: Story = {};`)
+    .map(
+      (specName) => `export const Spec${toPascalCase(specName)}: Story = {
+  parameters: { docs: { disable: true } },
+};`,
+    )
     .join('\n\n');
 
   return `import type { Meta, StoryObj } from '@storybook/angular';
