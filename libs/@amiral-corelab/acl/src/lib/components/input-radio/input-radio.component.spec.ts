@@ -1,20 +1,19 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { IconComponent } from './icon.component';
+import { InputRadioComponent } from './input-radio.component';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-describe('IconComponent', () => {
-  let component: IconComponent;
-  let fixture: ComponentFixture<IconComponent>;
+describe('InputRadioComponent', () => {
+  let component: InputRadioComponent;
+  let fixture: ComponentFixture<InputRadioComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IconComponent],
+      imports: [InputRadioComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(IconComponent);
-    fixture.componentRef.setInput('name', 'brand-acl');
+    fixture = TestBed.createComponent(InputRadioComponent);
     component = fixture.componentInstance;
 
     await fixture.whenStable();
