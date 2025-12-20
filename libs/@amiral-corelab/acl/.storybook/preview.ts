@@ -1,4 +1,8 @@
 import type { Preview } from '@storybook/angular';
+import { setCompodocJson } from '@storybook/addon-docs/angular';
+import docJson from '../../../../documentation.json';
+
+setCompodocJson(docJson);
 
 // eslint-disable-next-line @typescript-eslint/no-magic-numbers
 const hues = Array.from({ length: 72 }, (_, i) => (i + 1) * 5);

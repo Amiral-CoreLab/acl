@@ -1,0 +1,20 @@
+name: 👀 Visual Regression
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🌐 Visual Regression · Install Playwright Browsers
+      shell: bash
+      run: npx playwright install --with-deps
+
+    - name: 🖥️ Visual Regression · Start Storybook
+      shell: bash
+      run: npx ng run acl:storybook &
+
+    - name: ⏳ Visual Regression · Wait for Storybook
+      shell: bash
+      run: npx tsx tools/visual-regression/wait
+
+    - name: 👀 Visual Regression · Test
+      shell: bash
+      run: npx tsx tools/visual-regression/test

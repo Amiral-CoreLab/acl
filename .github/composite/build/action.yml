@@ -1,0 +1,12 @@
+name: 🏗️ Build
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🏗️ Build · Library
+      shell: bash
+      run: npx ng run acl:build
+
+    - name: 📘 Build · Storybook
+      shell: bash
+      run: npx ng run acl:build-storybook

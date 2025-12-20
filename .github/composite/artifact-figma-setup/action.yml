@@ -1,0 +1,28 @@
+name: 🧑‍🎨 Figma Artifacts · Setup
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🧹 Figma Artifacts · SVGO
+      shell: bash
+      run: npx svgo -f artifacts/figma/icons -r --config=tools/artifact-figma/svgo.config.ts
+
+    - name: 🖼️ Figma Artifacts · Icons
+      shell: bash
+      run: npx tsx tools/artifact-figma/icons
+
+    - name: ✒️ Figma Artifacts · Typography
+      shell: bash
+      run: npx tsx tools/artifact-figma/typos
+
+    - name: 🎨 Figma Artifacts · Colors
+      shell: bash
+      run: npx tsx tools/artifact-figma/colors
+
+    - name: 🧩 Figma Artifacts · Components
+      shell: bash
+      run: npx tsx tools/artifact-figma/components
+
+    - name: 🧪 Figma Artifacts · Specs
+      shell: bash
+      run: npx tsx tools/artifact-figma/specs

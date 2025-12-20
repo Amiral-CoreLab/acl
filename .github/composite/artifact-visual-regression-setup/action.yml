@@ -1,0 +1,27 @@
+name: 👀 Visual Regression Artifacts · Setup
+
+inputs:
+  warn:
+    description: Test warning threshold
+    required: true
+  alert:
+    description: Test alert threshold
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🖼️ Visual Regression Artifacts · Images
+      shell: bash
+      run: npx tsx tools/artifact-visual-regression/images
+
+    - name: 📝 Visual Regression Artifacts · Markdown
+      shell: bash
+      env:
+        VISUAL_REGRESSION_WARN: ${{ inputs.warn }}
+        VISUAL_REGRESSION_ALERT: ${{ inputs.alert }}
+      run: npx tsx tools/artifact-visual-regression/markdown
+
+    - name: 📊 Visual Regression Artifacts · Report
+      shell: bash
+      run: npx tsx tools/artifact-visual-regression/report

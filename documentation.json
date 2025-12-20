@@ -1,0 +1,746 @@
+{
+    "pipes": [],
+    "interfaces": [],
+    "injectables": [],
+    "guards": [],
+    "interceptors": [],
+    "classes": [],
+    "directives": [],
+    "components": [
+        {
+            "name": "IconComponent",
+            "id": "component-IconComponent-816c0030f846dac6dcdd47399566d6115d61e1ffceefc7d269eb2dca6b3aa9ea5a52a879ab6bbd434d0b53dbd93bf676d9587bd238db770c483541f87fc3be0a",
+            "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
+            "encapsulation": [
+                "ViewEncapsulation.None"
+            ],
+            "entryComponents": [],
+            "host": {},
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "acl-icon",
+            "styleUrls": [],
+            "styles": [],
+            "templateUrl": [
+                "./icon.component.html"
+            ],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [
+                {
+                    "name": "name",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "IconType",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 16,
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "required": true
+                }
+            ],
+            "outputsClass": [],
+            "propertiesClass": [],
+            "methodsClass": [],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": false,
+            "imports": [],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, computed, input, ViewEncapsulation } from '@angular/core';\nimport type { IconType } from './icon.type';\n\n@Component({\n  selector: 'acl-icon',\n  imports: [],\n  templateUrl: './icon.component.html',\n  styleUrl: './icon.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n  host: {\n    '[style.mask-image]': `iconVar()`,\n  },\n})\nexport class IconComponent {\n  public readonly name = input.required<IconType>();\n\n  /** @ignore */\n  protected readonly iconVar = computed((): string => `var(--acl-icon-${this.name()})`);\n}\n",
+            "styleUrl": "./icon.component.scss",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "",
+            "extends": [],
+            "templateData": ""
+        },
+        {
+            "name": "InputRadioComponent",
+            "id": "component-InputRadioComponent-36271dfc6c1eba9f03f365a6ac490a696d6dbeed081cf20368df7ab374a855e640b81ba7c0267680cb5c6194539450bc1d1643ddc769024e6a50cb63b6ff63d9",
+            "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
+            "encapsulation": [
+                "ViewEncapsulation.None"
+            ],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "acl-input-radio",
+            "styleUrls": [],
+            "styles": [],
+            "templateUrl": [
+                "./input-radio.component.html"
+            ],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [],
+            "outputsClass": [],
+            "propertiesClass": [],
+            "methodsClass": [],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": false,
+            "imports": [],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';\n\n@Component({\n  selector: 'acl-input-radio',\n  imports: [],\n  templateUrl: './input-radio.component.html',\n  styleUrl: './input-radio.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n})\nexport class InputRadioComponent {}\n",
+            "styleUrl": "./input-radio.component.scss",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "",
+            "extends": [],
+            "templateData": "<input\n  type=\"radio\"\n  name=\"\"\n  id=\"\"\n/>\n"
+        }
+    ],
+    "modules": [],
+    "miscellaneous": {
+        "variables": [
+            {
+                "name": "config",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/.storybook/main.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "StorybookConfig",
+                "defaultValue": "{\n  framework: '@storybook/angular',\n  stories: ['../src/**/*.mdx', '../src/**/*.stories.ts'],\n  addons: ['@storybook/addon-docs'],\n  staticDirs: ['../src'],\n}"
+            },
+            {
+                "name": "Default",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{}"
+            },
+            {
+                "name": "Default",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{}"
+            },
+            {
+                "name": "hues",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/.storybook/preview.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "unknown",
+                "defaultValue": "Array.from({ length: 72 }, (_, i) => (i + 1) * 5)"
+            },
+            {
+                "name": "iconConstant",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.constant.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "[]",
+                "defaultValue": "[\n  'brand-acl',\n  'shape-circle',\n]"
+            },
+            {
+                "name": "meta",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Meta<IconComponent>",
+                "defaultValue": "{\n  title: 'Components/icon',\n  component: IconComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: {\n      type: { name: 'string', required: true },\n      control: { type: 'select' },\n      options: iconConstant,\n      table: {\n        category: 'Inputs',\n        type: {\n          summary: 'Icons',\n          detail: iconConstant.map((x) => `\"${x}\"`).join(' | '),\n        },\n      },\n    },\n  },\n  args: {\n    name: 'brand-acl',\n  },\n  parameters: {\n    docs: {\n      description: {\n        component: 'Setting `color` in your CSS will change the icon color.',\n      },\n    },\n  },\n}"
+            },
+            {
+                "name": "meta",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Meta<InputRadioComponent>",
+                "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {},\n  args: {},\n  parameters: {},\n}"
+            },
+            {
+                "name": "preview",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/.storybook/preview.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Preview",
+                "defaultValue": "{\n  parameters: {\n    controls: {\n      matchers: {\n        color: /(?<color>background|color)$/iu,\n        date: /Date$/iu,\n      },\n    },\n    docs: {\n      canvas: {\n        sourceState: 'shown',\n      },\n    },\n  },\n  globalTypes: {\n    theme: {\n      name: 'Theme',\n      defaultValue: 'light',\n      toolbar: {\n        icon: 'contrast',\n        items: [\n          { value: 'system', title: 'System' },\n          { value: 'light', title: 'Light' },\n          { value: 'dark', title: 'Dark' },\n        ],\n        showName: true,\n      },\n    },\n    hue: {\n      name: 'Hue',\n      defaultValue: 360,\n      toolbar: {\n        icon: 'paintbrush',\n        // On génère des valeurs de 15 en 15\n        items: hues.map((h) => ({ value: h, title: `${h}°` })),\n        showName: true,\n      },\n    },\n  },\n\n  decorators: [\n    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type\n    (storyFn, context) => {\n      const theme = String(context.globals['theme']);\n      // eslint-disable-next-line @typescript-eslint/no-magic-numbers\n      const hue = String(context.globals['hue']).padStart(3, '0');\n      const { body } = document;\n      body.classList.remove('theme-light', 'theme-dark');\n      body.classList.add(`theme-${theme || 'light'}`);\n      body.style.setProperty('--color-primary-default', `var(--color-primary-default-${hue})`);\n      body.style.setProperty('--color-primary-hover', `var(--color-primary-hover-${hue})`);\n      body.style.setProperty('--color-primary-active', `var(--color-primary-active-${hue})`);\n      return storyFn();\n    },\n  ],\n}"
+            },
+            {
+                "name": "SpecActive",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n  },\n}"
+            },
+            {
+                "name": "SpecActiveFocus",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+            },
+            {
+                "name": "SpecColorRed",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [IconComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        acl-icon {\n          color: red;\n        }\n      </style>\n\n      <acl-icon [name]=\"'brand-acl'\" />\n    `,\n  }),\n}"
+            },
+            {
+                "name": "SpecDefault",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecDefault",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecDefaultFocus",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+            },
+            {
+                "name": "SpecHover",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecSize64px",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [IconComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        acl-icon {\n          width: 64px;\n        }\n      </style>\n\n      <acl-icon [name]=\"'brand-acl'\" />\n    `,\n  }),\n}"
+            }
+        ],
+        "functions": [],
+        "typealiases": [
+            {
+                "name": "IconType",
+                "ctype": "miscellaneous",
+                "subtype": "typealias",
+                "rawtype": "\"brand-acl\" | \"shape-circle\"",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "kind": 193
+            },
+            {
+                "name": "Story",
+                "ctype": "miscellaneous",
+                "subtype": "typealias",
+                "rawtype": "StoryObj<IconComponent>",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "kind": 184
+            },
+            {
+                "name": "Story",
+                "ctype": "miscellaneous",
+                "subtype": "typealias",
+                "rawtype": "StoryObj<InputRadioComponent>",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "kind": 184
+            }
+        ],
+        "enumerations": [],
+        "groupedVariables": {
+            "libs/@amiral-corelab/acl/.storybook/main.ts": [
+                {
+                    "name": "config",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/.storybook/main.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "StorybookConfig",
+                    "defaultValue": "{\n  framework: '@storybook/angular',\n  stories: ['../src/**/*.mdx', '../src/**/*.stories.ts'],\n  addons: ['@storybook/addon-docs'],\n  staticDirs: ['../src'],\n}"
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts": [
+                {
+                    "name": "Default",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{}"
+                },
+                {
+                    "name": "meta",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Meta<IconComponent>",
+                    "defaultValue": "{\n  title: 'Components/icon',\n  component: IconComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: {\n      type: { name: 'string', required: true },\n      control: { type: 'select' },\n      options: iconConstant,\n      table: {\n        category: 'Inputs',\n        type: {\n          summary: 'Icons',\n          detail: iconConstant.map((x) => `\"${x}\"`).join(' | '),\n        },\n      },\n    },\n  },\n  args: {\n    name: 'brand-acl',\n  },\n  parameters: {\n    docs: {\n      description: {\n        component: 'Setting `color` in your CSS will change the icon color.',\n      },\n    },\n  },\n}"
+                },
+                {
+                    "name": "SpecColorRed",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [IconComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        acl-icon {\n          color: red;\n        }\n      </style>\n\n      <acl-icon [name]=\"'brand-acl'\" />\n    `,\n  }),\n}"
+                },
+                {
+                    "name": "SpecDefault",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                },
+                {
+                    "name": "SpecSize64px",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [IconComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        acl-icon {\n          width: 64px;\n        }\n      </style>\n\n      <acl-icon [name]=\"'brand-acl'\" />\n    `,\n  }),\n}"
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
+                {
+                    "name": "Default",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{}"
+                },
+                {
+                    "name": "meta",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Meta<InputRadioComponent>",
+                    "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {},\n  args: {},\n  parameters: {},\n}"
+                },
+                {
+                    "name": "SpecActive",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n  },\n}"
+                },
+                {
+                    "name": "SpecActiveFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+                },
+                {
+                    "name": "SpecDefault",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                },
+                {
+                    "name": "SpecDefaultFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+                },
+                {
+                    "name": "SpecHover",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                }
+            ],
+            "libs/@amiral-corelab/acl/.storybook/preview.ts": [
+                {
+                    "name": "hues",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/.storybook/preview.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "defaultValue": "Array.from({ length: 72 }, (_, i) => (i + 1) * 5)"
+                },
+                {
+                    "name": "preview",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/.storybook/preview.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Preview",
+                    "defaultValue": "{\n  parameters: {\n    controls: {\n      matchers: {\n        color: /(?<color>background|color)$/iu,\n        date: /Date$/iu,\n      },\n    },\n    docs: {\n      canvas: {\n        sourceState: 'shown',\n      },\n    },\n  },\n  globalTypes: {\n    theme: {\n      name: 'Theme',\n      defaultValue: 'light',\n      toolbar: {\n        icon: 'contrast',\n        items: [\n          { value: 'system', title: 'System' },\n          { value: 'light', title: 'Light' },\n          { value: 'dark', title: 'Dark' },\n        ],\n        showName: true,\n      },\n    },\n    hue: {\n      name: 'Hue',\n      defaultValue: 360,\n      toolbar: {\n        icon: 'paintbrush',\n        // On génère des valeurs de 15 en 15\n        items: hues.map((h) => ({ value: h, title: `${h}°` })),\n        showName: true,\n      },\n    },\n  },\n\n  decorators: [\n    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type\n    (storyFn, context) => {\n      const theme = String(context.globals['theme']);\n      // eslint-disable-next-line @typescript-eslint/no-magic-numbers\n      const hue = String(context.globals['hue']).padStart(3, '0');\n      const { body } = document;\n      body.classList.remove('theme-light', 'theme-dark');\n      body.classList.add(`theme-${theme || 'light'}`);\n      body.style.setProperty('--color-primary-default', `var(--color-primary-default-${hue})`);\n      body.style.setProperty('--color-primary-hover', `var(--color-primary-hover-${hue})`);\n      body.style.setProperty('--color-primary-active', `var(--color-primary-active-${hue})`);\n      return storyFn();\n    },\n  ],\n}"
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/icon/icon.constant.ts": [
+                {
+                    "name": "iconConstant",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.constant.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "[]",
+                    "defaultValue": "[\n  'brand-acl',\n  'shape-circle',\n]"
+                }
+            ]
+        },
+        "groupedFunctions": {},
+        "groupedEnumerations": {},
+        "groupedTypeAliases": {
+            "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts": [
+                {
+                    "name": "IconType",
+                    "ctype": "miscellaneous",
+                    "subtype": "typealias",
+                    "rawtype": "\"brand-acl\" | \"shape-circle\"",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "kind": 193
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts": [
+                {
+                    "name": "Story",
+                    "ctype": "miscellaneous",
+                    "subtype": "typealias",
+                    "rawtype": "StoryObj<IconComponent>",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "kind": 184
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
+                {
+                    "name": "Story",
+                    "ctype": "miscellaneous",
+                    "subtype": "typealias",
+                    "rawtype": "StoryObj<InputRadioComponent>",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "kind": 184
+                }
+            ]
+        }
+    },
+    "routes": {
+        "name": "<root>",
+        "kind": "module",
+        "children": []
+    },
+    "coverage": {
+        "count": 0,
+        "status": "low",
+        "files": [
+            {
+                "filePath": "libs/@amiral-corelab/acl/.storybook/main.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "config",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/.storybook/preview.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "hues",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/.storybook/preview.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "preview",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "Default",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "meta",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecColorRed",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecDefault",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecSize64px",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "type": "type alias",
+                "linktype": "miscellaneous",
+                "linksubtype": "typealias",
+                "name": "Story",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "IconComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/2",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.constant.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "iconConstant",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
+                "type": "type alias",
+                "linktype": "miscellaneous",
+                "linksubtype": "typealias",
+                "name": "IconType",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "Default",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "meta",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecActive",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecActiveFocus",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecDefault",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecDefaultFocus",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecHover",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "type": "type alias",
+                "linktype": "miscellaneous",
+                "linksubtype": "typealias",
+                "name": "Story",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "InputRadioComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            }
+        ]
+    }
+}
