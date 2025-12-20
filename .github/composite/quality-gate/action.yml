@@ -1,0 +1,19 @@
+name: 🛡️ Quality Gate
+
+inputs:
+  warn:
+    description: Test warning threshold
+    required: true
+  alert:
+    description: Test alert threshold
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 👀 Quality Gate · Visual Regression Check
+      shell: bash
+      run: npx tsx tools/visual-regression/check
+      env:
+        VISUAL_REGRESSION_WARN: ${{ inputs.warn }}
+        VISUAL_REGRESSION_ALERT: ${{ inputs.alert }}

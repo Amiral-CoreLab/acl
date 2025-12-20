@@ -15,5 +15,6 @@ import type { IconType } from './icon.type';
 export class IconComponent {
   public readonly name = input.required<IconType>();
 
+  /** @ignore */
   protected readonly iconVar = computed((): string => `var(--acl-icon-${this.name()})`);
 }

@@ -1,0 +1,12 @@
+name: 🔍 Linting
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🧹 Linting · TypeScript
+      shell: bash
+      run: npx ng run acl:lint
+
+    - name: 🎨 Linting · Style
+      shell: bash
+      run: npx stylelint libs/@amiral-corelab/acl/**/*.scss

@@ -1,4 +1,5 @@
 import { consoleUtil } from '../utils';
+import { exit } from 'node:process';
 
 export class ToolConsole {
   private readonly startTime;
@@ -18,5 +19,7 @@ export class ToolConsole {
     const time = (Date.now() - this.startTime) / 1000;
 
     consoleUtil(`${this.toolName}: Finished in ${time}s`, 'information');
+
+    exit(0);
   };
 }

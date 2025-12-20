@@ -1,0 +1,1 @@
+export type ComponentsConfig = string[];

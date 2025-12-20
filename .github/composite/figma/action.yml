@@ -1,0 +1,51 @@
+name: 🧑‍🎨 Figma
+
+inputs:
+  figma-access-token:
+    description: Figma API access token
+    required: true
+  figma-file-key:
+    description: Figma file key
+    required: true
+  figma-spec-node-id:
+    description: Figma spec node id
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🖼️ Figma · Icons
+      shell: bash
+      env:
+        FIGMA_ACCESS_TOKEN: ${{ inputs.figma-access-token }}
+        FIGMA_FILE_KEY: ${{ inputs.figma-file-key }}
+      run: npx tsx tools/figma/icons
+
+    - name: ✒️ Figma · Typography
+      shell: bash
+      env:
+        FIGMA_ACCESS_TOKEN: ${{ inputs.figma-access-token }}
+        FIGMA_FILE_KEY: ${{ inputs.figma-file-key }}
+      run: npx tsx tools/figma/typos
+
+    - name: 🎨 Figma · Colors
+      shell: bash
+      env:
+        FIGMA_ACCESS_TOKEN: ${{ inputs.figma-access-token }}
+        FIGMA_FILE_KEY: ${{ inputs.figma-file-key }}
+      run: npx tsx tools/figma/colors
+
+    - name: 🧩 Figma · Components
+      shell: bash
+      env:
+        FIGMA_ACCESS_TOKEN: ${{ inputs.figma-access-token }}
+        FIGMA_FILE_KEY: ${{ inputs.figma-file-key }}
+      run: npx tsx tools/figma/components
+
+    - name: 🧪 Figma · Component Specs
+      shell: bash
+      env:
+        FIGMA_ACCESS_TOKEN: ${{ inputs.figma-access-token }}
+        FIGMA_FILE_KEY: ${{ inputs.figma-file-key }}
+        FIGMA_FILE_SPEC_NODE_ID: ${{ inputs.figma-spec-node-id }}
+      run: npx tsx tools/figma/specs

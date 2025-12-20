@@ -1,0 +1,14 @@
+name: 🧱 Workspace Setup
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🟦 Workspace Setup · Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: lts/*
+        cache: 'npm'
+
+    - name: 📦 Workspace Setup · Install Dependencies
+      shell: bash
+      run: npm ci
