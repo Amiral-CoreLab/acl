@@ -664,7 +664,7 @@
                 "name": "Default",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
@@ -674,7 +674,7 @@
                 "name": "Default",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
@@ -714,21 +714,21 @@
                 "name": "meta",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
-                "deprecated": false,
-                "deprecationMessage": "",
-                "type": "Meta<InputCheckboxComponent>",
-                "defaultValue": "{\n  title: 'Components/input-checkbox',\n  component: InputCheckboxComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    indeterminate: { control: { type: 'boolean' } },\n    model: { control: { type: 'boolean' } },\n  },\n  args: {\n    name: 'name',\n    indeterminate: false,\n    model: false,\n  },\n  parameters: {},\n}"
-            },
-            {
-                "name": "meta",
-                "ctype": "miscellaneous",
-                "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Meta<InputRadioComponent>",
                 "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    value: { control: { type: 'text' } },\n    model: { control: { type: 'text' } },\n  },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  parameters: {},\n}"
+            },
+            {
+                "name": "meta",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Meta<InputCheckboxComponent>",
+                "defaultValue": "{\n  title: 'Components/input-checkbox',\n  component: InputCheckboxComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    indeterminate: { control: { type: 'boolean' } },\n    model: { control: { type: 'boolean' } },\n  },\n  args: {\n    name: 'name',\n    indeterminate: false,\n    model: false,\n  },\n  parameters: {},\n}"
             },
             {
                 "name": "preview",
@@ -744,16 +744,6 @@
                 "name": "SpecActive",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
-                "deprecated": false,
-                "deprecationMessage": "",
-                "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: true,\n  },\n}"
-            },
-            {
-                "name": "SpecActive",
-                "ctype": "miscellaneous",
-                "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
@@ -761,14 +751,14 @@
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n}"
             },
             {
-                "name": "SpecActiveFocus",
+                "name": "SpecActive",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: true,\n  },\n}"
             },
             {
                 "name": "SpecActiveFocus",
@@ -779,6 +769,16 @@
                 "deprecationMessage": "",
                 "type": "Story",
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+            },
+            {
+                "name": "SpecActiveFocus",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecColorRed",
@@ -804,16 +804,6 @@
                 "name": "SpecDefault",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
-                "deprecated": false,
-                "deprecationMessage": "",
-                "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
-            },
-            {
-                "name": "SpecDefault",
-                "ctype": "miscellaneous",
-                "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
@@ -821,14 +811,14 @@
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
             },
             {
-                "name": "SpecDefaultFocus",
+                "name": "SpecDefault",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
             },
             {
                 "name": "SpecDefaultFocus",
@@ -841,14 +831,14 @@
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
             },
             {
-                "name": "SpecHover",
+                "name": "SpecDefaultFocus",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecHover",
@@ -859,6 +849,16 @@
                 "deprecationMessage": "",
                 "type": "Story",
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
+            },
+            {
+                "name": "SpecHover",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
             },
             {
                 "name": "SpecIndeterminate",
@@ -919,8 +919,8 @@
                 "name": "Story",
                 "ctype": "miscellaneous",
                 "subtype": "typealias",
-                "rawtype": "StoryObj<InputCheckboxComponent>",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "rawtype": "StoryObj<InputRadioComponent>",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "description": "",
@@ -930,8 +930,8 @@
                 "name": "Story",
                 "ctype": "miscellaneous",
                 "subtype": "typealias",
-                "rawtype": "StoryObj<InputRadioComponent>",
-                "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                "rawtype": "StoryObj<InputCheckboxComponent>",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "description": "",
@@ -1002,6 +1002,78 @@
                     "deprecationMessage": "",
                     "type": "Story",
                     "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [IconComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        acl-icon {\n          width: 64px;\n        }\n      </style>\n\n      <acl-icon [name]=\"'brand-acl'\" />\n    `,\n  }),\n}"
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
+                {
+                    "name": "Default",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{}"
+                },
+                {
+                    "name": "meta",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Meta<InputRadioComponent>",
+                    "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    value: { control: { type: 'text' } },\n    model: { control: { type: 'text' } },\n  },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  parameters: {},\n}"
+                },
+                {
+                    "name": "SpecActive",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n}"
+                },
+                {
+                    "name": "SpecActiveFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+                },
+                {
+                    "name": "SpecDefault",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
+                },
+                {
+                    "name": "SpecDefaultFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+                },
+                {
+                    "name": "SpecHover",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
                 }
             ],
             "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts": [
@@ -1096,78 +1168,6 @@
                     "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n    indeterminate: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
                 }
             ],
-            "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
-                {
-                    "name": "Default",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story",
-                    "defaultValue": "{}"
-                },
-                {
-                    "name": "meta",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Meta<InputRadioComponent>",
-                    "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    value: { control: { type: 'text' } },\n    model: { control: { type: 'text' } },\n  },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  parameters: {},\n}"
-                },
-                {
-                    "name": "SpecActive",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n}"
-                },
-                {
-                    "name": "SpecActiveFocus",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
-                },
-                {
-                    "name": "SpecDefault",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
-                },
-                {
-                    "name": "SpecDefaultFocus",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
-                },
-                {
-                    "name": "SpecHover",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
-                }
-            ],
             "libs/@amiral-corelab/acl/.storybook/preview.ts": [
                 {
                     "name": "hues",
@@ -1232,19 +1232,6 @@
                     "kind": 184
                 }
             ],
-            "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts": [
-                {
-                    "name": "Story",
-                    "ctype": "miscellaneous",
-                    "subtype": "typealias",
-                    "rawtype": "StoryObj<InputCheckboxComponent>",
-                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "description": "",
-                    "kind": 184
-                }
-            ],
             "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
                 {
                     "name": "Story",
@@ -1252,6 +1239,19 @@
                     "subtype": "typealias",
                     "rawtype": "StoryObj<InputRadioComponent>",
                     "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "kind": 184
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts": [
+                {
+                    "name": "Story",
+                    "ctype": "miscellaneous",
+                    "subtype": "typealias",
+                    "rawtype": "StoryObj<InputCheckboxComponent>",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "description": "",
