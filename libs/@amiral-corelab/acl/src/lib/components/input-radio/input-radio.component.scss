@@ -25,15 +25,14 @@
       &::after {
         position: absolute;
         display: none;
-        width: 8px;
+        width: inherit;
         aspect-ratio: 1;
         content: '';
         background-color: color.$primary-default;
-        border-radius: 50%;
+        mask-image: var(--acl-icon-input-radio-mark);
       }
 
       &:checked {
-        pointer-events: none;
         border-color: color.$primary-default;
 
         &::after {

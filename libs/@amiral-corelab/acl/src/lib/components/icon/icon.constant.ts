@@ -7,5 +7,6 @@ export const iconConstant = [
   'brand-acl',
   'input-check-mark',
   'input-indeterminate-mark',
+  'input-radio-mark',
   'shape-circle',
 ];
