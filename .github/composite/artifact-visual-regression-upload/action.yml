@@ -8,3 +8,4 @@ runs:
       with:
         name: artifacts-visual-regression
         path: artifacts/visual-regression
+        retention-days: 1
