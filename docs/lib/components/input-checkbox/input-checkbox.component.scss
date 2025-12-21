@@ -3,10 +3,10 @@
 @use '../../styles/state';
 
 @layer component {
-  acl-input-radio {
+  acl-input-checkbox {
     @include component.base;
 
-    & > input[type='radio'] {
+    & > input[type='checkbox'] {
       @include component.base;
       @include state.focus;
 
@@ -20,7 +20,6 @@
       cursor: pointer;
       background-color: color.$background-input;
       border: solid 2px color.$text-default;
-      border-radius: 50%;
 
       &::after {
         position: absolute;
@@ -29,15 +28,20 @@
         aspect-ratio: 1;
         content: '';
         background-color: color.$primary-default;
-        mask-image: var(--acl-icon-input-radio-mark);
+        mask-image: var(--acl-icon-input-check-mark);
       }
 
+      &:indeterminate,
       &:checked {
         border-color: color.$primary-default;
 
         &::after {
           display: block;
         }
+      }
+
+      &:indeterminate::after {
+        mask-image: var(--acl-icon-input-indeterminate-mark);
       }
     }
   }

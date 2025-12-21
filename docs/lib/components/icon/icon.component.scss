@@ -5,7 +5,7 @@
   acl-icon {
     @include component.base;
 
-    width: 16px;
+    width: 1rem;
     min-width: fit-content;
     aspect-ratio: 1;
     color: color.$text-default;

@@ -634,7 +634,7 @@
             "styleUrlsData": "",
             "stylesData": "",
             "extends": [],
-            "templateData": "<input\n  type=\"radio\"\n  [name]=\"name()\"\n  [value]=\"value\"\n  [(ngModel)]=\"value\"\n/>\n"
+            "templateData": "<input\n  type=\"radio\"\n  [name]=\"name()\"\n  [value]=\"value()\"\n  [(ngModel)]=\"model\"\n/>\n"
         }
     ],
     "modules": [],
@@ -698,7 +698,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "[]",
-                "defaultValue": "[\n  'brand-acl',\n  'input-check-mark',\n  'input-indeterminate-mark',\n  'shape-circle',\n]"
+                "defaultValue": "[\n  'brand-acl',\n  'input-check-mark',\n  'input-indeterminate-mark',\n  'input-radio-mark',\n  'shape-circle',\n]"
             },
             {
                 "name": "meta",
@@ -748,7 +748,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: true,\n  },\n}"
             },
             {
                 "name": "SpecActive",
@@ -758,7 +758,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n}"
             },
             {
                 "name": "SpecActiveFocus",
@@ -768,7 +768,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecActiveFocus",
@@ -778,7 +778,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecColorRed",
@@ -808,7 +808,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
             },
             {
                 "name": "SpecDefault",
@@ -818,7 +818,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
             },
             {
                 "name": "SpecDefaultFocus",
@@ -828,7 +828,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecDefaultFocus",
@@ -838,7 +838,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecHover",
@@ -848,7 +848,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
             },
             {
                 "name": "SpecHover",
@@ -858,7 +858,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
             },
             {
                 "name": "SpecIndeterminate",
@@ -868,7 +868,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    indeterminate: true,\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n    indeterminate: true,\n  },\n}"
             },
             {
                 "name": "SpecIndeterminateFocus",
@@ -878,7 +878,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
-                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"'name'\" [indeterminate]=\"true\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n    indeterminate: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecSize64px",
@@ -897,7 +897,7 @@
                 "name": "IconType",
                 "ctype": "miscellaneous",
                 "subtype": "typealias",
-                "rawtype": "\"brand-acl\" | \"input-check-mark\" | \"input-indeterminate-mark\" | \"shape-circle\"",
+                "rawtype": "\"brand-acl\" | \"input-check-mark\" | \"input-indeterminate-mark\" | \"input-radio-mark\" | \"shape-circle\"",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
@@ -1033,7 +1033,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: true,\n  },\n}"
                 },
                 {
                     "name": "SpecActiveFocus",
@@ -1043,7 +1043,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
                 },
                 {
                     "name": "SpecDefault",
@@ -1053,7 +1053,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
                 },
                 {
                     "name": "SpecDefaultFocus",
@@ -1063,7 +1063,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
                 },
                 {
                     "name": "SpecHover",
@@ -1073,7 +1073,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n  },\n}"
                 },
                 {
                     "name": "SpecIndeterminate",
@@ -1083,7 +1083,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    indeterminate: true,\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    model: false,\n    indeterminate: true,\n  },\n}"
                 },
                 {
                     "name": "SpecIndeterminateFocus",
@@ -1093,7 +1093,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"'name'\" [indeterminate]=\"true\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    model: false,\n    indeterminate: true,\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"name\" [model]=\"model\" [indeterminate]=\"indeterminate\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
                 }
             ],
             "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
@@ -1125,7 +1125,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n}"
                 },
                 {
                     "name": "SpecActiveFocus",
@@ -1135,7 +1135,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: 'value',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
                 },
                 {
                     "name": "SpecDefault",
@@ -1145,7 +1145,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
                 },
                 {
                     "name": "SpecDefaultFocus",
@@ -1155,7 +1155,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputRadioComponent],\n    }),\n  ],\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-radio [name]=\"name\" [value]=\"value\" [model]=\"model\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.focus();\n  },\n}"
                 },
                 {
                     "name": "SpecHover",
@@ -1165,7 +1165,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story",
-                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n}"
                 }
             ],
             "libs/@amiral-corelab/acl/.storybook/preview.ts": [
@@ -1199,7 +1199,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "[]",
-                    "defaultValue": "[\n  'brand-acl',\n  'input-check-mark',\n  'input-indeterminate-mark',\n  'shape-circle',\n]"
+                    "defaultValue": "[\n  'brand-acl',\n  'input-check-mark',\n  'input-indeterminate-mark',\n  'input-radio-mark',\n  'shape-circle',\n]"
                 }
             ]
         },
@@ -1211,7 +1211,7 @@
                     "name": "IconType",
                     "ctype": "miscellaneous",
                     "subtype": "typealias",
-                    "rawtype": "\"brand-acl\" | \"input-check-mark\" | \"input-indeterminate-mark\" | \"shape-circle\"",
+                    "rawtype": "\"brand-acl\" | \"input-check-mark\" | \"input-indeterminate-mark\" | \"input-radio-mark\" | \"shape-circle\"",
                     "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
                     "deprecated": false,
                     "deprecationMessage": "",
