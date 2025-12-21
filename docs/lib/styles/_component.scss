@@ -1,0 +1,8 @@
+@mixin base() {
+  position: relative;
+  box-sizing: border-box;
+  display: block;
+  width: fit-content;
+  height: fit-content;
+  user-select: none;
+}
