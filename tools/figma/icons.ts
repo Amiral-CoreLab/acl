@@ -1,4 +1,5 @@
 import { assert } from '@core';
+import { rm } from 'node:fs/promises';
 import type { GetFileComponentsResponse, GetImagesResponse } from '@figma/rest-api-spec';
 import { figmaFetchImageUtil, figmaFetchUtil, getImagesUrlUtil } from './shared';
 import { getEnvUtil, pathsConstant, ToolConsole } from '../shared';
@@ -21,6 +22,8 @@ const nodeIdNameMap = Object.fromEntries(
 const images = await figmaFetchUtil<GetImagesResponse>(getImagesUrlUtil(Object.keys(nodeIdNameMap), 'svg'));
 
 toolConsole.log(`'images' fetch ok!`);
+
+await rm(`${pathsConstant.artifactsFigma}/icons`, { recursive: true, force: true });
 
 for (const [id, url] of Object.entries(images.images)) {
   const name = nodeIdNameMap[id];

@@ -2,6 +2,7 @@ import type { DocumentNode, FrameNode, GetFileNodesResponse, GetImagesResponse }
 import { figmaFetchImageUtil, figmaFetchUtil, getImagesUrlUtil, getNodesUrlUtil } from './shared';
 import { getEnvUtil, pathsConstant, ToolConsole } from '../shared';
 import { assert, toKebabCase } from '@core';
+import { rm } from 'node:fs/promises';
 
 const toolConsole = new ToolConsole('🧪 Figma · Component Specs');
 const { FIGMA_FILE_SPEC_NODE_ID } = getEnvUtil('FIGMA_FILE_SPEC_NODE_ID');
@@ -28,6 +29,8 @@ const componentSpecMap = Object.fromEntries(
 const images = await figmaFetchUtil<GetImagesResponse>(getImagesUrlUtil(Object.keys(componentSpecMap), 'png'));
 
 toolConsole.log(`'images' fetch ok!`);
+
+await rm(`${pathsConstant.artifactsFigma}/specs`, { recursive: true, force: true });
 
 for (const [id, url] of Object.entries(images.images)) {
   const data = componentSpecMap[id];
