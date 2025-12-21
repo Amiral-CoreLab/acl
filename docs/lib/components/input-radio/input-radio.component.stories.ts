@@ -6,8 +6,16 @@ const meta: Meta<InputRadioComponent> = {
   title: 'Components/input-radio',
   component: InputRadioComponent,
   tags: ['autodocs'],
-  argTypes: {},
-  args: {},
+  argTypes: {
+    name: { control: { type: 'text' } },
+    value: { control: { type: 'text' } },
+    model: { control: { type: 'text' } },
+  },
+  args: {
+    name: 'name',
+    value: 'value',
+    model: '',
+  },
   parameters: {},
 };
 
@@ -19,6 +27,11 @@ export const Default: Story = {};
 
 export const SpecDefault: Story = {
   parameters: { docs: { disable: true } },
+  args: {
+    name: 'name',
+    value: 'value',
+    model: '',
+  },
 };
 
 export const SpecDefaultFocus: Story = {
@@ -28,6 +41,11 @@ export const SpecDefaultFocus: Story = {
       imports: [InputRadioComponent],
     }),
   ],
+  args: {
+    name: 'name',
+    value: 'value',
+    model: '',
+  },
   render: (args) => ({
     props: args,
     template: `
@@ -37,7 +55,7 @@ export const SpecDefaultFocus: Story = {
         }
       </style>
 
-      <acl-input-radio />
+      <acl-input-radio [name]="name" [value]="value" [model]="model" />
     `,
   }),
   play: ({ canvasElement }) => {
@@ -48,13 +66,19 @@ export const SpecDefaultFocus: Story = {
 
 export const SpecHover: Story = {
   parameters: { docs: { disable: true } },
+  args: {
+    name: 'name',
+    value: 'value',
+    model: '',
+  },
 };
 
 export const SpecActive: Story = {
   parameters: { docs: { disable: true } },
-  play: ({ canvasElement }) => {
-    const input = canvasElement.querySelector<HTMLInputElement>('input[type="radio"]');
-    input?.click();
+  args: {
+    name: 'name',
+    value: 'value',
+    model: 'value',
   },
 };
 
@@ -65,6 +89,11 @@ export const SpecActiveFocus: Story = {
       imports: [InputRadioComponent],
     }),
   ],
+  args: {
+    name: 'name',
+    value: 'value',
+    model: 'value',
+  },
   render: (args) => ({
     props: args,
     template: `
@@ -74,12 +103,11 @@ export const SpecActiveFocus: Story = {
         }
       </style>
 
-      <acl-input-radio />
+      <acl-input-radio [name]="name" [value]="value" [model]="model" />
     `,
   }),
   play: ({ canvasElement }) => {
     const input = canvasElement.querySelector<HTMLInputElement>('input[type="radio"]');
-    input?.click();
     input?.focus();
   },
 };

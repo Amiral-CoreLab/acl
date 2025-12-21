@@ -11,6 +11,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: 📊 Quality Gate · Report
+      shell: bash
+      run: npx tsx tools/artifact-visual-regression/report
+
     - name: 👀 Quality Gate · Visual Regression Check
       shell: bash
       run: npx tsx tools/visual-regression/check

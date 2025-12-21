@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, input, model, ViewEncapsulation } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'acl-input-radio',
-  imports: [ReactiveFormsModule, FormsModule],
-  templateUrl: './input-radio.component.html',
-  styleUrl: './input-radio.component.scss',
+  selector: 'acl-input-checkbox',
+  imports: [FormsModule],
+  templateUrl: './input-checkbox.component.html',
+  styleUrl: './input-checkbox.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class InputRadioComponent {
+export class InputCheckboxComponent {
   /**
    * @remarks
    * **@required**
@@ -20,13 +20,10 @@ export class InputRadioComponent {
   public readonly name = input.required<string>();
 
   /**
-   * @remarks
-   * **@required**
-   *
    * @description
-   * Input value
+   * Checkbox indeterminate property
    */
-  public readonly value = input.required<string>();
+  public readonly indeterminate = input<boolean>(false);
 
   /**
    * @remarks
@@ -35,5 +32,5 @@ export class InputRadioComponent {
    * @description
    * Input model
    */
-  public readonly model = model.required<string>();
+  public readonly model = model.required<boolean>();
 }

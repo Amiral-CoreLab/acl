@@ -2,16 +2,10 @@ name: ci-pr-dev
 
 on:
   pull_request:
-    branches:
-      - dev
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  actions: write
+    branches: [ dev ]
 
 concurrency:
-  group: ci-pr-dev-${{ github.head_ref || github.ref_name }}-${{ github.actor }}
+  group: ci-pr-dev-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -24,7 +18,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/npm-audit
 
@@ -38,7 +32,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/linting
 
@@ -52,7 +46,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/tests
 
@@ -66,7 +60,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/build
 
@@ -81,7 +75,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/figma
         with:
@@ -100,7 +94,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/artifact-figma-download
       - uses: ./.github/composite/artifact-figma-setup
@@ -113,12 +107,14 @@ jobs:
     name: 🧩 Prepare Dev Branch
     runs-on: ubuntu-latest
     environment: visual-regression
+    permissions:
+      contents: write
     steps:
       - name: 📥 Workspace Setup · Checkout Repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
       - uses: ./.github/composite/artifact-figma-download
       - uses: ./.github/composite/artifact-figma-setup
@@ -142,8 +138,11 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.github/composite/workspace-setup
+      - uses: ./.github/composite/artifact-figma-download
+      - uses: ./.github/composite/artifact-figma-setup
+      - uses: ./.github/composite/artifact-visual-regression-download
       - uses: ./.github/composite/linting
       - uses: ./.github/composite/tests
       - uses: ./.github/composite/build
