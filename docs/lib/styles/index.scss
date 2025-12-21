@@ -1,0 +1,6 @@
+@use 'color';
+@forward 'icons';
+
+:root {
+  background-color: color.$background-950;
+}
