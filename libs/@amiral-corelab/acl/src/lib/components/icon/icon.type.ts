@@ -5,4 +5,6 @@
 /* stylelint-disable */
 export type IconType =
   | 'brand-acl'
+  | 'input-check-mark'
+  | 'input-indeterminate-mark'
   | 'shape-circle';
