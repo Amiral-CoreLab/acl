@@ -114,9 +114,9 @@ for (const browserName of ['chromium', 'firefox', 'webkit'] as const) {
       specLvl.push({
         browserName,
         percentage,
-        base: `../lib/components/${componentId}/specs/base/${baseName}`,
-        spec: percentage < 100 ? `../lib/components/${componentId}/specs/spec/${specName}` : undefined,
-        diff: percentage < 100 ? `../lib/components/${componentId}/specs/diff/${diffName}` : undefined,
+        base: `lib/components/${componentId}/specs/base/${baseName}`,
+        spec: percentage < 100 ? `lib/components/${componentId}/specs/spec/${specName}` : undefined,
+        diff: percentage < 100 ? `lib/components/${componentId}/specs/diff/${diffName}` : undefined,
       });
 
       toolConsole.log(`${capitalize(browserName)} - ${componentId} - ${specId} (${percentage}%)`);
