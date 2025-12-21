@@ -9,7 +9,7 @@
     "components": [
         {
             "name": "IconComponent",
-            "id": "component-IconComponent-816c0030f846dac6dcdd47399566d6115d61e1ffceefc7d269eb2dca6b3aa9ea5a52a879ab6bbd434d0b53dbd93bf676d9587bd238db770c483541f87fc3be0a",
+            "id": "component-IconComponent-61cfa9d266a922711fd463a9311445082ff5f900926af8b65fae2fabfd0f5d19e5d3b709a1d893fd109273561ff504b075b7bef60c6304c3faf7526e756685d1",
             "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [
@@ -36,11 +36,52 @@
                     "type": "IconType",
                     "indexKey": "",
                     "optional": false,
-                    "description": "",
-                    "line": 16,
+                    "description": "<p><strong>@required</strong></p>\n<p>Icon name</p>\n",
+                    "line": 27,
+                    "rawdescription": "\n\n**@required**\n\nIcon name\n",
                     "modifierKind": [
                         125,
                         148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 547,
+                            "end": 585,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 548,
+                                "end": 555,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 585,
+                            "end": 616,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 586,
+                                "end": 597,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Icon name</p>\n"
+                        }
                     ],
                     "required": true
                 }
@@ -54,10 +95,10 @@
             "hostListeners": [],
             "standalone": false,
             "imports": [],
-            "description": "",
-            "rawdescription": "\n",
+            "description": "<p>Setting <code>color</code> in your CSS will change the icon color.</p>\n",
+            "rawdescription": "\n\nSetting `color` in your CSS will change the icon color.\n",
             "type": "component",
-            "sourceCode": "import { ChangeDetectionStrategy, Component, computed, input, ViewEncapsulation } from '@angular/core';\nimport type { IconType } from './icon.type';\n\n@Component({\n  selector: 'acl-icon',\n  imports: [],\n  templateUrl: './icon.component.html',\n  styleUrl: './icon.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n  host: {\n    '[style.mask-image]': `iconVar()`,\n  },\n})\nexport class IconComponent {\n  public readonly name = input.required<IconType>();\n\n  /** @ignore */\n  protected readonly iconVar = computed((): string => `var(--acl-icon-${this.name()})`);\n}\n",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, computed, input, ViewEncapsulation } from '@angular/core';\nimport type { IconType } from './icon.type';\n\n/**\n * @remarks\n * Setting `color` in your CSS will change the icon color.\n */\n@Component({\n  selector: 'acl-icon',\n  imports: [],\n  templateUrl: './icon.component.html',\n  styleUrl: './icon.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n  host: {\n    '[style.mask-image]': `iconVar()`,\n  },\n})\nexport class IconComponent {\n  /**\n   * @remarks\n   * **@required**\n   *\n   * @description\n   * Icon name\n   */\n  public readonly name = input.required<IconType>();\n\n  /**\n   * @ignore\n   */\n  protected readonly iconVar = computed((): string => `var(--acl-icon-${this.name()})`);\n}\n",
             "styleUrl": "./icon.component.scss",
             "assetsDirs": [],
             "styleUrlsData": "",
@@ -66,8 +107,262 @@
             "templateData": ""
         },
         {
+            "name": "InputCheckboxComponent",
+            "id": "component-InputCheckboxComponent-e6e032e2c369342ac2bec8a80565046e95f3961e18cb5ec3d1786babad2db0ddfe0c0bbbfd9425aa78839ad2c8d8dd018a9282641a3601c219869d44ff3edf7d",
+            "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
+            "encapsulation": [
+                "ViewEncapsulation.None"
+            ],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "acl-input-checkbox",
+            "styleUrls": [],
+            "styles": [],
+            "templateUrl": [
+                "./input-checkbox.component.html"
+            ],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [
+                {
+                    "name": "indeterminate",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p>Checkbox indeterminate property</p>\n",
+                    "line": 26,
+                    "rawdescription": "\n\nCheckbox indeterminate property\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 598,
+                            "end": 651,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 599,
+                                "end": 610,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Checkbox indeterminate property</p>\n"
+                        }
+                    ],
+                    "required": false
+                },
+                {
+                    "name": "model",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input model</p>\n",
+                    "line": 35,
+                    "rawdescription": "\n\n**@required**\n\nInput model\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 723,
+                            "end": 761,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 724,
+                                "end": 731,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 761,
+                            "end": 794,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 762,
+                                "end": 773,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input model</p>\n"
+                        }
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "name",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input name</p>\n",
+                    "line": 20,
+                    "rawdescription": "\n\n**@required**\n\nInput name\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 462,
+                            "end": 500,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 463,
+                                "end": 470,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 500,
+                            "end": 532,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 501,
+                                "end": 512,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input name</p>\n"
+                        }
+                    ],
+                    "required": true
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "model",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input model</p>\n",
+                    "line": 35,
+                    "rawdescription": "\n\n**@required**\n\nInput model\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 723,
+                            "end": 761,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 724,
+                                "end": 731,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 761,
+                            "end": 794,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 762,
+                                "end": 773,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input model</p>\n"
+                        }
+                    ],
+                    "required": true
+                }
+            ],
+            "propertiesClass": [],
+            "methodsClass": [],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": false,
+            "imports": [
+                {
+                    "name": "FormsModule",
+                    "type": "module"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, input, model, ViewEncapsulation } from '@angular/core';\nimport { FormsModule } from '@angular/forms';\n\n@Component({\n  selector: 'acl-input-checkbox',\n  imports: [FormsModule],\n  templateUrl: './input-checkbox.component.html',\n  styleUrl: './input-checkbox.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n})\nexport class InputCheckboxComponent {\n  /**\n   * @remarks\n   * **@required**\n   *\n   * @description\n   * Input name\n   */\n  public readonly name = input.required<string>();\n\n  /**\n   * @description\n   * Checkbox indeterminate property\n   */\n  public readonly indeterminate = input<boolean>(false);\n\n  /**\n   * @remarks\n   * **@required**\n   *\n   * @description\n   * Input model\n   */\n  public readonly model = model.required<boolean>();\n}\n",
+            "styleUrl": "./input-checkbox.component.scss",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "",
+            "extends": [],
+            "templateData": "<input\n  type=\"checkbox\"\n  [name]=\"name()\"\n  [indeterminate]=\"indeterminate()\"\n  [(ngModel)]=\"model\"\n/>\n"
+        },
+        {
             "name": "InputRadioComponent",
-            "id": "component-InputRadioComponent-36271dfc6c1eba9f03f365a6ac490a696d6dbeed081cf20368df7ab374a855e640b81ba7c0267680cb5c6194539450bc1d1643ddc769024e6a50cb63b6ff63d9",
+            "id": "component-InputRadioComponent-4be496c328f7eded7142d1a3cbad171659ab373b3d61945270993bb8593e3ff9ae1bde8e2cd66b8abdae5d3917dd4de25486f8c04ed5c6381c18a1ce1e891139",
             "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [
@@ -85,8 +380,234 @@
             ],
             "viewProviders": [],
             "hostDirectives": [],
-            "inputsClass": [],
-            "outputsClass": [],
+            "inputsClass": [
+                {
+                    "name": "model",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input model</p>\n",
+                    "line": 38,
+                    "rawdescription": "\n\n**@required**\n\nInput model\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 766,
+                            "end": 804,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 767,
+                                "end": 774,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 804,
+                            "end": 837,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 805,
+                                "end": 816,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input model</p>\n"
+                        }
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "name",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input name</p>\n",
+                    "line": 20,
+                    "rawdescription": "\n\n**@required**\n\nInput name\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 492,
+                            "end": 530,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 493,
+                                "end": 500,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 530,
+                            "end": 562,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 531,
+                                "end": 542,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input name</p>\n"
+                        }
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "value",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input value</p>\n",
+                    "line": 29,
+                    "rawdescription": "\n\n**@required**\n\nInput value\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 628,
+                            "end": 666,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 629,
+                                "end": 636,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 666,
+                            "end": 699,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 667,
+                                "end": 678,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input value</p>\n"
+                        }
+                    ],
+                    "required": true
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "model",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "<p><strong>@required</strong></p>\n<p>Input model</p>\n",
+                    "line": 38,
+                    "rawdescription": "\n\n**@required**\n\nInput model\n",
+                    "modifierKind": [
+                        125,
+                        148
+                    ],
+                    "jsdoctags": [
+                        {
+                            "pos": 766,
+                            "end": 804,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 767,
+                                "end": 774,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "remarks"
+                            },
+                            "comment": "<p><strong>@required</strong></p>\n"
+                        },
+                        {
+                            "pos": 804,
+                            "end": 837,
+                            "kind": 328,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 805,
+                                "end": 816,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "description"
+                            },
+                            "comment": "<p>Input model</p>\n"
+                        }
+                    ],
+                    "required": true
+                }
+            ],
             "propertiesClass": [],
             "methodsClass": [],
             "deprecated": false,
@@ -94,17 +615,26 @@
             "hostBindings": [],
             "hostListeners": [],
             "standalone": false,
-            "imports": [],
+            "imports": [
+                {
+                    "name": "ReactiveFormsModule",
+                    "type": "module"
+                },
+                {
+                    "name": "FormsModule",
+                    "type": "module"
+                }
+            ],
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';\n\n@Component({\n  selector: 'acl-input-radio',\n  imports: [],\n  templateUrl: './input-radio.component.html',\n  styleUrl: './input-radio.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n})\nexport class InputRadioComponent {}\n",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, input, model, ViewEncapsulation } from '@angular/core';\nimport { FormsModule, ReactiveFormsModule } from '@angular/forms';\n\n@Component({\n  selector: 'acl-input-radio',\n  imports: [ReactiveFormsModule, FormsModule],\n  templateUrl: './input-radio.component.html',\n  styleUrl: './input-radio.component.scss',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n})\nexport class InputRadioComponent {\n  /**\n   * @remarks\n   * **@required**\n   *\n   * @description\n   * Input name\n   */\n  public readonly name = input.required<string>();\n\n  /**\n   * @remarks\n   * **@required**\n   *\n   * @description\n   * Input value\n   */\n  public readonly value = input.required<string>();\n\n  /**\n   * @remarks\n   * **@required**\n   *\n   * @description\n   * Input model\n   */\n  public readonly model = model.required<string>();\n}\n",
             "styleUrl": "./input-radio.component.scss",
             "assetsDirs": [],
             "styleUrlsData": "",
             "stylesData": "",
             "extends": [],
-            "templateData": "<input\n  type=\"radio\"\n  name=\"\"\n  id=\"\"\n/>\n"
+            "templateData": "<input\n  type=\"radio\"\n  [name]=\"name()\"\n  [value]=\"value\"\n  [(ngModel)]=\"value\"\n/>\n"
         }
     ],
     "modules": [],
@@ -125,6 +655,16 @@
                 "ctype": "miscellaneous",
                 "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{}"
+            },
+            {
+                "name": "Default",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
@@ -158,7 +698,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "[]",
-                "defaultValue": "[\n  'brand-acl',\n  'shape-circle',\n]"
+                "defaultValue": "[\n  'brand-acl',\n  'input-check-mark',\n  'input-indeterminate-mark',\n  'shape-circle',\n]"
             },
             {
                 "name": "meta",
@@ -168,7 +708,17 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Meta<IconComponent>",
-                "defaultValue": "{\n  title: 'Components/icon',\n  component: IconComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: {\n      type: { name: 'string', required: true },\n      control: { type: 'select' },\n      options: iconConstant,\n      table: {\n        category: 'Inputs',\n        type: {\n          summary: 'Icons',\n          detail: iconConstant.map((x) => `\"${x}\"`).join(' | '),\n        },\n      },\n    },\n  },\n  args: {\n    name: 'brand-acl',\n  },\n  parameters: {\n    docs: {\n      description: {\n        component: 'Setting `color` in your CSS will change the icon color.',\n      },\n    },\n  },\n}"
+                "defaultValue": "{\n  title: 'Components/icon',\n  component: IconComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: {\n      control: { type: 'select' },\n      options: iconConstant,\n    },\n  },\n  args: {\n    name: 'brand-acl',\n  },\n}"
+            },
+            {
+                "name": "meta",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Meta<InputCheckboxComponent>",
+                "defaultValue": "{\n  title: 'Components/input-checkbox',\n  component: InputCheckboxComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    indeterminate: { control: { type: 'boolean' } },\n    model: { control: { type: 'boolean' } },\n  },\n  args: {\n    name: 'name',\n    indeterminate: false,\n    model: false,\n  },\n  parameters: {},\n}"
             },
             {
                 "name": "meta",
@@ -178,7 +728,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Meta<InputRadioComponent>",
-                "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {},\n  args: {},\n  parameters: {},\n}"
+                "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    value: { control: { type: 'text' } },\n    model: { control: { type: 'text' } },\n  },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  parameters: {},\n}"
             },
             {
                 "name": "preview",
@@ -194,11 +744,31 @@
                 "name": "SpecActive",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n  },\n}"
+            },
+            {
+                "name": "SpecActive",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"radio\"]');\n    input?.click();\n  },\n}"
+            },
+            {
+                "name": "SpecActiveFocus",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecActiveFocus",
@@ -234,11 +804,31 @@
                 "name": "SpecDefault",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecDefault",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecDefaultFocus",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecDefaultFocus",
@@ -254,11 +844,41 @@
                 "name": "SpecHover",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecHover",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story",
                 "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+            },
+            {
+                "name": "SpecIndeterminate",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    indeterminate: true,\n  },\n}"
+            },
+            {
+                "name": "SpecIndeterminateFocus",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story",
+                "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"'name'\" [indeterminate]=\"true\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
             },
             {
                 "name": "SpecSize64px",
@@ -277,7 +897,7 @@
                 "name": "IconType",
                 "ctype": "miscellaneous",
                 "subtype": "typealias",
-                "rawtype": "\"brand-acl\" | \"shape-circle\"",
+                "rawtype": "\"brand-acl\" | \"input-check-mark\" | \"input-indeterminate-mark\" | \"shape-circle\"",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
@@ -290,6 +910,17 @@
                 "subtype": "typealias",
                 "rawtype": "StoryObj<IconComponent>",
                 "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "kind": 184
+            },
+            {
+                "name": "Story",
+                "ctype": "miscellaneous",
+                "subtype": "typealias",
+                "rawtype": "StoryObj<InputCheckboxComponent>",
+                "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "description": "",
@@ -340,7 +971,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Meta<IconComponent>",
-                    "defaultValue": "{\n  title: 'Components/icon',\n  component: IconComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: {\n      type: { name: 'string', required: true },\n      control: { type: 'select' },\n      options: iconConstant,\n      table: {\n        category: 'Inputs',\n        type: {\n          summary: 'Icons',\n          detail: iconConstant.map((x) => `\"${x}\"`).join(' | '),\n        },\n      },\n    },\n  },\n  args: {\n    name: 'brand-acl',\n  },\n  parameters: {\n    docs: {\n      description: {\n        component: 'Setting `color` in your CSS will change the icon color.',\n      },\n    },\n  },\n}"
+                    "defaultValue": "{\n  title: 'Components/icon',\n  component: IconComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: {\n      control: { type: 'select' },\n      options: iconConstant,\n    },\n  },\n  args: {\n    name: 'brand-acl',\n  },\n}"
                 },
                 {
                     "name": "SpecColorRed",
@@ -373,6 +1004,98 @@
                     "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [IconComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        acl-icon {\n          width: 64px;\n        }\n      </style>\n\n      <acl-icon [name]=\"'brand-acl'\" />\n    `,\n  }),\n}"
                 }
             ],
+            "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts": [
+                {
+                    "name": "Default",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{}"
+                },
+                {
+                    "name": "meta",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Meta<InputCheckboxComponent>",
+                    "defaultValue": "{\n  title: 'Components/input-checkbox',\n  component: InputCheckboxComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    indeterminate: { control: { type: 'boolean' } },\n    model: { control: { type: 'boolean' } },\n  },\n  args: {\n    name: 'name',\n    indeterminate: false,\n    model: false,\n  },\n  parameters: {},\n}"
+                },
+                {
+                    "name": "SpecActive",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n  },\n}"
+                },
+                {
+                    "name": "SpecActiveFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.click();\n    input?.focus();\n  },\n}"
+                },
+                {
+                    "name": "SpecDefault",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                },
+                {
+                    "name": "SpecDefaultFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                },
+                {
+                    "name": "SpecHover",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n}"
+                },
+                {
+                    "name": "SpecIndeterminate",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  args: {\n    indeterminate: true,\n  },\n}"
+                },
+                {
+                    "name": "SpecIndeterminateFocus",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story",
+                    "defaultValue": "{\n  parameters: { docs: { disable: true } },\n  decorators: [\n    moduleMetadata({\n      imports: [InputCheckboxComponent],\n    }),\n  ],\n  render: (args) => ({\n    props: args,\n    template: `\n      <style>\n        :has(> input) {\n          padding: 3px;\n        }\n      </style>\n\n      <acl-input-checkbox [name]=\"'name'\" [indeterminate]=\"true\" />\n    `,\n  }),\n  play: ({ canvasElement }) => {\n    const input = canvasElement.querySelector<HTMLInputElement>('input[type=\"checkbox\"]');\n    input?.focus();\n  },\n}"
+                }
+            ],
             "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts": [
                 {
                     "name": "Default",
@@ -392,7 +1115,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Meta<InputRadioComponent>",
-                    "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {},\n  args: {},\n  parameters: {},\n}"
+                    "defaultValue": "{\n  title: 'Components/input-radio',\n  component: InputRadioComponent,\n  tags: ['autodocs'],\n  argTypes: {\n    name: { control: { type: 'text' } },\n    value: { control: { type: 'text' } },\n    model: { control: { type: 'text' } },\n  },\n  args: {\n    name: 'name',\n    value: 'value',\n    model: '',\n  },\n  parameters: {},\n}"
                 },
                 {
                     "name": "SpecActive",
@@ -476,7 +1199,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "[]",
-                    "defaultValue": "[\n  'brand-acl',\n  'shape-circle',\n]"
+                    "defaultValue": "[\n  'brand-acl',\n  'input-check-mark',\n  'input-indeterminate-mark',\n  'shape-circle',\n]"
                 }
             ]
         },
@@ -488,7 +1211,7 @@
                     "name": "IconType",
                     "ctype": "miscellaneous",
                     "subtype": "typealias",
-                    "rawtype": "\"brand-acl\" | \"shape-circle\"",
+                    "rawtype": "\"brand-acl\" | \"input-check-mark\" | \"input-indeterminate-mark\" | \"shape-circle\"",
                     "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.type.ts",
                     "deprecated": false,
                     "deprecationMessage": "",
@@ -503,6 +1226,19 @@
                     "subtype": "typealias",
                     "rawtype": "StoryObj<IconComponent>",
                     "file": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "kind": 184
+                }
+            ],
+            "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts": [
+                {
+                    "name": "Story",
+                    "ctype": "miscellaneous",
+                    "subtype": "typealias",
+                    "rawtype": "StoryObj<InputCheckboxComponent>",
+                    "file": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "description": "",
@@ -530,7 +1266,7 @@
         "children": []
     },
     "coverage": {
-        "count": 0,
+        "count": 8,
         "status": "low",
         "files": [
             {
@@ -628,9 +1364,9 @@
                 "type": "component",
                 "linktype": "component",
                 "name": "IconComponent",
-                "coveragePercent": 0,
-                "coverageCount": "0/2",
-                "status": "low"
+                "coveragePercent": 100,
+                "coverageCount": "2/2",
+                "status": "very-good"
             },
             {
                 "filePath": "libs/@amiral-corelab/acl/src/lib/components/icon/icon.constant.ts",
@@ -651,6 +1387,115 @@
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "Default",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "meta",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecActive",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecActiveFocus",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecDefault",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecDefaultFocus",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecHover",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecIndeterminate",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "SpecIndeterminateFocus",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.stories.ts",
+                "type": "type alias",
+                "linktype": "miscellaneous",
+                "linksubtype": "typealias",
+                "name": "Story",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-checkbox/input-checkbox.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "InputCheckboxComponent",
+                "coveragePercent": 80,
+                "coverageCount": "4/5",
+                "status": "very-good"
             },
             {
                 "filePath": "libs/@amiral-corelab/acl/src/lib/components/input-radio/input-radio.component.stories.ts",
@@ -737,9 +1582,9 @@
                 "type": "component",
                 "linktype": "component",
                 "name": "InputRadioComponent",
-                "coveragePercent": 0,
-                "coverageCount": "0/1",
-                "status": "low"
+                "coveragePercent": 80,
+                "coverageCount": "4/5",
+                "status": "very-good"
             }
         ]
     }

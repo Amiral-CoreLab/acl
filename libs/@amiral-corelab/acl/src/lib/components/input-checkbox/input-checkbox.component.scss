@@ -1,0 +1,48 @@
+@use '../../styles/color';
+@use '../../styles/component';
+@use '../../styles/state';
+
+@layer component {
+  acl-input-checkbox {
+    @include component.base;
+
+    & > input[type='checkbox'] {
+      @include component.base;
+      @include state.focus;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1rem;
+      aspect-ratio: 1;
+      margin: 0;
+      appearance: none;
+      cursor: pointer;
+      background-color: color.$background-input;
+      border: solid 2px color.$text-default;
+
+      &::after {
+        position: absolute;
+        display: none;
+        width: inherit;
+        aspect-ratio: 1;
+        content: '';
+        background-color: color.$primary-default;
+        mask-image: var(--acl-icon-input-check-mark);
+      }
+
+      &:indeterminate,
+      &:checked {
+        border-color: color.$primary-default;
+
+        &::after {
+          display: block;
+        }
+      }
+
+      &:indeterminate::after {
+        mask-image: var(--acl-icon-input-indeterminate-mark);
+      }
+    }
+  }
+}
