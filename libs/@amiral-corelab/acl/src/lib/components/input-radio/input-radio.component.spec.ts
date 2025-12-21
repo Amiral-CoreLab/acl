@@ -14,6 +14,9 @@ describe('InputRadioComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(InputRadioComponent);
+    fixture.componentRef.setInput('name', 'name');
+    fixture.componentRef.setInput('value', 'value');
+    fixture.componentRef.setInput('model', '');
     component = fixture.componentInstance;
 
     await fixture.whenStable();
