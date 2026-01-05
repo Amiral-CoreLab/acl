@@ -37,8 +37,6 @@ export const SpecActive: Story = {
       <style>
         acl-input-switch {
           --acl-animation-default: 0ms;
-
-          translate: 3px 3px;
         }
       </style>
 
