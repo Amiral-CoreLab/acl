@@ -4,10 +4,6 @@
 /* eslint-disable */
 /* stylelint-disable */
 @use 'sass:map';
-@use '@ibm/plex-sans/scss' as PlexSans with (
-  $font-prefix: '~@ibm/plex-sans'
-);
-@include PlexSans.all;
 
 $typography: (
   text: (
@@ -20,19 +16,21 @@ $typography: (
     font-family: 'IBM Plex Sans',
     font-size: 1rem,
     font-weight: 450,
-    line-height: 1em,
+    line-height: 1.25em,
+  ),
+  interactive-monospaced: (
+    font-family: 'IBM Plex Mono',
+    font-size: 1rem,
+    font-weight: 450,
+    line-height: 1.25em,
   ),
 ) !default;
 
 @mixin typography($style) {
   $config: map.get($typography, $style);
 
+  font-family: map.get($config, font-family);
   font-size: map.get($config, font-size);
   font-weight: map.get($config, font-weight);
   line-height: map.get($config, line-height);
-}
-
-:root {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 16px;
 }

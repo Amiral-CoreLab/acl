@@ -70,4 +70,10 @@ export default ts.config(
       '@typescript-eslint/no-unsafe-call': 'off',
     },
   },
+  {
+    files: ['**/*.enum.ts'],
+    rules: {
+      '@typescript-eslint/no-magic-numbers': 'off',
+    },
+  },
 );

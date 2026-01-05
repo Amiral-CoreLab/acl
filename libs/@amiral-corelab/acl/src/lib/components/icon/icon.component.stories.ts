@@ -6,9 +6,9 @@ import { iconConstant } from './icon.constant';
 const meta: Meta<IconComponent> = {
   title: 'Components/icon',
   component: IconComponent,
-  tags: ['autodocs'],
   argTypes: {
     name: {
+      type: { name: 'string', required: true },
       control: { type: 'select' },
       options: iconConstant,
     },
@@ -25,16 +25,20 @@ type Story = StoryObj<IconComponent>;
 export const Default: Story = {};
 
 export const SpecDefault: Story = {
-  parameters: { docs: { disable: true } },
+  args: {
+    name: 'brand-acl',
+  },
 };
 
 export const SpecColorRed: Story = {
-  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [IconComponent],
     }),
   ],
+  args: {
+    name: 'brand-acl',
+  },
   render: (args) => ({
     props: args,
     template: `
@@ -50,12 +54,14 @@ export const SpecColorRed: Story = {
 };
 
 export const SpecSize64px: Story = {
-  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [IconComponent],
     }),
   ],
+  args: {
+    name: 'brand-acl',
+  },
   render: (args) => ({
     props: args,
     template: `

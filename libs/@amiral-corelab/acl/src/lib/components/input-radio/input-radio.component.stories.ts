@@ -50,8 +50,8 @@ export const SpecDefaultFocus: Story = {
     props: args,
     template: `
       <style>
-        :has(> input) {
-          padding: 3px;
+        acl-input-radio {
+          translate: 3px 3px;
         }
       </style>
 
@@ -98,8 +98,8 @@ export const SpecActiveFocus: Story = {
     props: args,
     template: `
       <style>
-        :has(> input) {
-          padding: 3px;
+        acl-input-radio {
+          translate: 3px 3px;
         }
       </style>
 
