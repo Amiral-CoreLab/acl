@@ -3,13 +3,13 @@
 
 /* eslint-disable */
 /* stylelint-disable */
-$background-1000: #fffdf8ff !default;
-$background-950: #f2f0ebff !default;
-$background-975: #f9f7f1ff !default;
-$background-input: #ffffffff !default;
-$primary-active: #035559ff !default;
-$primary-default: #017c82ff !default;
-$primary-hover: #036367ff !default;
-$state-focus-inner: #f2f0ebff !default;
-$state-focus-outer: #017c82ff !default;
-$text-default: #000000ff !default;
+$background-1000: var(--acl-color-background-1000, #fffdf8ff) !default;
+$background-950: var(--acl-color-background-950, #f2f0ebff) !default;
+$background-975: var(--acl-color-background-975, #f9f7f1ff) !default;
+$background-input: var(--acl-color-background-input, #ffffffff) !default;
+$primary-active: var(--acl-color-primary-active, #035559ff) !default;
+$primary-default: var(--acl-color-primary-default, #017c82ff) !default;
+$primary-hover: var(--acl-color-primary-hover, #036367ff) !default;
+$state-focus-inner: var(--acl-color-state-focus-inner, #f2f0ebff) !default;
+$state-focus-outer: var(--acl-color-state-focus-outer, #017c82ff) !default;
+$text-default: var(--acl-color-text-default, #000000ff) !default;

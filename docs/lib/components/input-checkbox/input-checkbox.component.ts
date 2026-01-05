@@ -11,9 +11,6 @@ import { FormsModule } from '@angular/forms';
 })
 export class InputCheckboxComponent {
   /**
-   * @remarks
-   * **@required**
-   *
    * @description
    * Input name
    */
@@ -26,9 +23,6 @@ export class InputCheckboxComponent {
   public readonly indeterminate = input<boolean>(false);
 
   /**
-   * @remarks
-   * **@required**
-   *
    * @description
    * Input model
    */
