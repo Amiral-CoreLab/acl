@@ -1,0 +1,24 @@
+@use '../../styles/color';
+@use '../../styles/component';
+@use '../../styles/font';
+@use '../../styles/state';
+@use '../../styles/sizing';
+
+@layer component {
+  acl-input-number {
+    @include component.base;
+    @include state.focus;
+
+    & > input[type='text'] {
+      @include component.base;
+      @include component.input-text-border-bottom;
+      @include font.typography(interactive);
+
+      width: 200px;
+      height: 40px;
+      padding: sizing.$l;
+      color: color.$text-default;
+      background-color: color.$background-input;
+    }
+  }
+}

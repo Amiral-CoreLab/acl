@@ -1,0 +1,42 @@
+@use '../../styles/animation';
+@use '../../styles/color';
+@use '../../styles/component';
+@use '../../styles/state';
+
+@layer component {
+  acl-input-switch {
+    @include component.base;
+
+    & > input[type='checkbox'] {
+      @include component.base;
+      @include state.focus;
+
+      width: 26px;
+      height: 16px;
+      padding: 2px;
+      color: color.$text-default;
+      cursor: pointer;
+      background-color: color.$background-input;
+      border: solid 2px;
+
+      &::after {
+        @include component.base;
+
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        content: '';
+        background-color: currentcolor;
+        transition: translate animation.$default;
+      }
+
+      &:checked {
+        color: color.$primary-default;
+
+        &::after {
+          translate: 10px;
+        }
+      }
+    }
+  }
+}

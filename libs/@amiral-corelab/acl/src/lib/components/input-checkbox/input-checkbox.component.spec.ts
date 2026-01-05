@@ -15,8 +15,8 @@ describe('InputRadioComponent', () => {
 
     fixture = TestBed.createComponent(InputCheckboxComponent);
     fixture.componentRef.setInput('name', 'name');
-    fixture.componentRef.setInput('indeterminate', 'false');
-    fixture.componentRef.setInput('model', 'false');
+    fixture.componentRef.setInput('indeterminate', false);
+    fixture.componentRef.setInput('model', false);
     component = fixture.componentInstance;
 
     await fixture.whenStable();

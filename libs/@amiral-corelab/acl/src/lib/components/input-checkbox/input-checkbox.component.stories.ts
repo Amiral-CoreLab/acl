@@ -5,15 +5,20 @@ import { InputCheckboxComponent } from './input-checkbox.component';
 const meta: Meta<InputCheckboxComponent> = {
   title: 'Components/input-checkbox',
   component: InputCheckboxComponent,
-  tags: ['autodocs'],
   argTypes: {
-    name: { control: { type: 'text' } },
+    name: {
+      type: { name: 'string', required: true },
+      control: { type: 'text' },
+    },
     indeterminate: { control: { type: 'boolean' } },
-    model: { control: { type: 'boolean' } },
+    model: {
+      type: { name: 'string', required: true },
+      control: { type: 'boolean' },
+    },
   },
   args: {
     name: 'name',
-    indeterminate: false,
+    indeterminate: true,
     model: false,
   },
   parameters: {},
@@ -26,7 +31,6 @@ type Story = StoryObj<InputCheckboxComponent>;
 export const Default: Story = {};
 
 export const SpecActive: Story = {
-  parameters: { docs: { disable: true } },
   args: {
     name: 'name',
     model: true,
@@ -34,7 +38,6 @@ export const SpecActive: Story = {
 };
 
 export const SpecActiveFocus: Story = {
-  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [InputCheckboxComponent],
@@ -48,8 +51,8 @@ export const SpecActiveFocus: Story = {
     props: args,
     template: `
       <style>
-        :has(> input) {
-          padding: 3px;
+        acl-input-checkbox {
+          translate: 3px 3px;
         }
       </style>
 
@@ -63,7 +66,6 @@ export const SpecActiveFocus: Story = {
 };
 
 export const SpecDefault: Story = {
-  parameters: { docs: { disable: true } },
   args: {
     name: 'name',
     model: false,
@@ -71,7 +73,6 @@ export const SpecDefault: Story = {
 };
 
 export const SpecDefaultFocus: Story = {
-  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [InputCheckboxComponent],
@@ -85,8 +86,8 @@ export const SpecDefaultFocus: Story = {
     props: args,
     template: `
       <style>
-        :has(> input) {
-          padding: 3px;
+        acl-input-checkbox {
+          translate: 3px 3px;
         }
       </style>
 
@@ -100,7 +101,6 @@ export const SpecDefaultFocus: Story = {
 };
 
 export const SpecHover: Story = {
-  parameters: { docs: { disable: true } },
   args: {
     name: 'name',
     model: false,
@@ -108,7 +108,6 @@ export const SpecHover: Story = {
 };
 
 export const SpecIndeterminate: Story = {
-  parameters: { docs: { disable: true } },
   args: {
     name: 'name',
     model: false,
@@ -117,7 +116,6 @@ export const SpecIndeterminate: Story = {
 };
 
 export const SpecIndeterminateFocus: Story = {
-  parameters: { docs: { disable: true } },
   decorators: [
     moduleMetadata({
       imports: [InputCheckboxComponent],
@@ -132,8 +130,8 @@ export const SpecIndeterminateFocus: Story = {
     props: args,
     template: `
       <style>
-        :has(> input) {
-          padding: 3px;
+        acl-input-checkbox {
+          translate: 3px 3px;
         }
       </style>
 
