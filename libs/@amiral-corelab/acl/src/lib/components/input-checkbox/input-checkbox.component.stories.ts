@@ -33,6 +33,7 @@ export const Default: Story = {};
 export const SpecActive: Story = {
   args: {
     name: 'name',
+    indeterminate: false,
     model: true,
   },
 };
@@ -45,6 +46,7 @@ export const SpecActiveFocus: Story = {
   ],
   args: {
     name: 'name',
+    indeterminate: false,
     model: true,
   },
   render: (args) => ({
@@ -68,6 +70,7 @@ export const SpecActiveFocus: Story = {
 export const SpecDefault: Story = {
   args: {
     name: 'name',
+    indeterminate: false,
     model: false,
   },
 };
@@ -80,6 +83,7 @@ export const SpecDefaultFocus: Story = {
   ],
   args: {
     name: 'name',
+    indeterminate: false,
     model: false,
   },
   render: (args) => ({
@@ -103,6 +107,7 @@ export const SpecDefaultFocus: Story = {
 export const SpecHover: Story = {
   args: {
     name: 'name',
+    indeterminate: false,
     model: false,
   },
 };
@@ -110,8 +115,8 @@ export const SpecHover: Story = {
 export const SpecIndeterminate: Story = {
   args: {
     name: 'name',
-    model: false,
     indeterminate: true,
+    model: false,
   },
 };
 
@@ -123,8 +128,8 @@ export const SpecIndeterminateFocus: Story = {
   ],
   args: {
     name: 'name',
-    model: false,
     indeterminate: true,
+    model: false,
   },
   render: (args) => ({
     props: args,
