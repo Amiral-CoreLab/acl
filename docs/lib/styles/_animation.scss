@@ -1,0 +1,5 @@
+:root {
+  --acl-animation-default: 100ms ease-out;
+}
+
+$default: var(--acl-animation-default) !default;
