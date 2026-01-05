@@ -26,7 +26,7 @@ const darkThemeScss = `@mixin theme-dark() {
 
 const colorScss = `${colorsConfig
   .filter(({ type }) => type === 'light')
-  .map(({ name, hex }) => `$${name}: ${hex} !default;`)
+  .map(({ name, hex }) => `$${name}: var(--acl-color-${name}, ${hex}) !default;`)
   .join('\n')}
 `;
 

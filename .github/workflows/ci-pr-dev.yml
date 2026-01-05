@@ -123,6 +123,7 @@ jobs:
         with:
           warn: ${{ vars.VISUAL_REGRESSION_WARN }}
           alert: ${{ vars.VISUAL_REGRESSION_ALERT }}
+      - uses: ./.github/composite/tests
       - uses: ./.github/composite/prepare-dev-branch
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

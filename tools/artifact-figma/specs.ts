@@ -1,6 +1,6 @@
-import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, rm } from 'node:fs/promises';
 import type { ComponentsConfig } from '../figma/shared';
-import { generateFileUtil, pathsConstant, ToolConsole } from '../shared';
+import { generateFileUtil, pathsConstant, readdirUtil, ToolConsole } from '../shared';
 import { toKebabCase } from '@core';
 import { getStoryUtil } from './shared';
 
@@ -15,7 +15,7 @@ for (const componentName of componentsConfig) {
   const artifactPath = `artifacts/figma/specs/${kebabName}`;
   const componentPath = `${pathsConstant.lib}/components/${kebabName}`;
   const storiesPath = `${componentPath}/${kebabName}.component.stories.ts`;
-  const specs = await readdir(artifactPath);
+  const specs = (await readdirUtil(artifactPath)) ?? [];
 
   await rm(`${componentPath}/specs`, { recursive: true, force: true });
   await mkdir(`${componentPath}/specs/base`, { recursive: true });

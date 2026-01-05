@@ -10,7 +10,6 @@ import { ${componentName} } from './${name}.component';
 const meta: Meta<${componentName}> = {
   title: 'Components/${kebabName}',
   component: ${componentName},
-  tags: ['autodocs'],
   argTypes: {},
   args: {},
   parameters: {},
