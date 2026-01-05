@@ -9,10 +9,6 @@ const typosConfig = (await readFile(`${pathsConstant.artifactsFigma}/typos.json`
 )) as TyposConfig;
 
 const fontScss = `@use 'sass:map';
-@use '@ibm/plex-sans/scss' as PlexSans with (
-  $font-prefix: '~@ibm/plex-sans'
-);
-@include PlexSans.all;
 
 $typography: (
   ${typosConfig
@@ -30,14 +26,10 @@ $typography: (
 @mixin typography($style) {
   $config: map.get($typography, $style);
 
+  font-family: map.get($config, font-family);
   font-size: map.get($config, font-size);
   font-weight: map.get($config, font-weight);
   line-height: map.get($config, line-height);
-}
-
-:root {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 16px;
 }
 `;
 
