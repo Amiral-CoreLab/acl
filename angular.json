@@ -44,7 +44,7 @@
           "options": {
             "configDir": "libs/@amiral-corelab/acl/.storybook",
             "browserTarget": "acl:build",
-            "compodoc": true,
+            "compodoc": false,
             "port": 6006,
             "stylePreprocessorOptions": {
               "includePaths": ["libs"]
@@ -57,7 +57,7 @@
           "options": {
             "configDir": "libs/@amiral-corelab/acl/.storybook",
             "browserTarget": "acl:build",
-            "compodoc": true,
+            "compodoc": false,
             "outputDir": "docs",
             "styles": ["libs/@amiral-corelab/acl/src/lib/styles/index.scss"]
           }
