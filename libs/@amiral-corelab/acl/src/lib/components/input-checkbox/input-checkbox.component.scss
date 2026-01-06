@@ -5,20 +5,17 @@
 @layer component {
   acl-input-checkbox {
     @include component.base;
-    @include state.focus;
-
-    width: 16px;
-    min-width: fit-content;
-    min-height: fit-content;
-    aspect-ratio: 1;
 
     & > input[type='checkbox'] {
       @include component.base;
+      @include state.focus;
 
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
+      width: 16px;
+      min-width: fit-content;
+      min-height: fit-content;
       aspect-ratio: 1;
       cursor: pointer;
       background-color: color.$background-input;
@@ -27,7 +24,7 @@
       &::after {
         position: absolute;
         display: none;
-        width: calc(100% + 4px);
+        width: inherit;
         aspect-ratio: 1;
         content: '';
         background-color: color.$primary-default;
