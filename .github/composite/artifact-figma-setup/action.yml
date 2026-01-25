@@ -15,10 +15,6 @@ runs:
       shell: bash
       run: npx tsx tools/artifact-figma/typos
 
-    - name: 🎨 Figma Artifacts · Colors
-      shell: bash
-      run: npx tsx tools/artifact-figma/colors
-
     - name: 🧩 Figma Artifacts · Components
       shell: bash
       run: npx tsx tools/artifact-figma/components

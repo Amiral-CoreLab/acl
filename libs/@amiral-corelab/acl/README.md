@@ -10,7 +10,6 @@ Disabled
 
 ## Don't do
 
-- Stepper input (± buttons) (Maybe for synoptics)
 - Slider + numeric sync
 
 ## 🔤 Textuels & numériques (base)
@@ -26,6 +25,7 @@ Disabled
 - [x] Number
   - [x] Integer option
 - [ ] Number with unit (L, dL, cL, mL choice)
+- [ ] Stepper input (± buttons) (Maybe for synoptics)
 
 ⸻
 

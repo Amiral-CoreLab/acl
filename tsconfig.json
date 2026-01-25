@@ -47,6 +47,12 @@
   "references": [
     {
       "path": "./libs/@amiral-corelab/acl/tsconfig.lib.json"
+    },
+    {
+      "path": "./apps/acl-forge/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/acl-forge/tsconfig.spec.json"
     }
   ]
 }

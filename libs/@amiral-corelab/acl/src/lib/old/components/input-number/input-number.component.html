@@ -1,0 +1,8 @@
+<input
+  aclInputNumber
+  type="text"
+  [attr.name]="name()"
+  [integerOnly]="integerOnly()"
+  [(ngModel)]="model"
+  (keydown)="keydownEvent($event)"
+/>
