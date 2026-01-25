@@ -50,6 +50,7 @@ export default ts.config(
       'no-multi-assign': 'off',
       'no-continue': 'off',
       '@typescript-eslint/init-declarations': 'off',
+      'no-void': ['error', { allowAsStatement: true }],
     },
   },
   {
@@ -65,15 +66,8 @@ export default ts.config(
     files: ['tools/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-type-assertion': 'off',
-      '@typescript-eslint/no-magic-numbers': 'off',
       'no-await-in-loop': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
-    },
-  },
-  {
-    files: ['**/*.enum.ts'],
-    rules: {
-      '@typescript-eslint/no-magic-numbers': 'off',
     },
   },
 );

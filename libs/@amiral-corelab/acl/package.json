@@ -11,16 +11,17 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "sass": "./src/lib/styles/index.scss"
+      "sass": "./src/lib/styles/index.scss",
+      "ts": "./src/public-api.ts"
     },
-    "./styles/color": {
-      "sass": "./styles/_color.scss"
+    "./color": {
+      "sass": "./src/lib/styles/_color.scss"
     },
-    "./styles/variables": {
-      "sass": "./styles/_variables.scss"
+    "./variables": {
+      "sass": "./src/lib/styles/_variables.scss"
     },
-    "./styles/typography": {
-      "sass": "./styles/_typography.scss"
+    "./typography": {
+      "sass": "./src/lib/styles/_typography.scss"
     }
   }
 }

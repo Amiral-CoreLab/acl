@@ -1,0 +1,22 @@
+@use '../../../../../../../node_modules/@ibm/plex-sans/scss/index' as PlexSans with (
+  $font-prefix: '@ibm/plex-sans'
+);
+@use '../../../../../../../node_modules/@ibm/plex-mono/scss/index' as PlexMono with (
+  $font-prefix: '@ibm/plex-mono'
+);
+@use 'color';
+@forward 'animation';
+@forward 'icons';
+@forward 'color';
+@include PlexSans.all;
+@include PlexMono.all;
+
+:root {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 16px;
+  background-color: color.$background-default;
+}
+
+.docs-story {
+  background-color: color.$background-default;
+}

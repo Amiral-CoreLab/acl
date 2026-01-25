@@ -38,28 +38,78 @@
             "lintFilePatterns": ["libs/@amiral-corelab/acl/**/*.ts", "libs/@amiral-corelab/acl/**/*.html"],
             "eslintConfig": "libs/@amiral-corelab/acl/eslint.config.mjs"
           }
-        },
-        "storybook": {
-          "builder": "@storybook/angular:start-storybook",
+        }
+      }
+    },
+    "acl-forge": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/acl-forge",
+      "sourceRoot": "apps/acl-forge/src",
+      "prefix": "acl-forge",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
           "options": {
-            "configDir": "libs/@amiral-corelab/acl/.storybook",
-            "browserTarget": "acl:build",
-            "compodoc": false,
-            "port": 6006,
-            "stylePreprocessorOptions": {
-              "includePaths": ["libs"]
+            "browser": "apps/acl-forge/src/main.ts",
+            "tsConfig": "apps/acl-forge/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "apps/acl-forge/public"
+              }
+            ],
+            "styles": ["apps/acl-forge/src/styles.scss"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
             },
-            "styles": ["libs/@amiral-corelab/acl/src/lib/styles/index.scss"]
-          }
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
         },
-        "build-storybook": {
-          "builder": "@storybook/angular:build-storybook",
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "acl-forge:build:production"
+            },
+            "development": {
+              "buildTarget": "acl-forge:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "configDir": "libs/@amiral-corelab/acl/.storybook",
-            "browserTarget": "acl:build",
-            "compodoc": false,
-            "outputDir": "docs",
-            "styles": ["libs/@amiral-corelab/acl/src/lib/styles/index.scss"]
+            "lintFilePatterns": ["apps/acl-forge/**/*.ts", "apps/acl-forge/**/*.html"],
+            "eslintConfig": "apps/acl-forge/eslint.config.js"
           }
         }
       }
@@ -70,23 +120,18 @@
       "inlineStyle": false,
       "inlineTemplate": false,
       "minimal": true,
-      "skipTests": true,
       "ssr": false,
       "standalone": true,
       "style": "scss",
       "zoneless": true,
-      "viewEncapsulation": "None",
       "strict": true,
       "routing": true
     },
     "@schematics/angular:class": {
-      "skipTests": true,
       "type": ""
     },
     "@schematics/angular:component": {
       "type": "component",
-      "skipTests": true,
-      "viewEncapsulation": "None",
       "style": "scss",
       "standalone": true,
       "inlineTemplate": false,
@@ -96,14 +141,12 @@
     },
     "@schematics/angular:directive": {
       "standalone": true,
-      "skipTests": true,
       "type": "directive"
     },
     "@schematics/angular:enum": {
       "type": "enum"
     },
     "@schematics/angular:guard": {
-      "skipTests": true,
       "flat": true,
       "functional": true,
       "implements": ["CanActivate"],
@@ -111,8 +154,7 @@
     },
     "@schematics/angular:interceptor": {
       "typeSeparator": ".",
-      "functional": true,
-      "skipTests": true
+      "functional": true
     },
     "@schematics/angular:interface": {
       "type": "model"
@@ -124,16 +166,13 @@
     },
     "@schematics/angular:pipe": {
       "standalone": true,
-      "skipTests": true,
       "typeSeparator": "."
     },
     "@schematics/angular:resolver": {
-      "skipTests": true,
       "functional": true,
       "typeSeparator": "."
     },
     "@schematics/angular:service": {
-      "skipTests": true,
       "type": "service"
     },
     "@schematics/angular:web-worker": {
