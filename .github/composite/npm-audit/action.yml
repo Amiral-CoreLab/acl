@@ -1,8 +1,0 @@
-name: 🔐 NPM Audit
-
-runs:
-  using: 'composite'
-  steps:
-    - name: 🔐 NPM Audit
-      shell: bash
-      run: npm audit --audit-level=high

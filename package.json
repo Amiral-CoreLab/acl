@@ -2,16 +2,7 @@
   "name": "@amiral-corelab/acl",
   "type": "module",
   "version": "0.0.0",
-  "scripts": {
-    "acl-forge": "ng serve acl-forge",
-    "acl:compodoc": "compodoc -p libs/@amiral-corelab/acl/tsconfig.lib.json -e json -d libs/@amiral-corelab/acl --disablePrivate --disableProtected",
-    "acl:lint": "ng run acl:lint && stylelint libs/@amiral-corelab/acl/**/*.scss",
-    "acl:test": "ng run acl:test",
-    "acl:figma-fetch": "tsx tools/figma/icons && tsx tools/figma/typos && tsx tools/figma/colors && tsx tools/figma/components && tsx tools/figma/specs",
-    "acl:figma-setup": "svgo -f artifacts/figma/icons -r --config=tools/artifact-figma/svgo.config.ts && tsx tools/artifact-figma/icons && tsx tools/artifact-figma/typos && tsx tools/artifact-figma/colors && tsx tools/artifact-figma/components && tsx tools/artifact-figma/specs",
-    "acl:figma": "npm run acl:figma-fetch && npm run acl:figma-setup",
-    "acl:visual-regression": "npm run acl:figma && tsx tools/visual-regression/test && tsx tools/artifact-visual-regression/images && tsx tools/artifact-visual-regression/markdown"
-  },
+  "scripts": {},
   "private": true,
   "dependencies": {
     "@amiral-corelab/acl": "file:libs/@amiral-corelab/acl",
