@@ -3,10 +3,11 @@ import ts from 'typescript-eslint';
 import angular from 'angular-eslint';
 import prettier from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
+import { defineConfig } from 'eslint/config';
 
-export default ts.config(
+export default defineConfig([
   {
-    files: ['**/*.ts', '**/*.component.html'],
+    files: ['**/*.ts', '**/*.html'],
     extends: [prettier],
     rules: {
       'prettier/prettier': [
@@ -51,10 +52,11 @@ export default ts.config(
       'no-continue': 'off',
       '@typescript-eslint/init-declarations': 'off',
       'no-void': ['error', { allowAsStatement: true }],
+      'func-style': ['error', 'declaration'],
     },
   },
   {
-    files: ['**/*.component.html'],
+    files: ['**/*.html'],
     extends: [...angular.configs.templateAll],
     rules: {
       '@angular-eslint/template/i18n': 'off',
@@ -62,12 +64,4 @@ export default ts.config(
       '@angular-eslint/template/prefer-static-string-properties': 'off',
     },
   },
-  {
-    files: ['tools/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-unsafe-type-assertion': 'off',
-      'no-await-in-loop': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-    },
-  },
-);
+]);

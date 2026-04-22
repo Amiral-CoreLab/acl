@@ -1,0 +1,49 @@
+:host {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+
+  & > .tree {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    min-width: 300px;
+    height: 100%;
+    border-right: solid 1px;
+  }
+
+  & > svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  & > .args {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    min-width: 300px;
+    height: 100%;
+    border-left: solid 1px;
+  }
+
+  & > .tools {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    box-sizing: border-box;
+    display: flex;
+    width: 300px;
+    min-width: 300px;
+    height: 50px;
+    border: solid 1px;
+    translate: -50% 0;
+  }
+}
