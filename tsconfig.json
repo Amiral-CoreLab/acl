@@ -2,8 +2,9 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
-      "@amiral-corelab/acl": ["./libs/@amiral-corelab/acl"],
-      "@core": ["./core"]
+      "@amiral-corelab/acl": ["./libs/@amiral-corelab/acl/src/public-api.ts"],
+      "@amiral-corelab/core": ["./libs/@amiral-corelab/core/src/public-api.ts"],
+      "@amiral-corelab/svg": ["./libs/@amiral-corelab/svg/src/public-api.ts"]
     },
     "outDir": "./dist/out-tsc",
     "strict": true,
@@ -53,6 +54,30 @@
     },
     {
       "path": "./apps/acl-forge/tsconfig.spec.json"
+    },
+    {
+      "path": "./apps/shell/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/shell/tsconfig.spec.json"
+    },
+    {
+      "path": "./libs/@amiral-corelab/svg/tsconfig.lib.json"
+    },
+    {
+      "path": "./libs/@amiral-corelab/svg/tsconfig.spec.json"
+    },
+    {
+      "path": "./libs/@amiral-corelab/core/tsconfig.lib.json"
+    },
+    {
+      "path": "./libs/@amiral-corelab/core/tsconfig.spec.json"
+    },
+    {
+      "path": "./apps/symbol-editor/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/symbol-editor/tsconfig.spec.json"
     }
   ]
 }

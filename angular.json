@@ -40,6 +40,218 @@
           }
         }
       }
+    },
+    "shell": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/shell",
+      "sourceRoot": "apps/shell/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/shell/src/main.ts",
+            "tsConfig": "apps/shell/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "apps/shell/public"
+              }
+            ],
+            "styles": ["apps/shell/src/styles.scss"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "shell:build:production"
+            },
+            "development": {
+              "buildTarget": "shell:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["apps/shell/**/*.ts", "apps/shell/**/*.html"],
+            "eslintConfig": "apps/shell/eslint.config.js"
+          }
+        }
+      }
+    },
+    "@amiral-corelab/svg": {
+      "projectType": "library",
+      "root": "libs/@amiral-corelab/svg",
+      "sourceRoot": "libs/@amiral-corelab/svg/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/@amiral-corelab/svg/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "libs/@amiral-corelab/svg/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "libs/@amiral-corelab/svg/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["libs/@amiral-corelab/svg/**/*.ts", "libs/@amiral-corelab/svg/**/*.html"],
+            "eslintConfig": "libs/@amiral-corelab/svg/eslint.config.mjs"
+          }
+        }
+      }
+    },
+    "@amiral-corelab/core": {
+      "projectType": "library",
+      "root": "libs/@amiral-corelab/core",
+      "sourceRoot": "libs/@amiral-corelab/core/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "libs/@amiral-corelab/core/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "libs/@amiral-corelab/core/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "libs/@amiral-corelab/core/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["libs/@amiral-corelab/core/**/*.ts", "libs/@amiral-corelab/core/**/*.html"],
+            "eslintConfig": "libs/@amiral-corelab/core/eslint.config.mjs"
+          }
+        }
+      }
+    },
+    "symbol-editor": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/symbol-editor",
+      "sourceRoot": "apps/symbol-editor/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/symbol-editor/src/main.ts",
+            "tsConfig": "apps/symbol-editor/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "apps/symbol-editor/public"
+              }
+            ],
+            "styles": ["apps/symbol-editor/src/styles.scss"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "symbol-editor:build:production"
+            },
+            "development": {
+              "buildTarget": "symbol-editor:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["apps/symbol-editor/**/*.ts", "apps/symbol-editor/**/*.html"],
+            "eslintConfig": "apps/symbol-editor/eslint.config.js"
+          }
+        }
+      }
     }
   },
   "schematics": {
