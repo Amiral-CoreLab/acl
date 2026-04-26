@@ -1,6 +1,7 @@
 import { Point } from './point';
 
-export interface VertexCustomCornerArcSegment {
+export interface VertexCustomCornerArcArcSegment {
+  readonly kind: 'arc';
   readonly exitX: number;
   readonly exitY: number;
   readonly radiusX: number;
@@ -9,6 +10,14 @@ export interface VertexCustomCornerArcSegment {
   readonly largeArcFlag: number;
   readonly sweepFlag: number;
 }
+
+export interface VertexCustomCornerArcLineSegment {
+  readonly kind: 'line';
+  readonly endX: number;
+  readonly endY: number;
+}
+
+export type VertexCustomCornerArcSegment = VertexCustomCornerArcArcSegment | VertexCustomCornerArcLineSegment;
 
 export interface VertexCustomCornerArc {
   readonly entryX: number;

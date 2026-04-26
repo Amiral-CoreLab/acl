@@ -127,7 +127,9 @@ export class Path {
       return cornerArc.segments
         .map(
           (segment) =>
-            `A${segment.radiusX} ${segment.radiusY} ${segment.axisRotation} ${segment.largeArcFlag} ${segment.sweepFlag} ${segment.exitX} ${segment.exitY}`,
+            segment.kind === 'line'
+              ? `L${segment.endX} ${segment.endY}`
+              : `A${segment.radiusX} ${segment.radiusY} ${segment.axisRotation} ${segment.largeArcFlag} ${segment.sweepFlag} ${segment.exitX} ${segment.exitY}`,
         )
         .join(' ');
     }
@@ -174,7 +176,14 @@ export class Path {
       if (isFirstIndex(index)) {
         pathCommands.push(cornerArc ? Path.getArcMoveToEntryCommand(cornerArc) : vertex.moveToCommand);
       } else if (cornerArc) {
-        pathCommands.push(Path.getArcLineToEntryCommand(cornerArc));
+        const previousVertex = vertices[wrapIndex(index - 1, vertices.length)];
+
+        if (
+          previousVertex?.x !== cornerArc.entryX ||
+          previousVertex.y !== cornerArc.entryY
+        ) {
+          pathCommands.push(Path.getArcLineToEntryCommand(cornerArc));
+        }
       } else if (this.isPreviousCornerArcExit(vertex, index, cornerArcs)) {
         continue;
       } else {
