@@ -87,20 +87,6 @@ interface NormalizedArc extends PointLike {
   readonly radiusY: number;
 }
 
-class SplitShapePath extends Path {
-  private readonly pathData: string;
-
-  public constructor(vertices: Vertex[], pathData: string) {
-    super(vertices);
-    this.isPathClosed = true;
-    this.pathData = pathData;
-  }
-
-  public override get d(): string {
-    return this.pathData;
-  }
-}
-
 function subtract(first: PointLike, second: PointLike): PointLike {
   return {
     x: first.x - second.x,
@@ -444,10 +430,6 @@ function addArcCommandPrimitive(
   return nextPoint;
 }
 
-function getVertexArcCommandCount(vertex: Vertex): number {
-  return vertex.customCornerArc?.pathCommands?.length ?? ONE;
-}
-
 function canVertexCreateCornerArc(path: Path, vertex: Vertex, index: number): boolean {
   if (vertex.customCornerArc !== undefined) {
     return true;
@@ -478,7 +460,7 @@ function getArcSourceVertices(path: Path): Vertex[] {
       return [];
     }
 
-    return Array.from({ length: getVertexArcCommandCount(vertex) }, () => vertex);
+    return [vertex];
   });
 }
 
@@ -941,32 +923,6 @@ function mergeEdgeCommands(edgeCommands: EdgeCommand[]): EdgeCommand[] {
   }, []);
 }
 
-function getArcCommand(primitive: ArcPrimitive, fromT: number, toT: number): string {
-  const end = getPrimitivePoint(primitive, toT);
-  const deltaAngle = primitive.deltaAngle * (toT - fromT);
-  const largeArcFlag = Math.abs(deltaAngle) > Math.PI ? ONE : ZERO;
-  const sweepFlag = deltaAngle >= ZERO ? ONE : ZERO;
-  const axisRotation = (primitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN;
-
-  return `A${primitive.radiusX} ${primitive.radiusY} ${axisRotation} ${largeArcFlag} ${sweepFlag} ${end.x} ${end.y}`;
-}
-
-function getEdgePathCommand(edgeCommand: EdgeCommand, primitives: Primitive[]): string | undefined {
-  const primitive = primitives[edgeCommand.primitiveIndex];
-
-  if (!primitive) {
-    return undefined;
-  }
-
-  if (primitive.kind === 'line') {
-    const end = getPrimitivePoint(primitive, edgeCommand.tEnd);
-
-    return `L${end.x} ${end.y}`;
-  }
-
-  return getArcCommand(primitive, edgeCommand.tStart, edgeCommand.tEnd);
-}
-
 function getArcSweepFlag(primitive: ArcPrimitive, fromT: number, toT: number): number {
   return primitive.deltaAngle * (toT - fromT) >= ZERO ? ONE : ZERO;
 }
@@ -998,6 +954,98 @@ function addModelVertex(vertices: Vertex[], vertex: Vertex): void {
   vertices.push(vertex);
 }
 
+function getCornerTangentOffsets(vertices: Vertex[]): number[] {
+  const cornerGeometries = vertices.map((vertex, index) => {
+    const previousVertex = vertices[(index - ONE + vertices.length) % vertices.length];
+    const nextVertex = vertices[(index + ONE) % vertices.length];
+
+    if (!previousVertex || !nextVertex || vertex.cornerRadius <= ZERO || vertex.customCornerArc !== undefined) {
+      return undefined;
+    }
+
+    try {
+      return new CornerGeometry(previousVertex, vertex, nextVertex);
+    } catch {
+      return undefined;
+    }
+  });
+  const normalizedCornerOffsets = cornerGeometries.map((cornerGeometry) => {
+    const offset = cornerGeometry?.tangentOffset ?? ZERO;
+
+    return {
+      incoming: offset,
+      outgoing: offset,
+    };
+  });
+
+  for (let index = ZERO; index < vertices.length; index += ONE) {
+    const currentGeometry = cornerGeometries[index];
+    const nextIndex = (index + ONE) % vertices.length;
+    const nextGeometry = cornerGeometries[nextIndex];
+    const currentTangentOffset = currentGeometry?.tangentOffset ?? ZERO;
+    const nextTangentOffset = nextGeometry?.tangentOffset ?? ZERO;
+    const totalOffset = currentTangentOffset + nextTangentOffset;
+    const currentVertex = vertices[index];
+    const nextVertex = vertices[nextIndex];
+    const edgeLength = currentVertex && nextVertex ? currentVertex.vectorTo(nextVertex).length : undefined;
+
+    if (edgeLength === undefined || edgeLength === ZERO || totalOffset <= edgeLength) {
+      continue;
+    }
+
+    const scale = edgeLength / totalOffset;
+
+    const currentOffsets = normalizedCornerOffsets[index];
+    const nextOffsets = normalizedCornerOffsets[nextIndex];
+
+    if (currentTangentOffset > ZERO && currentOffsets) {
+      currentOffsets.outgoing = currentTangentOffset * scale;
+    }
+
+    if (nextTangentOffset > ZERO && nextOffsets) {
+      nextOffsets.incoming = nextTangentOffset * scale;
+    }
+  }
+
+  return normalizedCornerOffsets.map((offsets) => Math.min(offsets.incoming, offsets.outgoing));
+}
+
+function getComputedArcEntry(vertex: Vertex, vertices: Vertex[], index: number): PointLike | undefined {
+  if (vertex.customCornerArc !== undefined) {
+    return {
+      x: vertex.customCornerArc.entryX,
+      y: vertex.customCornerArc.entryY,
+    };
+  }
+
+  if (vertex.cornerRadius <= ZERO) {
+    return undefined;
+  }
+
+  const previousVertex = vertices[(index - ONE + vertices.length) % vertices.length];
+  const nextVertex = vertices[(index + ONE) % vertices.length];
+
+  if (!previousVertex || !nextVertex) {
+    return undefined;
+  }
+
+  try {
+    const geometry = new CornerGeometry(previousVertex, vertex, nextVertex);
+    const tangentOffset = getCornerTangentOffsets(vertices)[index];
+
+    if (tangentOffset === undefined || tangentOffset <= ZERO) {
+      return undefined;
+    }
+
+    return {
+      x: vertex.x + geometry.incomingUnitVector.x * tangentOffset,
+      y: vertex.y + geometry.incomingUnitVector.y * tangentOffset,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function getEdgeCommandEndVertex(
   edgeCommand: EdgeCommand,
   primitive: Primitive,
@@ -1006,26 +1054,6 @@ function getEdgeCommandEndVertex(
   const end = nodes.get(edgeCommand.toKey)?.point ?? getPrimitivePoint(primitive, edgeCommand.tEnd);
 
   return new Vertex(end.x, end.y);
-}
-
-function isArcEdgeCommand(edgeCommand: EdgeCommand, primitives: Primitive[]): boolean {
-  return primitives[edgeCommand.primitiveIndex]?.kind === 'arc';
-}
-
-function getArcRunEndIndex(edgeCommands: EdgeCommand[], primitives: Primitive[], startIndex: number): number {
-  let endIndex = startIndex;
-
-  while (endIndex + ONE < edgeCommands.length) {
-    const nextEdgeCommand = edgeCommands[endIndex + ONE];
-
-    if (nextEdgeCommand === undefined || !isArcEdgeCommand(nextEdgeCommand, primitives)) {
-      break;
-    }
-
-    endIndex += ONE;
-  }
-
-  return endIndex;
 }
 
 function getArcRunSourceVertexSimpler(edgeCommands: EdgeCommand[], primitives: Primitive[]): Vertex | undefined {
@@ -1041,51 +1069,6 @@ function getArcRunSourceVertexSimpler(edgeCommands: EdgeCommand[], primitives: P
   return undefined;
 }
 
-function areConnectedCustomCornerArcs(firstVertex: Vertex, secondVertex: Vertex): boolean {
-  const firstArc = firstVertex.customCornerArc;
-  const secondArc = secondVertex.customCornerArc;
-
-  if (firstArc === undefined || secondArc === undefined) {
-    return false;
-  }
-
-  return isSamePoint({ x: firstArc.exitX, y: firstArc.exitY }, { x: secondArc.entryX, y: secondArc.entryY });
-}
-
-function mergeCustomCornerArcVertices(firstVertex: Vertex, secondVertex: Vertex): Vertex {
-  const firstArc = firstVertex.customCornerArc;
-  const secondArc = secondVertex.customCornerArc;
-
-  if (firstArc === undefined || secondArc === undefined) {
-    return secondVertex;
-  }
-
-  return cloneVertex(secondVertex, {
-    entryX: firstArc.entryX,
-    entryY: firstArc.entryY,
-    exitX: secondArc.exitX,
-    exitY: secondArc.exitY,
-    radiusX: secondArc.radiusX,
-    radiusY: secondArc.radiusY,
-    axisRotation: secondArc.axisRotation,
-    largeArcFlag: secondArc.largeArcFlag,
-    pathCommands: [...(firstArc.pathCommands ?? []), ...(secondArc.pathCommands ?? [])],
-    sweepFlag: secondArc.sweepFlag,
-  });
-}
-
-function isCustomCornerArcExitVertex(previousVertex: Vertex, vertex: Vertex): boolean {
-  const { customCornerArc } = previousVertex;
-
-  return (
-    customCornerArc !== undefined &&
-    isSamePoint(vertex, {
-      x: customCornerArc.exitX,
-      y: customCornerArc.exitY,
-    })
-  );
-}
-
 function isCustomCornerArcEntryVertex(vertex: Vertex, nextVertex: Vertex): boolean {
   const { customCornerArc } = nextVertex;
 
@@ -1098,19 +1081,41 @@ function isCustomCornerArcEntryVertex(vertex: Vertex, nextVertex: Vertex): boole
   );
 }
 
-function isCustomCornerArcEntryPoint(vertex: Vertex, nextVertex: Vertex): boolean {
-  const { customCornerArc } = nextVertex;
+function shouldAbsorbPreviousArcExit(previousVertex: Vertex, vertex: Vertex, nextVertex: Vertex): boolean {
+  return (
+    isPlainVertex(vertex) &&
+    previousVertex.customCornerArc !== undefined &&
+    (
+      isSamePoint(vertex, nextVertex) ||
+      nextVertex.cornerRadius > ZERO ||
+      nextVertex.customCornerArc !== undefined
+    )
+  );
+}
 
-  if (customCornerArc === undefined) {
-    return false;
-  }
-
-  return vertex.x === customCornerArc.entryX && vertex.y === customCornerArc.entryY;
+function shouldMoveCurrentArcToNextVertex(previousVertex: Vertex | undefined, vertex: Vertex, nextVertex: Vertex): boolean {
+  return (
+    previousVertex?.customCornerArc !== undefined &&
+    vertex.customCornerArc !== undefined &&
+    isSamePoint(vertex, { x: vertex.customCornerArc.entryX, y: vertex.customCornerArc.entryY }) &&
+    isPlainVertex(nextVertex) &&
+    isSamePoint(nextVertex, { x: vertex.customCornerArc.exitX, y: vertex.customCornerArc.exitY })
+  );
 }
 
 function compactModelVertices(vertices: Vertex[]): Vertex[] {
-  const compactedVertices = vertices.reduce<Vertex[]>((compacted, vertex) => {
+  const compactedVertices = vertices.reduce<Vertex[]>((compacted, vertex, index, sourceVertices) => {
     const previousVertex = compacted[compacted.length - ONE];
+    const nextIndex = (index + ONE) % sourceVertices.length;
+    const nextVertex = sourceVertices[nextIndex];
+
+    if (previousVertex && isSamePoint(previousVertex, vertex)) {
+      if (previousVertex.customCornerArc === undefined && vertex.customCornerArc !== undefined) {
+        compacted[compacted.length - ONE] = vertex;
+      }
+
+      return compacted;
+    }
 
     if (previousVertex && isCustomCornerArcEntryVertex(previousVertex, vertex)) {
       compacted[compacted.length - ONE] = vertex;
@@ -1118,13 +1123,13 @@ function compactModelVertices(vertices: Vertex[]): Vertex[] {
       return compacted;
     }
 
-    if (previousVertex && areConnectedCustomCornerArcs(previousVertex, vertex)) {
-      compacted[compacted.length - ONE] = mergeCustomCornerArcVertices(previousVertex, vertex);
-
+    if (previousVertex && nextVertex && shouldAbsorbPreviousArcExit(previousVertex, vertex, nextVertex)) {
       return compacted;
     }
 
-    if (previousVertex && isCustomCornerArcExitVertex(previousVertex, vertex)) {
+    if (nextVertex && nextIndex !== ZERO && shouldMoveCurrentArcToNextVertex(previousVertex, vertex, nextVertex)) {
+      compacted.push(cloneVertex(nextVertex, vertex.customCornerArc));
+
       return compacted;
     }
 
@@ -1165,6 +1170,27 @@ function removeRedundantStraightVertices(vertices: Vertex[]): Vertex[] {
   });
 }
 
+function removePreviousArcExitVertices(vertices: Vertex[]): Vertex[] {
+  if (vertices.length <= MINIMUM_FACE_VERTEX_COUNT) {
+    return vertices;
+  }
+
+  return vertices.filter((vertex, index) => {
+    const previousVertex = vertices[(index - ONE + vertices.length) % vertices.length];
+    const nextVertex = vertices[(index + ONE) % vertices.length];
+
+    return (
+      !previousVertex ||
+      !nextVertex ||
+      !(
+        isPlainVertex(vertex) &&
+        previousVertex.customCornerArc !== undefined &&
+        (nextVertex.cornerRadius > ZERO || nextVertex.customCornerArc !== undefined)
+      )
+    );
+  });
+}
+
 function removeArcEntryVertices(vertices: Vertex[]): Vertex[] {
   if (vertices.length <= MINIMUM_FACE_VERTEX_COUNT + ONE) {
     return vertices;
@@ -1172,18 +1198,47 @@ function removeArcEntryVertices(vertices: Vertex[]): Vertex[] {
 
   return vertices.filter((vertex, index) => {
     const nextVertex = vertices[(index + ONE) % vertices.length];
+    const nextEntryPoint =
+      nextVertex === undefined ? undefined : getComputedArcEntry(nextVertex, vertices, (index + ONE) % vertices.length);
 
-    return nextVertex === undefined || !isCustomCornerArcEntryPoint(vertex, nextVertex);
+    return nextEntryPoint === undefined || !isSamePoint(vertex, nextEntryPoint);
   });
 }
 
-function getArcRunCustomVertex(edgeCommands: EdgeCommand[], primitives: Primitive[]): Vertex | undefined {
+function collapseTechnicalArcExitVertices(vertices: Vertex[]): Vertex[] {
+  if (vertices.length <= MINIMUM_FACE_VERTEX_COUNT) {
+    return vertices;
+  }
+
+  return vertices.filter((vertex, index) => {
+    const previousVertex = vertices[(index - ONE + vertices.length) % vertices.length];
+    const nextVertex = vertices[(index + ONE) % vertices.length];
+
+    return !(
+      previousVertex?.customCornerArc !== undefined &&
+      isPlainVertex(vertex) &&
+      (nextVertex?.cornerRadius ?? ZERO) > ZERO
+    );
+  });
+}
+
+function getArcRunCustomVertex(
+  edgeCommands: EdgeCommand[],
+  primitives: Primitive[],
+  nodes: Map<string, GraphNode>,
+): Vertex | undefined {
   const sourceVertex = getArcRunSourceVertexSimpler(edgeCommands, primitives);
   const firstEdgeCommand = edgeCommands[ZERO];
   const lastEdgeCommand = edgeCommands[edgeCommands.length - ONE];
   const lastPrimitive = lastEdgeCommand ? primitives[lastEdgeCommand.primitiveIndex] : undefined;
 
-  if (!sourceVertex || !firstEdgeCommand || !lastEdgeCommand || lastPrimitive?.kind !== 'arc') {
+  if (
+    !sourceVertex ||
+    !firstEdgeCommand ||
+    !lastEdgeCommand ||
+    lastPrimitive?.kind !== 'arc' ||
+    edgeCommands.length !== ONE
+  ) {
     return undefined;
   }
 
@@ -1194,12 +1249,7 @@ function getArcRunCustomVertex(edgeCommands: EdgeCommand[], primitives: Primitiv
   }
 
   const entry = getPrimitivePoint(firstPrimitive, firstEdgeCommand.tStart);
-  const exit = getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
-  const pathCommands = edgeCommands.flatMap((edgeCommand) => {
-    const command = getEdgePathCommand(edgeCommand, primitives);
-
-    return command === undefined ? [] : [command];
-  });
+  const exit = nodes.get(lastEdgeCommand.toKey)?.point ?? getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
 
   return cloneVertex(sourceVertex, {
     entryX: entry.x,
@@ -1210,80 +1260,32 @@ function getArcRunCustomVertex(edgeCommands: EdgeCommand[], primitives: Primitiv
     radiusY: lastPrimitive.radiusY,
     axisRotation: (lastPrimitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
     largeArcFlag: getArcLargeArcFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
-    pathCommands,
     sweepFlag: getArcSweepFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
   });
 }
 
-function getMergedArcRunCustomVertex(
-  firstArcRunEdgeCommands: EdgeCommand[],
-  secondArcRunEdgeCommands: EdgeCommand[],
-  primitives: Primitive[],
-): Vertex | undefined {
-  const sourceVertex = getArcRunSourceVertexSimpler(secondArcRunEdgeCommands, primitives);
-  const firstEdgeCommand = firstArcRunEdgeCommands[ZERO];
-  const lastEdgeCommand = secondArcRunEdgeCommands[secondArcRunEdgeCommands.length - ONE];
-  const firstPrimitive = firstEdgeCommand ? primitives[firstEdgeCommand.primitiveIndex] : undefined;
-  const lastPrimitive = lastEdgeCommand ? primitives[lastEdgeCommand.primitiveIndex] : undefined;
-
-  if (!sourceVertex || !firstEdgeCommand || !lastEdgeCommand || firstPrimitive?.kind !== 'arc' || lastPrimitive?.kind !== 'arc') {
-    return undefined;
-  }
-
-  const entry = getPrimitivePoint(firstPrimitive, firstEdgeCommand.tStart);
-  const exit = getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
-  const pathCommands = [...firstArcRunEdgeCommands, ...secondArcRunEdgeCommands].flatMap((edgeCommand) => {
-    const command = getEdgePathCommand(edgeCommand, primitives);
-
-    return command === undefined ? [] : [command];
-  });
-
-  return cloneVertex(sourceVertex, {
-    entryX: entry.x,
-    entryY: entry.y,
-    exitX: exit.x,
-    exitY: exit.y,
-    radiusX: lastPrimitive.radiusX,
-    radiusY: lastPrimitive.radiusY,
-    axisRotation: (lastPrimitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
-    largeArcFlag: getArcLargeArcFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
-    pathCommands,
-    sweepFlag: getArcSweepFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
-  });
-}
-
-function getStartAnchoredArcRunVertex(
+function getStartAnchoredArcVertex(
   vertex: Vertex,
-  edgeCommands: EdgeCommand[],
-  primitives: Primitive[],
+  edgeCommand: EdgeCommand,
+  primitive: ArcPrimitive,
+  nodes: Map<string, GraphNode>,
 ): Vertex | undefined {
-  const firstEdgeCommand = edgeCommands[ZERO];
-  const lastEdgeCommand = edgeCommands[edgeCommands.length - ONE];
-  const firstPrimitive = firstEdgeCommand ? primitives[firstEdgeCommand.primitiveIndex] : undefined;
-  const lastPrimitive = lastEdgeCommand ? primitives[lastEdgeCommand.primitiveIndex] : undefined;
-
-  if (!firstEdgeCommand || !lastEdgeCommand || firstPrimitive?.kind !== 'arc' || lastPrimitive?.kind !== 'arc') {
+  if (edgeCommand.primitiveIndex !== primitive.index) {
     return undefined;
   }
 
-  const exit = getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
-  const pathCommands = edgeCommands.flatMap((edgeCommand) => {
-    const command = getEdgePathCommand(edgeCommand, primitives);
-
-    return command === undefined ? [] : [command];
-  });
+  const exit = nodes.get(edgeCommand.toKey)?.point ?? getPrimitivePoint(primitive, edgeCommand.tEnd);
 
   return cloneVertex(new Vertex(vertex.x, vertex.y, vertex.cornerRadius), {
     entryX: vertex.x,
     entryY: vertex.y,
     exitX: exit.x,
     exitY: exit.y,
-    radiusX: lastPrimitive.radiusX,
-    radiusY: lastPrimitive.radiusY,
-    axisRotation: (lastPrimitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
-    largeArcFlag: getArcLargeArcFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
-    pathCommands,
-    sweepFlag: getArcSweepFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
+    radiusX: primitive.radiusX,
+    radiusY: primitive.radiusY,
+    axisRotation: (primitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
+    largeArcFlag: getArcLargeArcFlag(primitive, edgeCommand.tStart, edgeCommand.tEnd),
+    sweepFlag: getArcSweepFlag(primitive, edgeCommand.tStart, edgeCommand.tEnd),
   });
 }
 
@@ -1322,6 +1324,16 @@ function isCompleteSingleArcRun(edgeCommands: EdgeCommand[], primitives: Primiti
   );
 }
 
+function isSingleEdgePartialArc(edgeCommand: EdgeCommand | undefined, primitives: Primitive[]): boolean {
+  if (!edgeCommand) {
+    return false;
+  }
+
+  const primitive = primitives[edgeCommand.primitiveIndex];
+
+  return primitive?.kind === 'arc' && (!isEqual(edgeCommand.tStart, ZERO) || !isEqual(edgeCommand.tEnd, ONE));
+}
+
 function getFaceVertices(
   firstNode: GraphNode,
   edgeCommands: EdgeCommand[],
@@ -1344,163 +1356,57 @@ function getFaceVertices(
     }
 
     if (primitive.kind === 'arc') {
-      const runEndIndex = getArcRunEndIndex(edgeCommands, primitives, index);
-      const arcRunEdgeCommands = edgeCommands.slice(index, runEndIndex + ONE);
-      const customArcRunVertex = getArcRunCustomVertex(arcRunEdgeCommands, primitives);
-      const plainArcRunVertex = getArcRunPlainVertex(arcRunEdgeCommands, primitives);
-      const nextEdgeCommand = edgeCommands[runEndIndex + ONE];
-      const nextPrimitive = nextEdgeCommand ? primitives[nextEdgeCommand.primitiveIndex] : undefined;
-      const nextArcRunStartIndex = runEndIndex + TWO;
-      const nextArcRunStartEdgeCommand = edgeCommands[nextArcRunStartIndex];
-      const nextArcRunStartPrimitive = nextArcRunStartEdgeCommand
-        ? primitives[nextArcRunStartEdgeCommand.primitiveIndex]
-        : undefined;
+      const singleEdgeCommand = [edgeCommand];
+      const customArcRunVertex = getArcRunCustomVertex(singleEdgeCommand, primitives, nodes);
+      const plainArcRunVertex = getArcRunPlainVertex(singleEdgeCommand, primitives);
+      const nextEdgeCommand = edgeCommands[index + ONE];
+      const nextNextEdgeCommand = edgeCommands[index + TWO];
+      const shouldPreferCustomCompleteArc =
+        nextEdgeCommand !== undefined &&
+        primitives[nextEdgeCommand.primitiveIndex]?.kind === 'line' &&
+        isSingleEdgePartialArc(nextNextEdgeCommand, primitives);
+      const previousVertex = vertices[vertices.length - ONE];
 
-      if (!isCompleteSingleArcRun(arcRunEdgeCommands, primitives) && nextPrimitive?.kind === 'line' && nextArcRunStartPrimitive?.kind === 'arc') {
-        const nextArcRunEndIndex = getArcRunEndIndex(edgeCommands, primitives, nextArcRunStartIndex);
-        const nextArcRunEdgeCommands = edgeCommands.slice(nextArcRunStartIndex, nextArcRunEndIndex + ONE);
-        const mergedArcRunVertex = getMergedArcRunCustomVertex(
-          arcRunEdgeCommands,
-          nextArcRunEdgeCommands,
-          primitives,
-        );
-        const anchorVertex = vertices[vertices.length - ONE];
-
+      if (isCompleteSingleArcRun(singleEdgeCommand, primitives)) {
         if (
-          mergedArcRunVertex &&
-          anchorVertex &&
-          isCompleteSingleArcRun(nextArcRunEdgeCommands, primitives) &&
-          getArcRunCustomVertex(nextArcRunEdgeCommands, primitives)
+          previousVertex?.customCornerArc !== undefined &&
+          customArcRunVertex?.customCornerArc !== undefined &&
+          customArcRunVertex.cornerRadius > ZERO
         ) {
-          const anchoredVertex = getStartAnchoredArcRunVertex(
-            anchorVertex,
-            [...arcRunEdgeCommands, ...nextArcRunEdgeCommands],
-            primitives,
-          );
-
-          if (anchoredVertex) {
-            vertices[vertices.length - ONE] = anchoredVertex;
-          }
-
-          addModelVertex(vertices, clonePlainVertex(mergedArcRunVertex));
-          index = nextArcRunEndIndex;
-          continue;
+          addModelVertex(vertices, customArcRunVertex);
+        } else if (shouldPreferCustomCompleteArc && customArcRunVertex?.customCornerArc !== undefined) {
+          addModelVertex(vertices, customArcRunVertex);
+        } else if (customArcRunVertex?.customCornerArc !== undefined && customArcRunVertex.cornerRadius === ZERO) {
+          addModelVertex(vertices, customArcRunVertex);
+        } else if (plainArcRunVertex) {
+          addModelVertex(vertices, plainArcRunVertex);
         }
-      }
-
-      if (plainArcRunVertex && isCompleteSingleArcRun(arcRunEdgeCommands, primitives)) {
-        addModelVertex(vertices, plainArcRunVertex);
-      } else if (customArcRunVertex && hasMultipleArcPrimitives(arcRunEdgeCommands, primitives)) {
-        addModelVertex(vertices, customArcRunVertex);
       } else {
-        const lastEdgeCommand = edgeCommands[runEndIndex];
-        const lastPrimitive = lastEdgeCommand ? primitives[lastEdgeCommand.primitiveIndex] : undefined;
         const anchorVertex = vertices[vertices.length - ONE];
 
         if (anchorVertex) {
-          const anchoredVertex = getStartAnchoredArcRunVertex(anchorVertex, arcRunEdgeCommands, primitives);
+          const anchoredVertex = getStartAnchoredArcVertex(anchorVertex, edgeCommand, primitive, nodes);
 
           if (anchoredVertex) {
             vertices[vertices.length - ONE] = anchoredVertex;
           }
         }
 
-        if (lastEdgeCommand && lastPrimitive) {
-          addModelVertex(vertices, getEdgeCommandEndVertex(lastEdgeCommand, lastPrimitive, nodes));
+        if (customArcRunVertex && hasMultipleArcPrimitives(singleEdgeCommand, primitives)) {
+          addModelVertex(vertices, customArcRunVertex);
+        } else {
+          addModelVertex(vertices, getEdgeCommandEndVertex(edgeCommand, primitive, nodes));
         }
       }
-
-      index = runEndIndex;
       continue;
-    }
-
-    if (primitive.kind === 'line') {
-      const nextEdgeCommand = edgeCommands[index + ONE];
-      const nextPrimitive = nextEdgeCommand ? primitives[nextEdgeCommand.primitiveIndex] : undefined;
-
-      if (nextEdgeCommand && nextPrimitive?.kind === 'arc' && nextEdgeCommand.tStart === ZERO) {
-        continue;
-      }
     }
 
     addModelVertex(vertices, getEdgeCommandEndVertex(edgeCommand, primitive, nodes));
   }
 
-  return removeArcEntryVertices(removeRedundantStraightVertices(compactModelVertices(vertices)));
-}
-
-function getFacePathData(
-  faceKeys: string[],
-  nodes: Map<string, GraphNode>,
-  edgeCommands: Map<string, EdgeCommand>,
-  primitives: Primitive[],
-): string | undefined {
-  const firstNode = nodes.get(faceKeys[ZERO] ?? '');
-
-  if (!firstNode) {
-    return undefined;
-  }
-
-  const mergedEdgeCommands = mergeEdgeCommands(getFaceEdgeCommands(faceKeys, edgeCommands));
-  const commands: string[] = [];
-
-  for (let index = ZERO; index < mergedEdgeCommands.length; index += ONE) {
-    const edgeCommand = mergedEdgeCommands[index];
-
-    if (!edgeCommand) {
-      continue;
-    }
-
-    const primitive = primitives[edgeCommand.primitiveIndex];
-
-    if (!primitive) {
-      continue;
-    }
-
-    if (primitive.kind === 'arc') {
-      const runEndIndex = getArcRunEndIndex(mergedEdgeCommands, primitives, index);
-      const arcRunEdgeCommands = mergedEdgeCommands.slice(index, runEndIndex + ONE);
-      const nextEdgeCommand = mergedEdgeCommands[runEndIndex + ONE];
-      const nextPrimitive = nextEdgeCommand ? primitives[nextEdgeCommand.primitiveIndex] : undefined;
-      const nextArcRunStartIndex = runEndIndex + TWO;
-      const nextArcRunStartEdgeCommand = mergedEdgeCommands[nextArcRunStartIndex];
-      const nextArcRunStartPrimitive = nextArcRunStartEdgeCommand
-        ? primitives[nextArcRunStartEdgeCommand.primitiveIndex]
-        : undefined;
-
-      if (
-        !isCompleteSingleArcRun(arcRunEdgeCommands, primitives) &&
-        nextPrimitive?.kind === 'line' &&
-        nextArcRunStartPrimitive?.kind === 'arc'
-      ) {
-        const nextArcRunEndIndex = getArcRunEndIndex(mergedEdgeCommands, primitives, nextArcRunStartIndex);
-        const nextArcRunEdgeCommands = mergedEdgeCommands.slice(nextArcRunStartIndex, nextArcRunEndIndex + ONE);
-
-        if (
-          isCompleteSingleArcRun(nextArcRunEdgeCommands, primitives) &&
-          getArcRunCustomVertex(nextArcRunEdgeCommands, primitives)
-        ) {
-          commands.push(
-            ...[...arcRunEdgeCommands, ...nextArcRunEdgeCommands].flatMap((candidateEdgeCommand) => {
-              const command = getEdgePathCommand(candidateEdgeCommand, primitives);
-
-              return command === undefined ? [] : [command];
-            }),
-          );
-          index = nextArcRunEndIndex;
-          continue;
-        }
-      }
-    }
-
-    const command = getEdgePathCommand(edgeCommand, primitives);
-
-    if (command !== undefined) {
-      commands.push(command);
-    }
-  }
-
-  return [`M${firstNode.point.x} ${firstNode.point.y}`, ...commands, 'Z'].join(' ');
+  return collapseTechnicalArcExitVertices(
+    removeArcEntryVertices(removePreviousArcExitVertices(removeRedundantStraightVertices(compactModelVertices(vertices)))),
+  );
 }
 
 function getFacePath(
@@ -1509,12 +1415,6 @@ function getFacePath(
   edgeCommands: Map<string, EdgeCommand>,
   primitives: Primitive[],
 ): Path | undefined {
-  const pathData = getFacePathData(faceKeys, nodes, edgeCommands, primitives);
-
-  if (pathData === undefined) {
-    return undefined;
-  }
-
   const firstNode = nodes.get(faceKeys[ZERO] ?? '');
 
   if (!firstNode) {
@@ -1527,8 +1427,10 @@ function getFacePath(
     primitives,
     nodes,
   );
+  const path = new Path(vertices);
+  path.isPathClosed = true;
 
-  return new SplitShapePath(vertices, pathData);
+  return path;
 }
 
 function addFace(

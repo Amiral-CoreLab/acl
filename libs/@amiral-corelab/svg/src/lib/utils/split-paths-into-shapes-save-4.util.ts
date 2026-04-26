@@ -988,7 +988,6 @@ function mergeCustomCornerArcVertices(firstVertex: Vertex, secondVertex: Vertex)
     radiusY: secondArc.radiusY,
     axisRotation: secondArc.axisRotation,
     largeArcFlag: secondArc.largeArcFlag,
-    pathCommands: [...(firstArc.pathCommands ?? []), ...(secondArc.pathCommands ?? [])],
     sweepFlag: secondArc.sweepFlag,
   });
 }
@@ -1157,12 +1156,6 @@ function getArcRunCustomVertex(edgeCommands: EdgeCommand[], primitives: Primitiv
 
   const entry = getPrimitivePoint(firstPrimitive, firstEdgeCommand.tStart);
   const exit = getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
-  const pathCommands = edgeCommands.flatMap((edgeCommand) => {
-    const command = getEdgePathCommand(edgeCommand, primitives);
-
-    return command === undefined ? [] : [command];
-  });
-
   return cloneVertex(sourceVertex, {
     entryX: entry.x,
     entryY: entry.y,
@@ -1172,7 +1165,6 @@ function getArcRunCustomVertex(edgeCommands: EdgeCommand[], primitives: Primitiv
     radiusY: lastPrimitive.radiusY,
     axisRotation: (lastPrimitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
     largeArcFlag: getArcLargeArcFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
-    pathCommands,
     sweepFlag: getArcSweepFlag(lastPrimitive, lastEdgeCommand.tStart, lastEdgeCommand.tEnd),
   });
 }

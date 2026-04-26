@@ -119,12 +119,17 @@ export class Path {
   }
 
   private static getArcToExitCommand(cornerArc: PathCornerArc): string {
-    if (!(cornerArc instanceof CornerArc) && cornerArc.pathCommands) {
-      return cornerArc.pathCommands.join(' ');
-    }
-
     if (cornerArc instanceof CornerArc) {
       return cornerArc.arcToExitCommand;
+    }
+
+    if (cornerArc.segments !== undefined && cornerArc.segments.length > 0) {
+      return cornerArc.segments
+        .map(
+          (segment) =>
+            `A${segment.radiusX} ${segment.radiusY} ${segment.axisRotation} ${segment.largeArcFlag} ${segment.sweepFlag} ${segment.exitX} ${segment.exitY}`,
+        )
+        .join(' ');
     }
 
     return `A${cornerArc.radiusX} ${cornerArc.radiusY} ${cornerArc.axisRotation} ${cornerArc.largeArcFlag} ${cornerArc.sweepFlag} ${cornerArc.exitX} ${cornerArc.exitY}`;

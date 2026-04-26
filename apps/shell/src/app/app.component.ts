@@ -57,5 +57,47 @@ export class AppComponent implements AfterViewInit {
         return x;
       }),
     );
+
+    /*
+    Const a = new Path([
+      new Vertex(100, 100, 0),
+      new Vertex(100, 50, 0),
+      new Vertex(150, 50, 25),
+      new Vertex(150, 100, 0),
+    ]);
+    a.isPathClosed = true;
+    const aEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    aEl.setAttribute('d', a.d);
+    aEl.style.fill = 'none';
+    aEl.style.stroke = 'black';
+    aEl.style.strokeWidth = '2';
+    document.querySelector('svg')?.append(aEl);
+
+    const b = new Path([
+      new Vertex(100, 100, 0),
+      new Vertex(150, 100, 0),
+      new Vertex(150, 199.82377936025472, 0, {
+        entryX: 150,
+        entryY: 199.82377936025472,
+        exitX: 100,
+        exitY: 187.6486088799652,
+        radiusX: 137.5122775687305,
+        radiusY: 137.5122775687305,
+        axisRotation: 0,
+        largeArcFlag: 0,
+        pathCommands: ['A137.5122775687305 137.5122775687305 0 0 1 100 187.6486088799652'],
+        sweepFlag: 1,
+      }),
+      new Vertex(100, 187.64860887996525, 0),
+    ]);
+    b.isPathClosed = true;
+    const bEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    bEl.setAttribute('d', b.d);
+    bEl.style.fill = 'none';
+    bEl.style.stroke = 'black';
+    bEl.style.strokeWidth = '2';
+    document.querySelector('svg')?.append(bEl);
+
+     */
   }
 }
