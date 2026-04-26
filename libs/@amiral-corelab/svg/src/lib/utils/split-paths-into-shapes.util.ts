@@ -3,6 +3,11 @@ import { Path } from '../classes/path';
 import { Vertex } from '../classes/vertex';
 import { CornerGeometry } from '../classes/corner-geometry';
 import { Point, type PointLike } from '../classes/point';
+import { SegmentSplitPoint } from '../classes/segment-split-point';
+import { SplitEdgeCommand } from '../classes/split-edge-command';
+import { SplitGraphNode } from '../classes/split-graph-node';
+import { SplitSegment } from '../classes/split-segment';
+import { SvgArcEndpointParameters } from '../classes/svg-arc-endpoint-parameters';
 import { Vector } from '../classes/vector';
 
 const ZERO = 0;
@@ -38,44 +43,9 @@ interface ArcPrimitive extends BasePrimitive {
 
 type Primitive = ArcPrimitive | LinePrimitive;
 
-interface Segment {
-  readonly start: Point;
-  readonly end: Point;
-  readonly primitiveIndex: number;
-  readonly tStart: number;
-  readonly tEnd: number;
-}
-
-interface SegmentSplitPoint {
-  readonly point: Point;
-  readonly t: number;
-}
-
-interface GraphNode {
-  readonly key: string;
-  readonly point: Point;
-}
-
 interface DirectedEdge {
   readonly fromKey: string;
   readonly toKey: string;
-}
-
-interface EdgeCommand {
-  readonly fromKey: string;
-  readonly toKey: string;
-  readonly primitiveIndex: number;
-  readonly tStart: number;
-  readonly tEnd: number;
-}
-
-interface ArcEndpointParameters {
-  readonly radiusX: number;
-  readonly radiusY: number;
-  readonly axisRotation: number;
-  readonly largeArcFlag: number;
-  readonly sweepFlag: number;
-  readonly end: Point;
 }
 
 interface NormalizedArc extends PointLike {
@@ -95,13 +65,6 @@ function dot(first: PointLike, second: PointLike): number {
   return first.x * second.x + first.y * second.y;
 }
 
-function getPointAt(segment: Segment, t: number): Point {
-  return new Point(
-    segment.start.x + (segment.end.x - segment.start.x) * t,
-    segment.start.y + (segment.end.y - segment.start.y) * t,
-  );
-}
-
 function getPointKey(point: PointLike): string {
   return `${point.x},${point.y}`;
 }
@@ -118,7 +81,7 @@ function isEqual(first: number, second: number): boolean {
   return first === second;
 }
 
-function getGraphNodeKey(nodes: Map<string, GraphNode>, point: PointLike): string {
+function getGraphNodeKey(nodes: Map<string, SplitGraphNode>, point: PointLike): string {
   for (const node of nodes.values()) {
     if (Point.isEqual(node.point, point)) {
       return node.key;
@@ -128,15 +91,7 @@ function getGraphNodeKey(nodes: Map<string, GraphNode>, point: PointLike): strin
   return getPointKey(point);
 }
 
-function getSegmentParameter(segment: Segment, point: PointLike): number {
-  const direction = subtract(segment.end, segment.start);
-  const pointDirection = subtract(point, segment.start);
-  const lengthSquared = dot(direction, direction);
-
-  return lengthSquared === ZERO ? ZERO : dot(pointDirection, direction) / lengthSquared;
-}
-
-function getSegmentIntersection(firstSegment: Segment, secondSegment: Segment): Point | undefined {
+function getSegmentIntersection(firstSegment: SplitSegment, secondSegment: SplitSegment): Point | undefined {
   const p = firstSegment.start;
   const q = secondSegment.start;
   const r = subtract(firstSegment.end, firstSegment.start);
@@ -155,7 +110,7 @@ function getSegmentIntersection(firstSegment: Segment, secondSegment: Segment): 
     return undefined;
   }
 
-  return getPointAt(firstSegment, firstT);
+  return firstSegment.pointAt(firstT);
 }
 
 function tokenizePathData(d: string): string[] {
@@ -218,7 +173,7 @@ function getArcDeltaAngle(sweepFlag: number, startVector: PointLike, endVector: 
   return deltaAngle;
 }
 
-function getArcCenterPrime(normalizedArc: NormalizedArc, parameters: ArcEndpointParameters, ratio: number): Point {
+function getArcCenterPrime(normalizedArc: NormalizedArc, parameters: SvgArcEndpointParameters, ratio: number): Point {
   const sign = parameters.largeArcFlag === parameters.sweepFlag ? -ONE : ONE;
   const coefficient = sign * Math.sqrt(ratio);
 
@@ -260,7 +215,7 @@ function getArcVectors(
 function createArcPrimitive(
   index: number,
   start: Point,
-  parameters: ArcEndpointParameters,
+  parameters: SvgArcEndpointParameters,
   sourceVertex?: Vertex,
 ): ArcPrimitive | undefined {
   if (parameters.radiusX === ZERO || parameters.radiusY === ZERO) {
@@ -323,7 +278,7 @@ function getPrimitivePoint(primitive: Primitive, t: number): Point {
   );
 }
 
-function readArcEndpointParameters(tokens: string[], index: number): ArcEndpointParameters | undefined {
+function readArcEndpointParameters(tokens: string[], index: number): SvgArcEndpointParameters | undefined {
   const values = Array.from({ length: SVG_ARC_TOKEN_COUNT }, (_, offset) => readNumber(tokens, index + offset));
 
   if (values.some((value) => value === undefined)) {
@@ -344,14 +299,14 @@ function readArcEndpointParameters(tokens: string[], index: number): ArcEndpoint
     return undefined;
   }
 
-  return {
+  return new SvgArcEndpointParameters(
     radiusX,
     radiusY,
     axisRotation,
     largeArcFlag,
     sweepFlag,
-    end: new Point(endX, endY),
-  };
+    new Point(endX, endY),
+  );
 }
 
 function addLinePrimitive(primitives: Primitive[], start: Point, end: Point): void {
@@ -397,7 +352,7 @@ function addPointCommandPrimitive(
 function addArcCommandPrimitive(
   primitives: Primitive[],
   currentPoint: Point,
-  arcParameters: ArcEndpointParameters,
+  arcParameters: SvgArcEndpointParameters,
   sourceVertex: Vertex | undefined,
 ) : Point {
   const arcPrimitive = createArcPrimitive(primitives.length, currentPoint, arcParameters, sourceVertex);
@@ -525,14 +480,8 @@ function getSortedSplitPoints(splitPoints: SegmentSplitPoint[]): SegmentSplitPoi
     });
 }
 
-function getPrimitiveBaseSegment(primitive: Primitive): Segment {
-  return {
-    start: primitive.start,
-    end: primitive.end,
-    primitiveIndex: primitive.index,
-    tStart: ZERO,
-    tEnd: ONE,
-  };
+function getPrimitiveBaseSegment(primitive: Primitive): SplitSegment {
+  return new SplitSegment(primitive.start, primitive.end, primitive.index, ZERO, ONE);
 }
 
 function getArcPointParameter(arc: ArcPrimitive, point: PointLike): number {
@@ -593,14 +542,8 @@ function getLineArcIntersectionSplitPoints(
 
     return [
       {
-        lineSplitPoint: {
-          point,
-          t: lineT,
-        },
-        arcSplitPoint: {
-          point,
-          t: arcT,
-        },
+        lineSplitPoint: new SegmentSplitPoint(point, lineT),
+        arcSplitPoint: new SegmentSplitPoint(point, arcT),
       },
     ];
   });
@@ -618,14 +561,12 @@ function addPrimitiveIntersectionSplitPoints(
     );
 
     if (intersection) {
-      splitPointMap.get(firstPrimitive.index)?.push({
-        point: intersection,
-        t: getSegmentParameter(getPrimitiveBaseSegment(firstPrimitive), intersection),
-      });
-      splitPointMap.get(secondPrimitive.index)?.push({
-        point: intersection,
-        t: getSegmentParameter(getPrimitiveBaseSegment(secondPrimitive), intersection),
-      });
+      splitPointMap.get(firstPrimitive.index)?.push(
+        new SegmentSplitPoint(intersection, getPrimitiveBaseSegment(firstPrimitive).getParameter(intersection)),
+      );
+      splitPointMap.get(secondPrimitive.index)?.push(
+        new SegmentSplitPoint(intersection, getPrimitiveBaseSegment(secondPrimitive).getParameter(intersection)),
+      );
     }
 
     return;
@@ -658,16 +599,7 @@ function createPrimitiveSplitPointMap(primitives: Primitive[]): Map<number, Segm
   const splitPointMap = new Map(
     primitives.map((primitive) => [
       primitive.index,
-      [
-        {
-          point: primitive.start,
-          t: ZERO,
-        },
-        {
-          point: primitive.end,
-          t: ONE,
-        },
-      ],
+      [new SegmentSplitPoint(primitive.start, ZERO), new SegmentSplitPoint(primitive.end, ONE)],
     ]),
   );
 
@@ -690,9 +622,9 @@ function createPrimitiveSplitPointMap(primitives: Primitive[]): Map<number, Segm
   return splitPointMap;
 }
 
-function getSplitPrimitiveSegments(primitives: Primitive[]): Segment[] {
+function getSplitPrimitiveSegments(primitives: Primitive[]): SplitSegment[] {
   const splitPointMap = createPrimitiveSplitPointMap(primitives);
-  const splitSegments: Segment[] = [];
+  const splitSegments: SplitSegment[] = [];
 
   for (const primitive of primitives) {
     const splitPoints = getSortedSplitPoints(splitPointMap.get(primitive.index) ?? []);
@@ -705,13 +637,7 @@ function getSplitPrimitiveSegments(primitives: Primitive[]): Segment[] {
         continue;
       }
 
-      splitSegments.push({
-        start: start.point,
-        end: end.point,
-        primitiveIndex: primitive.index,
-        tStart: start.t,
-        tEnd: end.t,
-      });
+      splitSegments.push(new SplitSegment(start.point, end.point, primitive.index, start.t, end.t));
     }
   }
 
@@ -719,10 +645,10 @@ function getSplitPrimitiveSegments(primitives: Primitive[]): Segment[] {
 }
 
 function addGraphEdge(
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
   adjacency: Map<string, string[]>,
-  edgeCommands: Map<string, EdgeCommand>,
-  segment: Segment,
+  edgeCommands: Map<string, SplitEdgeCommand>,
+  segment: SplitSegment,
 ): void {
   const startKey = getGraphNodeKey(nodes, segment.start);
   const endKey = getGraphNodeKey(nodes, segment.end);
@@ -732,27 +658,15 @@ function addGraphEdge(
     return;
   }
 
-  nodes.set(startKey, {
-    key: startKey,
-    point: segment.start,
-  });
-  nodes.set(endKey, {
-    key: endKey,
-    point: segment.end,
-  });
-  edgeCommands.set(edgeKey, {
-    fromKey: startKey,
-    toKey: endKey,
-    primitiveIndex: segment.primitiveIndex,
-    tStart: segment.tStart,
-    tEnd: segment.tEnd,
-  });
+  nodes.set(startKey, new SplitGraphNode(startKey, segment.start));
+  nodes.set(endKey, new SplitGraphNode(endKey, segment.end));
+  edgeCommands.set(edgeKey, new SplitEdgeCommand(startKey, endKey, segment.primitiveIndex, segment.tStart, segment.tEnd));
 
   adjacency.set(startKey, [...(adjacency.get(startKey) ?? []), endKey]);
   adjacency.set(endKey, [...(adjacency.get(endKey) ?? []), startKey]);
 }
 
-function sortGraphAdjacency(nodes: Map<string, GraphNode>, adjacency: Map<string, string[]>): void {
+function sortGraphAdjacency(nodes: Map<string, SplitGraphNode>, adjacency: Map<string, string[]>): void {
   for (const [nodeKey, neighborKeys] of adjacency) {
     const node = nodes.get(nodeKey);
 
@@ -838,7 +752,7 @@ function walkFace(
   return faceKeys;
 }
 
-function isValidFace(faceKeys: string[], nodes: Map<string, GraphNode>): boolean {
+function isValidFace(faceKeys: string[], nodes: Map<string, SplitGraphNode>): boolean {
   if (faceKeys.length < MINIMUM_FACE_VERTEX_COUNT) {
     return false;
   }
@@ -853,10 +767,10 @@ function isValidFace(faceKeys: string[], nodes: Map<string, GraphNode>): boolean
 }
 
 function getEdgeCommand(
-  edgeCommands: Map<string, EdgeCommand>,
+  edgeCommands: Map<string, SplitEdgeCommand>,
   fromKey: string,
   toKey: string,
-): EdgeCommand | undefined {
+): SplitEdgeCommand | undefined {
   const edgeCommand = edgeCommands.get(getUndirectedEdgeKey(fromKey, toKey));
 
   if (!edgeCommand) {
@@ -867,16 +781,10 @@ function getEdgeCommand(
     return edgeCommand;
   }
 
-  return {
-    ...edgeCommand,
-    fromKey,
-    toKey,
-    tStart: edgeCommand.tEnd,
-    tEnd: edgeCommand.tStart,
-  };
+  return edgeCommand.reversed();
 }
 
-function getFaceEdgeCommands(faceKeys: string[], edgeCommands: Map<string, EdgeCommand>): EdgeCommand[] {
+function getFaceEdgeCommands(faceKeys: string[], edgeCommands: Map<string, SplitEdgeCommand>): SplitEdgeCommand[] {
   return faceKeys.flatMap((fromKey, index) => {
     const toKey = faceKeys[(index + ONE) % faceKeys.length];
     const edgeCommand = toKey === undefined ? undefined : getEdgeCommand(edgeCommands, fromKey, toKey);
@@ -885,19 +793,21 @@ function getFaceEdgeCommands(faceKeys: string[], edgeCommands: Map<string, EdgeC
   });
 }
 
-function mergeEdgeCommands(edgeCommands: EdgeCommand[]): EdgeCommand[] {
-  return edgeCommands.reduce<EdgeCommand[]>((mergedEdgeCommands, edgeCommand) => {
+function mergeEdgeCommands(edgeCommands: SplitEdgeCommand[]): SplitEdgeCommand[] {
+  return edgeCommands.reduce<SplitEdgeCommand[]>((mergedEdgeCommands, edgeCommand) => {
     const previousEdgeCommand = mergedEdgeCommands[mergedEdgeCommands.length - ONE];
 
     if (
       previousEdgeCommand?.primitiveIndex === edgeCommand.primitiveIndex &&
       isEqual(previousEdgeCommand.tEnd, edgeCommand.tStart)
     ) {
-      mergedEdgeCommands[mergedEdgeCommands.length - ONE] = {
-        ...previousEdgeCommand,
-        toKey: edgeCommand.toKey,
-        tEnd: edgeCommand.tEnd,
-      };
+      mergedEdgeCommands[mergedEdgeCommands.length - ONE] = new SplitEdgeCommand(
+        previousEdgeCommand.fromKey,
+        edgeCommand.toKey,
+        previousEdgeCommand.primitiveIndex,
+        previousEdgeCommand.tStart,
+        edgeCommand.tEnd,
+      );
 
       return mergedEdgeCommands;
     }
@@ -916,7 +826,7 @@ function getArcLargeArcFlag(primitive: ArcPrimitive, fromT: number, toT: number)
   return Math.abs(primitive.deltaAngle * (toT - fromT)) > Math.PI ? ONE : ZERO;
 }
 
-function getArcRunEndIndex(edgeCommands: EdgeCommand[], primitives: Primitive[], startIndex: number): number {
+function getArcRunEndIndex(edgeCommands: SplitEdgeCommand[], primitives: Primitive[], startIndex: number): number {
   let endIndex = startIndex;
 
   while (endIndex + ONE < edgeCommands.length) {
@@ -1049,16 +959,16 @@ function getComputedArcEntry(vertex: Vertex, vertices: Vertex[], index: number):
 }
 
 function getEdgeCommandEndVertex(
-  edgeCommand: EdgeCommand,
+  edgeCommand: SplitEdgeCommand,
   primitive: Primitive,
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
 ): Vertex {
   const end = nodes.get(edgeCommand.toKey)?.point ?? getPrimitivePoint(primitive, edgeCommand.tEnd);
 
   return new Vertex(end.x, end.y);
 }
 
-function getArcRunSourceVertexSimpler(edgeCommands: EdgeCommand[], primitives: Primitive[]): Vertex | undefined {
+function getArcRunSourceVertexSimpler(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): Vertex | undefined {
   for (let index = edgeCommands.length - ONE; index >= ZERO; index -= ONE) {
     const edgeCommand = edgeCommands[index];
     const primitive = edgeCommand ? primitives[edgeCommand.primitiveIndex] : undefined;
@@ -1229,9 +1139,9 @@ function collapseTechnicalArcExitVertices(vertices: Vertex[]): Vertex[] {
 }
 
 function getArcRunCustomVertex(
-  edgeCommands: EdgeCommand[],
+  edgeCommands: SplitEdgeCommand[],
   primitives: Primitive[],
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
 ): Vertex | undefined {
   const sourceVertex = getArcRunSourceVertexSimpler(edgeCommands, primitives);
   const firstEdgeCommand = edgeCommands[ZERO];
@@ -1271,9 +1181,9 @@ function getArcRunCustomVertex(
 
 function getStartAnchoredArcVertex(
   vertex: Vertex,
-  edgeCommand: EdgeCommand,
+  edgeCommand: SplitEdgeCommand,
   primitive: ArcPrimitive,
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
 ): Vertex | undefined {
   if (edgeCommand.primitiveIndex !== primitive.index) {
     return undefined;
@@ -1306,13 +1216,13 @@ function overrideCustomCornerArcEntry(vertex: Vertex, entryPoint: PointLike): Ve
   });
 }
 
-function getArcRunPlainVertex(edgeCommands: EdgeCommand[], primitives: Primitive[]): Vertex | undefined {
+function getArcRunPlainVertex(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): Vertex | undefined {
   const sourceVertex = getArcRunSourceVertexSimpler(edgeCommands, primitives);
 
   return sourceVertex === undefined ? undefined : clonePlainVertex(sourceVertex);
 }
 
-function hasMultipleArcPrimitives(edgeCommands: EdgeCommand[], primitives: Primitive[]): boolean {
+function hasMultipleArcPrimitives(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): boolean {
   const primitiveIndexes = new Set<number>();
 
   for (const edgeCommand of edgeCommands) {
@@ -1326,7 +1236,7 @@ function hasMultipleArcPrimitives(edgeCommands: EdgeCommand[], primitives: Primi
   return primitiveIndexes.size > ONE;
 }
 
-function isCompleteSingleArcRun(edgeCommands: EdgeCommand[], primitives: Primitive[]): boolean {
+function isCompleteSingleArcRun(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): boolean {
   const firstEdgeCommand = edgeCommands[ZERO];
   const lastEdgeCommand = edgeCommands[edgeCommands.length - ONE];
   const primitive = firstEdgeCommand ? primitives[firstEdgeCommand.primitiveIndex] : undefined;
@@ -1341,7 +1251,7 @@ function isCompleteSingleArcRun(edgeCommands: EdgeCommand[], primitives: Primiti
   );
 }
 
-function isSingleEdgePartialArc(edgeCommand: EdgeCommand | undefined, primitives: Primitive[]): boolean {
+function isSingleEdgePartialArc(edgeCommand: SplitEdgeCommand | undefined, primitives: Primitive[]): boolean {
   if (!edgeCommand) {
     return false;
   }
@@ -1351,7 +1261,7 @@ function isSingleEdgePartialArc(edgeCommand: EdgeCommand | undefined, primitives
   return primitive?.kind === 'arc' && (!isEqual(edgeCommand.tStart, ZERO) || !isEqual(edgeCommand.tEnd, ONE));
 }
 
-function getArcRunSourceVertices(edgeCommands: EdgeCommand[], primitives: Primitive[]): Vertex[] {
+function getArcRunSourceVertices(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): Vertex[] {
   return edgeCommands.flatMap((edgeCommand) => {
     const primitive = primitives[edgeCommand.primitiveIndex];
 
@@ -1359,7 +1269,7 @@ function getArcRunSourceVertices(edgeCommands: EdgeCommand[], primitives: Primit
   });
 }
 
-function hasDistinctArcRunSourceVertices(edgeCommands: EdgeCommand[], primitives: Primitive[]): boolean {
+function hasDistinctArcRunSourceVertices(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): boolean {
   const sourceVertices = getArcRunSourceVertices(edgeCommands, primitives);
 
   return new Set(sourceVertices.map((vertex) => getPointKey(vertex))).size > ONE;
@@ -1367,9 +1277,9 @@ function hasDistinctArcRunSourceVertices(edgeCommands: EdgeCommand[], primitives
 
 function addSplitArcRunVertices(
   vertices: Vertex[],
-  edgeCommands: EdgeCommand[],
+  edgeCommands: SplitEdgeCommand[],
   primitives: Primitive[],
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
 ): void {
   for (let index = ZERO; index < edgeCommands.length; index += ONE) {
     const edgeCommand = edgeCommands[index];
@@ -1404,10 +1314,10 @@ function addSplitArcRunVertices(
 }
 
 function getFaceVertices(
-  firstNode: GraphNode,
-  edgeCommands: EdgeCommand[],
+  firstNode: SplitGraphNode,
+  edgeCommands: SplitEdgeCommand[],
   primitives: Primitive[],
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
 ): Vertex[] {
   const vertices: Vertex[] = [new Vertex(firstNode.point.x, firstNode.point.y)];
 
@@ -1520,8 +1430,8 @@ function getFaceVertices(
 
 function getFacePath(
   faceKeys: string[],
-  nodes: Map<string, GraphNode>,
-  edgeCommands: Map<string, EdgeCommand>,
+  nodes: Map<string, SplitGraphNode>,
+  edgeCommands: Map<string, SplitEdgeCommand>,
   primitives: Primitive[],
 ): Path | undefined {
   const firstNode = nodes.get(faceKeys[ZERO] ?? '');
@@ -1544,8 +1454,8 @@ function getFacePath(
 
 function addFace(
   faceKeys: string[],
-  nodes: Map<string, GraphNode>,
-  edgeCommands: Map<string, EdgeCommand>,
+  nodes: Map<string, SplitGraphNode>,
+  edgeCommands: Map<string, SplitEdgeCommand>,
   primitives: Primitive[],
   visitedFaceKeys: Set<string>,
   faces: Path[],
@@ -1569,9 +1479,9 @@ function addFace(
 }
 
 function getGraphFaces(
-  nodes: Map<string, GraphNode>,
+  nodes: Map<string, SplitGraphNode>,
   adjacency: Map<string, string[]>,
-  edgeCommands: Map<string, EdgeCommand>,
+  edgeCommands: Map<string, SplitEdgeCommand>,
   primitives: Primitive[],
 ): Path[] {
   const visitedDirectedEdges = new Set<string>();
@@ -1605,9 +1515,9 @@ export function splitPathsIntoShapes(paths: Path[]): Path[] {
     .flatMap((path) => parsePathPrimitives(path))
     .map((primitive, index) => ({ ...primitive, index }));
   const splitSegments = getSplitPrimitiveSegments(primitives);
-  const nodes = new Map<string, GraphNode>();
+  const nodes = new Map<string, SplitGraphNode>();
   const adjacency = new Map<string, string[]>();
-  const edgeCommands = new Map<string, EdgeCommand>();
+  const edgeCommands = new Map<string, SplitEdgeCommand>();
 
   for (const segment of splitSegments) {
     addGraphEdge(nodes, adjacency, edgeCommands, segment);

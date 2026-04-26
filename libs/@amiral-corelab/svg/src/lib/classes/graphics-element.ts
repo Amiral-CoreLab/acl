@@ -3,6 +3,10 @@ import { AclDomMatrix } from './acl-dom-matrix';
 import { AclDomRect } from './acl-dom-rect';
 import { AclDomPoint } from './acl-dom-point';
 
+/**
+ * FR: Représente un élément graphique SVG avec des helpers de boîte, matrice et position.
+ * EN: Represents an SVG graphics element with bbox, matrix, and positioning helpers.
+ */
 export class GraphicsElement {
   public readonly isSvg: boolean;
   public readonly element: SVGGraphicsElement;

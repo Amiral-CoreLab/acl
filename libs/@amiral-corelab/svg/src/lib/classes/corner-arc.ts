@@ -3,6 +3,10 @@ import { AxisRotationEnum, LargeArcFlagEnum } from '../enums';
 import type { CornerGeometry } from './corner-geometry';
 import type { Vertex } from './vertex';
 
+/**
+ * FR: Représente l'arc SVG calculé pour arrondir un coin.
+ * EN: Represents the SVG arc computed to round a corner.
+ */
 export class CornerArc {
   public entryX: number;
   public entryY: number;

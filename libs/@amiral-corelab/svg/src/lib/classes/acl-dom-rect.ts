@@ -1,6 +1,10 @@
 import { assert } from '@amiral-corelab/core';
 import { AclDomPoint } from './acl-dom-point';
 
+/**
+ * FR: Représente un rectangle DOM/SVG avec ses coins et son centre.
+ * EN: Represents a DOM/SVG rectangle with its corners and center.
+ */
 export class AclDomRect extends DOMRect {
   public static fromDOMRect(value: DOMRectReadOnly): AclDomRect {
     const { x, y, width, height } = value;

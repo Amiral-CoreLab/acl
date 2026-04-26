@@ -2,6 +2,10 @@ import { SweepFlagEnum } from '../enums';
 import type { Vertex } from './vertex';
 import type { Vector } from './vector';
 
+/**
+ * FR: Représente la géométrie locale d'un coin entre un sommet précédent et suivant.
+ * EN: Represents the local geometry of a corner between the previous and next vertex.
+ */
 export class CornerGeometry {
   public readonly previousVertex: Vertex;
   public readonly cornerVertex: Vertex;

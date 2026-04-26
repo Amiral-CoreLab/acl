@@ -1,5 +1,9 @@
 import type { PointLike } from './point';
 
+/**
+ * FR: Représente un vecteur 2D utilisé pour les calculs de direction et de longueur.
+ * EN: Represents a 2D vector used for direction and length calculations.
+ */
 export class Vector {
   public static fromPoints(from: PointLike, to: PointLike): Vector {
     return new Vector(to.x - from.x, to.y - from.y);

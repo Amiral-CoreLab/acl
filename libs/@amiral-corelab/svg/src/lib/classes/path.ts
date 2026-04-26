@@ -5,6 +5,10 @@ import { CornerGeometry } from './corner-geometry';
 
 type PathCornerArc = CornerArc | VertexCustomCornerArc;
 
+/**
+ * FR: Représente un chemin SVG construit à partir d'une suite de sommets.
+ * EN: Represents an SVG path built from an ordered list of vertices.
+ */
 export class Path {
   public vertices: Vertex[] = [];
   public isPathClosed = false;

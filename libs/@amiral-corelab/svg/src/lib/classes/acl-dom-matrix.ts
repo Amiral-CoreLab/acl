@@ -2,6 +2,10 @@ import { assert } from '@amiral-corelab/core';
 import { MatrixAnchorEnum } from '../enums';
 import { radiansToDegreesUtil } from '../utils';
 
+/**
+ * FR: Représente une matrice 2D SVG avec des helpers de lecture et de conversion.
+ * EN: Represents a 2D SVG matrix with helpers for reading and conversion.
+ */
 export class AclDomMatrix extends DOMMatrix {
   public static fromDOMMatrix(value: DOMMatrixReadOnly): AclDomMatrix {
     const { a, b, c, d, e, f } = value;
