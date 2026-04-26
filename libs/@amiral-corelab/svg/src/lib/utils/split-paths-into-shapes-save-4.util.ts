@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
 import { Path } from '../classes/path';
 import { Vertex } from '../classes/vertex';
+import type { PointLike } from '../classes/point';
 
 const EPSILON = 1e-9;
 const POINT_KEY_PRECISION = 1e9;
@@ -15,11 +16,6 @@ const HALF_TURN = Math.PI;
 const FULL_TURN = Math.PI * TWO;
 const ENTRY_VERTEX_DISTANCE_TOLERANCE = 1;
 const MODEL_VERTEX_SNAP_TOLERANCE = 0.05;
-
-interface PointLike {
-  readonly x: number;
-  readonly y: number;
-}
 
 interface BasePrimitive {
   readonly index: number;

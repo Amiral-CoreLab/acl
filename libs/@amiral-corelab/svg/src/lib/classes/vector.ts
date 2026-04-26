@@ -1,7 +1,7 @@
-import type { Point } from './point';
+import type { PointLike } from './point';
 
 export class Vector {
-  public static fromPoints(from: Point, to: Point): Vector {
+  public static fromPoints(from: PointLike, to: PointLike): Vector {
     return new Vector(to.x - from.x, to.y - from.y);
   }
 

@@ -1,7 +1,12 @@
 import { Vector } from './vector';
 
-export class Point {
-  public static isEqual(a: Point, b: Point): boolean {
+export interface PointLike {
+  readonly x: number;
+  readonly y: number;
+}
+
+export class Point implements PointLike {
+  public static isEqual(a: PointLike, b: PointLike): boolean {
     return a.x === b.x && a.y === b.y;
   }
 
@@ -13,7 +18,7 @@ export class Point {
     this.y = y;
   }
 
-  public vectorTo(target: Point): Vector {
+  public vectorTo(target: PointLike): Vector {
     return Vector.fromPoints(this, target);
   }
 

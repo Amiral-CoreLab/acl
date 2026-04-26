@@ -2,6 +2,8 @@
 import { Path } from '../classes/path';
 import { Vertex } from '../classes/vertex';
 import { CornerGeometry } from '../classes/corner-geometry';
+import { Point, type PointLike } from '../classes/point';
+import { Vector } from '../classes/vector';
 
 const ZERO = 0;
 const ONE = 1;
@@ -12,15 +14,10 @@ const DEGREES_IN_HALF_TURN = 180;
 const HALF_TURN = Math.PI;
 const FULL_TURN = Math.PI * TWO;
 
-interface PointLike {
-  readonly x: number;
-  readonly y: number;
-}
-
 interface BasePrimitive {
   readonly index: number;
-  readonly start: PointLike;
-  readonly end: PointLike;
+  readonly start: Point;
+  readonly end: Point;
 }
 
 interface LinePrimitive extends BasePrimitive {
@@ -42,21 +39,21 @@ interface ArcPrimitive extends BasePrimitive {
 type Primitive = ArcPrimitive | LinePrimitive;
 
 interface Segment {
-  readonly start: PointLike;
-  readonly end: PointLike;
+  readonly start: Point;
+  readonly end: Point;
   readonly primitiveIndex: number;
   readonly tStart: number;
   readonly tEnd: number;
 }
 
 interface SegmentSplitPoint {
-  readonly point: PointLike;
+  readonly point: Point;
   readonly t: number;
 }
 
 interface GraphNode {
   readonly key: string;
-  readonly point: PointLike;
+  readonly point: Point;
 }
 
 interface DirectedEdge {
@@ -78,8 +75,7 @@ interface ArcEndpointParameters {
   readonly axisRotation: number;
   readonly largeArcFlag: number;
   readonly sweepFlag: number;
-  readonly endX: number;
-  readonly endY: number;
+  readonly end: Point;
 }
 
 interface NormalizedArc extends PointLike {
@@ -87,11 +83,8 @@ interface NormalizedArc extends PointLike {
   readonly radiusY: number;
 }
 
-function subtract(first: PointLike, second: PointLike): PointLike {
-  return {
-    x: first.x - second.x,
-    y: first.y - second.y,
-  };
+function subtract(first: PointLike, second: PointLike): Vector {
+  return new Vector(first.x - second.x, first.y - second.y);
 }
 
 function cross(first: PointLike, second: PointLike): number {
@@ -102,11 +95,11 @@ function dot(first: PointLike, second: PointLike): number {
   return first.x * second.x + first.y * second.y;
 }
 
-function getPointAt(segment: Segment, t: number): PointLike {
-  return {
-    x: segment.start.x + (segment.end.x - segment.start.x) * t,
-    y: segment.start.y + (segment.end.y - segment.start.y) * t,
-  };
+function getPointAt(segment: Segment, t: number): Point {
+  return new Point(
+    segment.start.x + (segment.end.x - segment.start.x) * t,
+    segment.start.y + (segment.end.y - segment.start.y) * t,
+  );
 }
 
 function getPointKey(point: PointLike): string {
@@ -125,13 +118,9 @@ function isEqual(first: number, second: number): boolean {
   return first === second;
 }
 
-function isSamePoint(first: PointLike, second: PointLike): boolean {
-  return isEqual(first.x, second.x) && isEqual(first.y, second.y);
-}
-
 function getGraphNodeKey(nodes: Map<string, GraphNode>, point: PointLike): string {
   for (const node of nodes.values()) {
-    if (isSamePoint(node.point, point)) {
+    if (Point.isEqual(node.point, point)) {
       return node.key;
     }
   }
@@ -147,7 +136,7 @@ function getSegmentParameter(segment: Segment, point: PointLike): number {
   return lengthSquared === ZERO ? ZERO : dot(pointDirection, direction) / lengthSquared;
 }
 
-function getSegmentIntersection(firstSegment: Segment, secondSegment: Segment): PointLike | undefined {
+function getSegmentIntersection(firstSegment: Segment, secondSegment: Segment): Point | undefined {
   const p = firstSegment.start;
   const q = secondSegment.start;
   const r = subtract(firstSegment.end, firstSegment.start);
@@ -229,14 +218,14 @@ function getArcDeltaAngle(sweepFlag: number, startVector: PointLike, endVector: 
   return deltaAngle;
 }
 
-function getArcCenterPrime(normalizedArc: NormalizedArc, parameters: ArcEndpointParameters, ratio: number): PointLike {
+function getArcCenterPrime(normalizedArc: NormalizedArc, parameters: ArcEndpointParameters, ratio: number): Point {
   const sign = parameters.largeArcFlag === parameters.sweepFlag ? -ONE : ONE;
   const coefficient = sign * Math.sqrt(ratio);
 
-  return {
-    x: (coefficient * normalizedArc.radiusX * normalizedArc.y) / normalizedArc.radiusY,
-    y: (-coefficient * normalizedArc.radiusY * normalizedArc.x) / normalizedArc.radiusX,
-  };
+  return new Point(
+    (coefficient * normalizedArc.radiusX * normalizedArc.y) / normalizedArc.radiusY,
+    (-coefficient * normalizedArc.radiusY * normalizedArc.x) / normalizedArc.radiusX,
+  );
 }
 
 function getArcCenter(
@@ -245,32 +234,32 @@ function getArcCenter(
   centerPrime: PointLike,
   cosRotation: number,
   sinRotation: number,
-): PointLike {
-  return {
-    x: cosRotation * centerPrime.x - sinRotation * centerPrime.y + (start.x + end.x) / TWO,
-    y: sinRotation * centerPrime.x + cosRotation * centerPrime.y + (start.y + end.y) / TWO,
-  };
+): Point {
+  return new Point(
+    cosRotation * centerPrime.x - sinRotation * centerPrime.y + (start.x + end.x) / TWO,
+    sinRotation * centerPrime.x + cosRotation * centerPrime.y + (start.y + end.y) / TWO,
+  );
 }
 
 function getArcVectors(
   normalizedArc: NormalizedArc,
   centerPrime: PointLike,
-): { endVector: PointLike; startVector: PointLike } {
+): { endVector: Vector; startVector: Vector } {
   return {
-    startVector: {
-      x: (normalizedArc.x - centerPrime.x) / normalizedArc.radiusX,
-      y: (normalizedArc.y - centerPrime.y) / normalizedArc.radiusY,
-    },
-    endVector: {
-      x: (-normalizedArc.x - centerPrime.x) / normalizedArc.radiusX,
-      y: (-normalizedArc.y - centerPrime.y) / normalizedArc.radiusY,
-    },
+    startVector: new Vector(
+      (normalizedArc.x - centerPrime.x) / normalizedArc.radiusX,
+      (normalizedArc.y - centerPrime.y) / normalizedArc.radiusY,
+    ),
+    endVector: new Vector(
+      (-normalizedArc.x - centerPrime.x) / normalizedArc.radiusX,
+      (-normalizedArc.y - centerPrime.y) / normalizedArc.radiusY,
+    ),
   };
 }
 
 function createArcPrimitive(
   index: number,
-  start: PointLike,
+  start: Point,
   parameters: ArcEndpointParameters,
   sourceVertex?: Vertex,
 ): ArcPrimitive | undefined {
@@ -278,10 +267,7 @@ function createArcPrimitive(
     return undefined;
   }
 
-  const end = {
-    x: parameters.endX,
-    y: parameters.endY,
-  };
+  const end = parameters.end;
   const axisRotation = (parameters.axisRotation * HALF_TURN) / DEGREES_IN_HALF_TURN;
   const cosRotation = Math.cos(axisRotation);
   const sinRotation = Math.sin(axisRotation);
@@ -311,18 +297,18 @@ function createArcPrimitive(
     radiusX: normalizedArc.radiusX,
     radiusY: normalizedArc.radiusY,
     axisRotation,
-    startAngle: getVectorAngle({ x: ONE, y: ZERO }, startVector),
+    startAngle: getVectorAngle(new Vector(ONE, ZERO), startVector),
     deltaAngle: getArcDeltaAngle(parameters.sweepFlag, startVector, endVector),
     sourceVertex,
   };
 }
 
-function getPrimitivePoint(primitive: Primitive, t: number): PointLike {
+function getPrimitivePoint(primitive: Primitive, t: number): Point {
   if (primitive.kind === 'line') {
-    return {
-      x: primitive.start.x + (primitive.end.x - primitive.start.x) * t,
-      y: primitive.start.y + (primitive.end.y - primitive.start.y) * t,
-    };
+    return new Point(
+      primitive.start.x + (primitive.end.x - primitive.start.x) * t,
+      primitive.start.y + (primitive.end.y - primitive.start.y) * t,
+    );
   }
 
   const angle = primitive.startAngle + primitive.deltaAngle * t;
@@ -331,10 +317,10 @@ function getPrimitivePoint(primitive: Primitive, t: number): PointLike {
   const x = primitive.radiusX * Math.cos(angle);
   const y = primitive.radiusY * Math.sin(angle);
 
-  return {
-    x: primitive.centerX + cosRotation * x - sinRotation * y,
-    y: primitive.centerY + sinRotation * x + cosRotation * y,
-  };
+  return new Point(
+    primitive.centerX + cosRotation * x - sinRotation * y,
+    primitive.centerY + sinRotation * x + cosRotation * y,
+  );
 }
 
 function readArcEndpointParameters(tokens: string[], index: number): ArcEndpointParameters | undefined {
@@ -364,13 +350,12 @@ function readArcEndpointParameters(tokens: string[], index: number): ArcEndpoint
     axisRotation,
     largeArcFlag,
     sweepFlag,
-    endX,
-    endY,
+    end: new Point(endX, endY),
   };
 }
 
-function addLinePrimitive(primitives: Primitive[], start: PointLike, end: PointLike): void {
-  if (isSamePoint(start, end)) {
+function addLinePrimitive(primitives: Primitive[], start: Point, end: Point): void {
+  if (Point.isEqual(start, end)) {
     return;
   }
 
@@ -391,18 +376,18 @@ function isPointOnEdge(point: PointLike, start: PointLike, end: PointLike): bool
   return cross(edge, pointDirection) === ZERO && t >= ZERO && t <= ONE;
 }
 
-function readPoint(tokens: string[], index: number): PointLike | undefined {
+function readPoint(tokens: string[], index: number): Point | undefined {
   const x = readNumber(tokens, index);
   const y = readNumber(tokens, index + ONE);
 
-  return x === undefined || y === undefined ? undefined : { x, y };
+  return x === undefined || y === undefined ? undefined : new Point(x, y);
 }
 
 function addPointCommandPrimitive(
   primitives: Primitive[],
   command: string,
-  currentPoint: PointLike | undefined,
-  nextPoint: PointLike,
+  currentPoint: Point | undefined,
+  nextPoint: Point,
 ): void {
   if (command === 'L' && currentPoint) {
     addLinePrimitive(primitives, currentPoint, nextPoint);
@@ -411,15 +396,12 @@ function addPointCommandPrimitive(
 
 function addArcCommandPrimitive(
   primitives: Primitive[],
-  currentPoint: PointLike,
+  currentPoint: Point,
   arcParameters: ArcEndpointParameters,
   sourceVertex: Vertex | undefined,
-): PointLike {
+) : Point {
   const arcPrimitive = createArcPrimitive(primitives.length, currentPoint, arcParameters, sourceVertex);
-  const nextPoint = {
-    x: arcParameters.endX,
-    y: arcParameters.endY,
-  };
+  const nextPoint = arcParameters.end;
 
   if (arcPrimitive) {
     primitives.push(arcPrimitive);
@@ -478,8 +460,8 @@ function parsePathPrimitives(path: Path): Primitive[] {
   let index = ZERO;
   let arcSourceVertexIndex = ZERO;
   let command = '';
-  let currentPoint: PointLike | undefined;
-  let subpathStart: PointLike | undefined;
+  let currentPoint: Point | undefined;
+  let subpathStart: Point | undefined;
 
   while (index < tokens.length) {
     if (isPathCommand(tokens[index])) {
@@ -602,10 +584,7 @@ function getLineArcIntersectionSplitPoints(
       return [];
     }
 
-    const point = {
-      x: line.start.x + lineDeltaX * lineT,
-      y: line.start.y + lineDeltaY * lineT,
-    };
+    const point = new Point(line.start.x + lineDeltaX * lineT, line.start.y + lineDeltaY * lineT);
     const arcT = getArcPointParameter(arc, point);
 
     if (arcT < ZERO || arcT > ONE) {
@@ -722,7 +701,7 @@ function getSplitPrimitiveSegments(primitives: Primitive[]): Segment[] {
       const start = splitPoints[index];
       const end = splitPoints[index + ONE];
 
-      if (!start || !end || isSamePoint(start.point, end.point)) {
+      if (!start || !end || Point.isEqual(start.point, end.point)) {
         continue;
       }
 
@@ -1097,7 +1076,7 @@ function isCustomCornerArcEntryVertex(vertex: Vertex, nextVertex: Vertex): boole
 
   return (
     customCornerArc !== undefined &&
-    isSamePoint(vertex, {
+    Point.isEqual(vertex, {
       x: customCornerArc.entryX,
       y: customCornerArc.entryY,
     })
@@ -1109,7 +1088,7 @@ function shouldAbsorbPreviousArcExit(previousVertex: Vertex, vertex: Vertex, nex
     isPlainVertex(vertex) &&
     previousVertex.customCornerArc !== undefined &&
     (
-      isSamePoint(vertex, nextVertex) ||
+      Point.isEqual(vertex, nextVertex) ||
       nextVertex.cornerRadius > ZERO ||
       nextVertex.customCornerArc !== undefined
     )
@@ -1120,9 +1099,9 @@ function shouldMoveCurrentArcToNextVertex(previousVertex: Vertex | undefined, ve
   return (
     previousVertex?.customCornerArc !== undefined &&
     vertex.customCornerArc !== undefined &&
-    isSamePoint(vertex, { x: vertex.customCornerArc.entryX, y: vertex.customCornerArc.entryY }) &&
+    Point.isEqual(vertex, { x: vertex.customCornerArc.entryX, y: vertex.customCornerArc.entryY }) &&
     isPlainVertex(nextVertex) &&
-    isSamePoint(nextVertex, { x: vertex.customCornerArc.exitX, y: vertex.customCornerArc.exitY })
+    Point.isEqual(nextVertex, { x: vertex.customCornerArc.exitX, y: vertex.customCornerArc.exitY })
   );
 }
 
@@ -1132,7 +1111,7 @@ function compactModelVertices(vertices: Vertex[]): Vertex[] {
     const nextIndex = (index + ONE) % sourceVertices.length;
     const nextVertex = sourceVertices[nextIndex];
 
-    if (previousVertex && isSamePoint(previousVertex, vertex)) {
+    if (previousVertex && Point.isEqual(previousVertex, vertex)) {
       if (previousVertex.customCornerArc === undefined && vertex.customCornerArc !== undefined) {
         compacted[compacted.length - ONE] = vertex;
       }
@@ -1168,7 +1147,7 @@ function compactModelVertices(vertices: Vertex[]): Vertex[] {
   const firstVertex = compactedVertices[ZERO];
   const lastVertex = compactedVertices[compactedVertices.length - ONE];
 
-  if (firstVertex && lastVertex && compactedVertices.length > ONE && isSamePoint(firstVertex, lastVertex)) {
+  if (firstVertex && lastVertex && compactedVertices.length > ONE && Point.isEqual(firstVertex, lastVertex)) {
     return compactedVertices.slice(ZERO, -ONE);
   }
 
@@ -1183,8 +1162,8 @@ function isRedundantStraightVertex(previousVertex: Vertex, vertex: Vertex, nextV
   return (
     isPlainVertex(vertex) &&
     isPointOnEdge(vertex, previousVertex, nextVertex) &&
-    !isSamePoint(previousVertex, vertex) &&
-    !isSamePoint(vertex, nextVertex)
+    !Point.isEqual(previousVertex, vertex) &&
+    !Point.isEqual(vertex, nextVertex)
   );
 }
 
@@ -1228,7 +1207,7 @@ function removeArcEntryVertices(vertices: Vertex[]): Vertex[] {
     const nextEntryPoint =
       nextVertex === undefined ? undefined : getComputedArcEntry(nextVertex, vertices, (index + ONE) % vertices.length);
 
-    return nextEntryPoint === undefined || !isSamePoint(vertex, nextEntryPoint);
+    return nextEntryPoint === undefined || !Point.isEqual(vertex, nextEntryPoint);
   });
 }
 
