@@ -123,17 +123,6 @@ export class Path {
       return cornerArc.arcToExitCommand;
     }
 
-    if (cornerArc.segments !== undefined && cornerArc.segments.length > 0) {
-      return cornerArc.segments
-        .map(
-          (segment) =>
-            segment.kind === 'line'
-              ? `L${segment.endX} ${segment.endY}`
-              : `A${segment.radiusX} ${segment.radiusY} ${segment.axisRotation} ${segment.largeArcFlag} ${segment.sweepFlag} ${segment.exitX} ${segment.exitY}`,
-        )
-        .join(' ');
-    }
-
     return `A${cornerArc.radiusX} ${cornerArc.radiusY} ${cornerArc.axisRotation} ${cornerArc.largeArcFlag} ${cornerArc.sweepFlag} ${cornerArc.exitX} ${cornerArc.exitY}`;
   }
 
@@ -154,6 +143,21 @@ export class Path {
     const previousCornerArc = cornerArcs[previousIndex];
 
     return previousCornerArc?.exitX === vertex.x && previousCornerArc.exitY === vertex.y;
+  }
+
+  private isCurrentCornerArcEntryPreviousArcExit(
+    index: number,
+    cornerArc: PathCornerArc,
+    cornerArcs: (PathCornerArc | undefined)[],
+  ): boolean {
+    if (isFirstIndex(index)) {
+      return false;
+    }
+
+    const { previousIndex } = getNeighborIndexes(index, this.vertices.length);
+    const previousCornerArc = cornerArcs[previousIndex];
+
+    return previousCornerArc?.exitX === cornerArc.entryX && previousCornerArc.exitY === cornerArc.entryY;
   }
 
   private getPathCommands(cornerArcs: (PathCornerArc | undefined)[]): string[] {
@@ -179,8 +183,8 @@ export class Path {
         const previousVertex = vertices[wrapIndex(index - 1, vertices.length)];
 
         if (
-          previousVertex?.x !== cornerArc.entryX ||
-          previousVertex.y !== cornerArc.entryY
+          !this.isCurrentCornerArcEntryPreviousArcExit(index, cornerArc, cornerArcs) &&
+          (previousVertex?.x !== cornerArc.entryX || previousVertex.y !== cornerArc.entryY)
         ) {
           pathCommands.push(Path.getArcLineToEntryCommand(cornerArc));
         }
