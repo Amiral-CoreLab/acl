@@ -1,7 +1,6 @@
 import type { AfterViewInit } from '@angular/core';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { assert } from '@amiral-corelab/core';
-import { GraphicsElement, Path, splitPathsIntoShapes, Vertex } from '@amiral-corelab/svg';
+import { Path, splitPathsIntoShapes, Vertex } from '@amiral-corelab/svg';
 
 @Component({
   selector: 'acl-shell-root',
@@ -12,30 +11,6 @@ import { GraphicsElement, Path, splitPathsIntoShapes, Vertex } from '@amiral-cor
 })
 export class AppComponent implements AfterViewInit {
   public ngAfterViewInit(): void {
-    const target = document.getElementById('target');
-    const text = document.getElementById('text-to-center');
-    const resettext = document.getElementById('reset-text');
-    const resettarget = document.getElementById('reset-target');
-    const text1 = document.getElementById('text1');
-
-    assert(target instanceof SVGGraphicsElement, 'Target element not found');
-    assert(text instanceof SVGGraphicsElement, 'Text element not found');
-    assert(resettext instanceof SVGGraphicsElement, 'Text element not found');
-    assert(resettarget instanceof SVGGraphicsElement, 'Text element not found');
-    assert(text1 instanceof SVGGraphicsElement, 'Text element not found');
-
-    new GraphicsElement(target).resetTransformInViewport();
-    new GraphicsElement(resettarget).resetTransformInViewport().setRotationInViewport(10);
-
-    const a = new GraphicsElement(text);
-    a.setCenterInViewportTo(target).resetTransformInViewport().setFlipInViewport(true, false);
-
-    const b = new GraphicsElement(resettext);
-    b.setCenterInViewportTo(resettarget).resetTransformInViewport().setFlipInViewport(true, true);
-
-    const c = new GraphicsElement(text1);
-    c.resetTransformInViewport().setFlipInViewport(false, true);
-
     const path = new Path([
       new Vertex(100, 100, 0),
       new Vertex(200, 100, 25),

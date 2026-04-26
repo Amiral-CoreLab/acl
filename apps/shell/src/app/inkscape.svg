@@ -26,73 +26,13 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="1.0154545"
-     inkscape:cx="380.61775"
-     inkscape:cy="497.80665"
+     inkscape:zoom="0.54245731"
+     inkscape:cx="282.97157"
+     inkscape:cy="535.52601"
      inkscape:window-width="2056"
      inkscape:window-height="1262"
      inkscape:window-x="0"
      inkscape:window-y="39"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg1" />
-  <g
-     id="reset-parent"
-     style="stroke-width:0.553249"
-     transform="matrix(-3.9092812,-1.2977296,-1.0390184,-1.1806336,2333.15,980.17598)">
-    <rect
-       style="fill:#67abd4;fill-opacity:1;stroke-width:3.14981"
-       id="reset-target"
-       width="122.56773"
-       height="129.01866"
-       x="502.52768"
-       y="172.88501"
-       transform="matrix(0.18642193,0.1564216,-0.32574834,0.3882241,379.81733,-17.539345)" />
-    <text
-       xml:space="preserve"
-       x="413.24216"
-       y="163.2086"
-       id="reset-text"
-       transform="translate(-5.5257559,3.9044121)"
-       style="text-align:center;text-anchor:middle"><tspan
-         sodipodi:role="line"
-         id="tspan4"
-         x="413.24216"
-         y="163.2086"
-         style="fill:#000000;fill-opacity:1;stroke-width:1.10615">Test</tspan></text>
-  </g>
-  <rect
-     style="fill:#67abd4;fill-opacity:1;stroke-width:0.100371"
-     id="target"
-     width="9.6874609"
-     height="6.2595901"
-     x="46.499813"
-     y="32.490253"
-     transform="matrix(17.925541,9.335439,-9.0686368,17.413237,-267.84087,-693.63675)" />
-  <text
-     xml:space="preserve"
-     style="writing-mode:lr-tb;direction:ltr;fill:#000000;stroke-width:1.53461"
-     x="91.062134"
-     y="49.629608"
-     id="text-to-center"
-     transform="matrix(2.0597768,-0.1675248,-0.58709562,0.87182232,57.660992,88.775113)"><tspan
-       sodipodi:role="line"
-       x="91.062134"
-       y="49.629608"
-       id="tspan2"
-       style="stroke-width:1.53461">00</tspan><tspan
-       sodipodi:role="line"
-       x="91.062134"
-       y="64.629608"
-       id="tspan3"
-       style="stroke-width:1.53461">00</tspan></text>
-  <text
-     xml:space="preserve"
-     style="writing-mode:lr-tb;direction:ltr;fill:#000000;stroke-width:1.99937"
-     x="230.82745"
-     y="674.72638"
-     id="text1"><tspan
-       sodipodi:role="line"
-       id="tspan1"
-       x="230.82745"
-       y="674.72638">Hello</tspan></text>
 </svg>
