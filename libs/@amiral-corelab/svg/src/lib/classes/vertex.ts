@@ -5,8 +5,10 @@ import { Point } from './point';
  * EN: Describes a custom arc attached to a vertex when a simple radius is not enough.
  */
 export interface VertexCustomCornerArc {
+  readonly entry: Point;
   readonly entryX: number;
   readonly entryY: number;
+  readonly exit: Point;
   readonly exitX: number;
   readonly exitY: number;
   readonly radiusX: number;

@@ -1,12 +1,28 @@
-import type { PointLike } from './point';
+import type { Point } from './point';
 
 /**
  * FR: Représente un vecteur 2D utilisé pour les calculs de direction et de longueur.
  * EN: Represents a 2D vector used for direction and length calculations.
  */
 export class Vector {
-  public static fromPoints(from: PointLike, to: PointLike): Vector {
+  public static fromPoints(from: Point, to: Point): Vector {
     return new Vector(to.x - from.x, to.y - from.y);
+  }
+
+  public static subtract(first: Point, second: Point): Vector {
+    return new Vector(first.x - second.x, first.y - second.y);
+  }
+
+  public static cross(first: Vector, second: Vector): number {
+    return first.x * second.y - first.y * second.x;
+  }
+
+  public static dot(first: Vector, second: Vector): number {
+    return first.x * second.x + first.y * second.y;
+  }
+
+  public static pointKey(point: Point): string {
+    return `${point.x},${point.y}`;
   }
 
   public readonly x: number;

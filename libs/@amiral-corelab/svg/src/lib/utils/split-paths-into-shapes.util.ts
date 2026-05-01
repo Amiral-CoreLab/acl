@@ -2,7 +2,7 @@
 import { Path } from '../classes/path';
 import { Vertex } from '../classes/vertex';
 import { CornerGeometry } from '../classes/corner-geometry';
-import { Point, type PointLike } from '../classes/point';
+import { Point } from '../classes/point';
 import { SegmentSplitPoint } from '../classes/segment-split-point';
 import { SplitEdgeCommand } from '../classes/split-edge-command';
 import { SplitGraphNode } from '../classes/split-graph-node';
@@ -48,25 +48,11 @@ interface DirectedEdge {
   readonly toKey: string;
 }
 
-interface NormalizedArc extends PointLike {
+interface NormalizedArc {
+  readonly x: number;
+  readonly y: number;
   readonly radiusX: number;
   readonly radiusY: number;
-}
-
-function subtract(first: PointLike, second: PointLike): Vector {
-  return new Vector(first.x - second.x, first.y - second.y);
-}
-
-function cross(first: PointLike, second: PointLike): number {
-  return first.x * second.y - first.y * second.x;
-}
-
-function dot(first: PointLike, second: PointLike): number {
-  return first.x * second.x + first.y * second.y;
-}
-
-function getPointKey(point: PointLike): string {
-  return `${point.x},${point.y}`;
 }
 
 function getDirectedEdgeKey(edge: DirectedEdge): string {
@@ -81,30 +67,30 @@ function isEqual(first: number, second: number): boolean {
   return first === second;
 }
 
-function getGraphNodeKey(nodes: Map<string, SplitGraphNode>, point: PointLike): string {
+function getGraphNodeKey(nodes: Map<string, SplitGraphNode>, point: Point): string {
   for (const node of nodes.values()) {
     if (Point.isEqual(node.point, point)) {
       return node.key;
     }
   }
 
-  return getPointKey(point);
+  return Vector.pointKey(point);
 }
 
 function getSegmentIntersection(firstSegment: SplitSegment, secondSegment: SplitSegment): Point | undefined {
   const p = firstSegment.start;
   const q = secondSegment.start;
-  const r = subtract(firstSegment.end, firstSegment.start);
-  const s = subtract(secondSegment.end, secondSegment.start);
-  const denominator = cross(r, s);
-  const qMinusP = subtract(q, p);
+  const r = Vector.subtract(firstSegment.end, firstSegment.start);
+  const s = Vector.subtract(secondSegment.end, secondSegment.start);
+  const denominator = Vector.cross(r, s);
+  const qMinusP = Vector.subtract(q, p);
 
   if (denominator === ZERO) {
     return undefined;
   }
 
-  const firstT = cross(qMinusP, s) / denominator;
-  const secondT = cross(qMinusP, r) / denominator;
+  const firstT = Vector.cross(qMinusP, s) / denominator;
+  const secondT = Vector.cross(qMinusP, r) / denominator;
 
   if (firstT < ZERO || firstT > ONE || secondT < ZERO || secondT > ONE) {
     return undefined;
@@ -127,13 +113,13 @@ function readNumber(tokens: string[], index: number): number | undefined {
   return token === undefined || isPathCommand(token) ? undefined : Number(token);
 }
 
-function getVectorAngle(from: PointLike, to: PointLike): number {
-  return Math.atan2(cross(from, to), dot(from, to));
+function getVectorAngle(from: Vector, to: Vector): number {
+  return Math.atan2(Vector.cross(from, to), Vector.dot(from, to));
 }
 
 function normalizeArcRadii(
-  start: PointLike,
-  end: PointLike,
+  start: Point,
+  end: Point,
   radiusX: number,
   radiusY: number,
   cosRotation: number,
@@ -161,7 +147,7 @@ function normalizeArcRadii(
   };
 }
 
-function getArcDeltaAngle(sweepFlag: number, startVector: PointLike, endVector: PointLike): number {
+function getArcDeltaAngle(sweepFlag: number, startVector: Vector, endVector: Vector): number {
   let deltaAngle = getVectorAngle(startVector, endVector);
 
   if (sweepFlag === ZERO && deltaAngle > ZERO) {
@@ -183,23 +169,14 @@ function getArcCenterPrime(normalizedArc: NormalizedArc, parameters: SvgArcEndpo
   );
 }
 
-function getArcCenter(
-  start: PointLike,
-  end: PointLike,
-  centerPrime: PointLike,
-  cosRotation: number,
-  sinRotation: number,
-): Point {
+function getArcCenter(start: Point, end: Point, centerPrime: Point, cosRotation: number, sinRotation: number): Point {
   return new Point(
     cosRotation * centerPrime.x - sinRotation * centerPrime.y + (start.x + end.x) / TWO,
     sinRotation * centerPrime.x + cosRotation * centerPrime.y + (start.y + end.y) / TWO,
   );
 }
 
-function getArcVectors(
-  normalizedArc: NormalizedArc,
-  centerPrime: PointLike,
-): { endVector: Vector; startVector: Vector } {
+function getArcVectors(normalizedArc: NormalizedArc, centerPrime: Point): { endVector: Vector; startVector: Vector } {
   return {
     startVector: new Vector(
       (normalizedArc.x - centerPrime.x) / normalizedArc.radiusX,
@@ -222,7 +199,7 @@ function createArcPrimitive(
     return undefined;
   }
 
-  const end = parameters.end;
+  const { end } = parameters;
   const axisRotation = (parameters.axisRotation * HALF_TURN) / DEGREES_IN_HALF_TURN;
   const cosRotation = Math.cos(axisRotation);
   const sinRotation = Math.sin(axisRotation);
@@ -299,14 +276,7 @@ function readArcEndpointParameters(tokens: string[], index: number): SvgArcEndpo
     return undefined;
   }
 
-  return new SvgArcEndpointParameters(
-    radiusX,
-    radiusY,
-    axisRotation,
-    largeArcFlag,
-    sweepFlag,
-    new Point(endX, endY),
-  );
+  return new SvgArcEndpointParameters(radiusX, radiusY, axisRotation, largeArcFlag, sweepFlag, new Point(endX, endY));
 }
 
 function addLinePrimitive(primitives: Primitive[], start: Point, end: Point): void {
@@ -322,13 +292,13 @@ function addLinePrimitive(primitives: Primitive[], start: Point, end: Point): vo
   });
 }
 
-function isPointOnEdge(point: PointLike, start: PointLike, end: PointLike): boolean {
-  const edge = subtract(end, start);
-  const pointDirection = subtract(point, start);
-  const lengthSquared = dot(edge, edge);
-  const t = lengthSquared === ZERO ? ZERO : dot(pointDirection, edge) / lengthSquared;
+function isPointOnEdge(point: Point, start: Point, end: Point): boolean {
+  const edge = Vector.subtract(end, start);
+  const pointDirection = Vector.subtract(point, start);
+  const lengthSquared = Vector.dot(edge, edge);
+  const t = lengthSquared === ZERO ? ZERO : Vector.dot(pointDirection, edge) / lengthSquared;
 
-  return cross(edge, pointDirection) === ZERO && t >= ZERO && t <= ONE;
+  return Vector.cross(edge, pointDirection) === ZERO && t >= ZERO && t <= ONE;
 }
 
 function readPoint(tokens: string[], index: number): Point | undefined {
@@ -354,7 +324,7 @@ function addArcCommandPrimitive(
   currentPoint: Point,
   arcParameters: SvgArcEndpointParameters,
   sourceVertex: Vertex | undefined,
-) : Point {
+): Point {
   const arcPrimitive = createArcPrimitive(primitives.length, currentPoint, arcParameters, sourceVertex);
   const nextPoint = arcParameters.end;
 
@@ -484,7 +454,7 @@ function getPrimitiveBaseSegment(primitive: Primitive): SplitSegment {
   return new SplitSegment(primitive.start, primitive.end, primitive.index, ZERO, ONE);
 }
 
-function getArcPointParameter(arc: ArcPrimitive, point: PointLike): number {
+function getArcPointParameter(arc: ArcPrimitive, point: Point): number {
   const cosRotation = Math.cos(arc.axisRotation);
   const sinRotation = Math.sin(arc.axisRotation);
   const translatedX = point.x - arc.centerX;
@@ -561,12 +531,14 @@ function addPrimitiveIntersectionSplitPoints(
     );
 
     if (intersection) {
-      splitPointMap.get(firstPrimitive.index)?.push(
-        new SegmentSplitPoint(intersection, getPrimitiveBaseSegment(firstPrimitive).getParameter(intersection)),
-      );
-      splitPointMap.get(secondPrimitive.index)?.push(
-        new SegmentSplitPoint(intersection, getPrimitiveBaseSegment(secondPrimitive).getParameter(intersection)),
-      );
+      splitPointMap
+        .get(firstPrimitive.index)
+        ?.push(new SegmentSplitPoint(intersection, getPrimitiveBaseSegment(firstPrimitive).getParameter(intersection)));
+      splitPointMap
+        .get(secondPrimitive.index)
+        ?.push(
+          new SegmentSplitPoint(intersection, getPrimitiveBaseSegment(secondPrimitive).getParameter(intersection)),
+        );
     }
 
     return;
@@ -660,7 +632,10 @@ function addGraphEdge(
 
   nodes.set(startKey, new SplitGraphNode(startKey, segment.start));
   nodes.set(endKey, new SplitGraphNode(endKey, segment.end));
-  edgeCommands.set(edgeKey, new SplitEdgeCommand(startKey, endKey, segment.primitiveIndex, segment.tStart, segment.tEnd));
+  edgeCommands.set(
+    edgeKey,
+    new SplitEdgeCommand(startKey, endKey, segment.primitiveIndex, segment.tStart, segment.tEnd),
+  );
 
   adjacency.set(startKey, [...(adjacency.get(startKey) ?? []), endKey]);
   adjacency.set(endKey, [...(adjacency.get(endKey) ?? []), startKey]);
@@ -700,7 +675,7 @@ function getPreviousNeighborKey(neighborKeys: string[], fromKey: string): string
   return neighborKeys[(incomingIndex - ONE + neighborKeys.length) % neighborKeys.length];
 }
 
-function getFaceArea(points: PointLike[]): number {
+function getFaceArea(points: Point[]): number {
   return (
     points.reduce((area, point, index) => {
       const nextPoint = points[(index + ONE) % points.length];
@@ -922,12 +897,9 @@ function getCornerTangentOffsets(vertices: Vertex[]): number[] {
   return normalizedCornerOffsets.map((offsets) => Math.min(offsets.incoming, offsets.outgoing));
 }
 
-function getComputedArcEntry(vertex: Vertex, vertices: Vertex[], index: number): PointLike | undefined {
+function getComputedArcEntry(vertex: Vertex, vertices: Vertex[], index: number): Point | undefined {
   if (vertex.customCornerArc !== undefined) {
-    return {
-      x: vertex.customCornerArc.entryX,
-      y: vertex.customCornerArc.entryY,
-    };
+    return new Point(vertex.customCornerArc.entryX, vertex.customCornerArc.entryY);
   }
 
   if (vertex.cornerRadius <= ZERO) {
@@ -949,10 +921,10 @@ function getComputedArcEntry(vertex: Vertex, vertices: Vertex[], index: number):
       return undefined;
     }
 
-    return {
-      x: vertex.x + geometry.incomingUnitVector.x * tangentOffset,
-      y: vertex.y + geometry.incomingUnitVector.y * tangentOffset,
-    };
+    return new Point(
+      vertex.x + geometry.incomingUnitVector.x * tangentOffset,
+      vertex.y + geometry.incomingUnitVector.y * tangentOffset,
+    );
   } catch {
     return undefined;
   }
@@ -984,34 +956,28 @@ function getArcRunSourceVertexSimpler(edgeCommands: SplitEdgeCommand[], primitiv
 function isCustomCornerArcEntryVertex(vertex: Vertex, nextVertex: Vertex): boolean {
   const { customCornerArc } = nextVertex;
 
-  return (
-    customCornerArc !== undefined &&
-    Point.isEqual(vertex, {
-      x: customCornerArc.entryX,
-      y: customCornerArc.entryY,
-    })
-  );
+  return customCornerArc !== undefined && Point.isEqual(vertex, customCornerArc.entry);
 }
 
 function shouldAbsorbPreviousArcExit(previousVertex: Vertex, vertex: Vertex, nextVertex: Vertex): boolean {
   return (
     isPlainVertex(vertex) &&
     previousVertex.customCornerArc !== undefined &&
-    (
-      Point.isEqual(vertex, nextVertex) ||
-      nextVertex.cornerRadius > ZERO ||
-      nextVertex.customCornerArc !== undefined
-    )
+    (Point.isEqual(vertex, nextVertex) || nextVertex.cornerRadius > ZERO || nextVertex.customCornerArc !== undefined)
   );
 }
 
-function shouldMoveCurrentArcToNextVertex(previousVertex: Vertex | undefined, vertex: Vertex, nextVertex: Vertex): boolean {
+function shouldMoveCurrentArcToNextVertex(
+  previousVertex: Vertex | undefined,
+  vertex: Vertex,
+  nextVertex: Vertex,
+): boolean {
   return (
     previousVertex?.customCornerArc !== undefined &&
     vertex.customCornerArc !== undefined &&
-    Point.isEqual(vertex, { x: vertex.customCornerArc.entryX, y: vertex.customCornerArc.entryY }) &&
+    Point.isEqual(vertex, vertex.customCornerArc.entry) &&
     isPlainVertex(nextVertex) &&
-    Point.isEqual(nextVertex, { x: vertex.customCornerArc.exitX, y: vertex.customCornerArc.exitY })
+    Point.isEqual(nextVertex, vertex.customCornerArc.exit)
   );
 }
 
@@ -1148,12 +1114,7 @@ function getArcRunCustomVertex(
   const lastEdgeCommand = edgeCommands[edgeCommands.length - ONE];
   const lastPrimitive = lastEdgeCommand ? primitives[lastEdgeCommand.primitiveIndex] : undefined;
 
-  if (
-    !sourceVertex ||
-    !firstEdgeCommand ||
-    !lastEdgeCommand ||
-    lastPrimitive?.kind !== 'arc'
-  ) {
+  if (!sourceVertex || !firstEdgeCommand || !lastEdgeCommand || lastPrimitive?.kind !== 'arc') {
     return undefined;
   }
 
@@ -1167,8 +1128,10 @@ function getArcRunCustomVertex(
   const exit = nodes.get(lastEdgeCommand.toKey)?.point ?? getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
 
   return cloneVertex(sourceVertex, {
+    entry: new Point(entry.x, entry.y),
     entryX: entry.x,
     entryY: entry.y,
+    exit: new Point(exit.x, exit.y),
     exitX: exit.x,
     exitY: exit.y,
     radiusX: lastPrimitive.radiusX,
@@ -1192,8 +1155,10 @@ function getStartAnchoredArcVertex(
   const exit = nodes.get(edgeCommand.toKey)?.point ?? getPrimitivePoint(primitive, edgeCommand.tEnd);
 
   return cloneVertex(new Vertex(vertex.x, vertex.y, vertex.cornerRadius), {
+    entry: new Point(vertex.x, vertex.y),
     entryX: vertex.x,
     entryY: vertex.y,
+    exit: new Point(exit.x, exit.y),
     exitX: exit.x,
     exitY: exit.y,
     radiusX: primitive.radiusX,
@@ -1204,7 +1169,7 @@ function getStartAnchoredArcVertex(
   });
 }
 
-function overrideCustomCornerArcEntry(vertex: Vertex, entryPoint: PointLike): Vertex {
+function overrideCustomCornerArcEntry(vertex: Vertex, entryPoint: Point): Vertex {
   if (vertex.customCornerArc === undefined) {
     return vertex;
   }
@@ -1272,7 +1237,7 @@ function getArcRunSourceVertices(edgeCommands: SplitEdgeCommand[], primitives: P
 function hasDistinctArcRunSourceVertices(edgeCommands: SplitEdgeCommand[], primitives: Primitive[]): boolean {
   const sourceVertices = getArcRunSourceVertices(edgeCommands, primitives);
 
-  return new Set(sourceVertices.map((vertex) => getPointKey(vertex))).size > ONE;
+  return new Set(sourceVertices.map((vertex) => Vector.pointKey(vertex))).size > ONE;
 }
 
 function addSplitArcRunVertices(
@@ -1368,10 +1333,13 @@ function getFaceVertices(
             if (distributedVertex) {
               addModelVertex(
                 vertices,
-                overrideCustomCornerArcEntry(distributedVertex, {
-                  x: anchoredVertex.customCornerArc?.exitX ?? anchoredVertex.x,
-                  y: anchoredVertex.customCornerArc?.exitY ?? anchoredVertex.y,
-                }),
+                overrideCustomCornerArcEntry(
+                  distributedVertex,
+                  new Point(
+                    anchoredVertex.customCornerArc?.exitX ?? anchoredVertex.x,
+                    anchoredVertex.customCornerArc?.exitY ?? anchoredVertex.y,
+                  ),
+                ),
               );
               index = runEndIndex + TWO;
               continue;
@@ -1385,15 +1353,17 @@ function getFaceVertices(
           addModelVertex(vertices, customArcRunVertex);
         }
       } else if (isCompleteSingleArcRun(arcRunEdgeCommands, primitives)) {
+        const sourceHasStandardCornerRadius = (plainArcRunVertex?.cornerRadius ?? ZERO) > ZERO;
+
         if (
           previousVertex?.customCornerArc !== undefined &&
           customArcRunVertex?.customCornerArc !== undefined &&
-          customArcRunVertex.cornerRadius > ZERO
+          sourceHasStandardCornerRadius
         ) {
           addModelVertex(vertices, customArcRunVertex);
         } else if (shouldPreferCustomCompleteArc && customArcRunVertex?.customCornerArc !== undefined) {
           addModelVertex(vertices, customArcRunVertex);
-        } else if (customArcRunVertex?.customCornerArc !== undefined && customArcRunVertex.cornerRadius === ZERO) {
+        } else if (!sourceHasStandardCornerRadius && customArcRunVertex?.customCornerArc !== undefined) {
           addModelVertex(vertices, customArcRunVertex);
         } else if (plainArcRunVertex) {
           addModelVertex(vertices, plainArcRunVertex);
@@ -1424,7 +1394,9 @@ function getFaceVertices(
   }
 
   return collapseTechnicalArcExitVertices(
-    removeArcEntryVertices(removePreviousArcExitVertices(removeRedundantStraightVertices(compactModelVertices(vertices)))),
+    removeArcEntryVertices(
+      removePreviousArcExitVertices(removeRedundantStraightVertices(compactModelVertices(vertices))),
+    ),
   );
 }
 

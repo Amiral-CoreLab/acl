@@ -70,48 +70,32 @@
       {
         "x": 100,
         "y": 187.64860887996525,
+        "customCornerArc": {
+          "entryX": 100,
+          "entryY": 187.64860887996525,
+          "exitX": 59.723586396525604,
+          "exitY": 159.7235863965256,
+          "radiusX": 137.5122775687305,
+          "radiusY": 137.5122775687305,
+          "axisRotation": 0,
+          "largeArcFlag": 0,
+          "sweepFlag": 1
+        },
         "cornerRadius": 0
       },
       {
         "x": 50,
         "y": 150,
         "customCornerArc": {
-          "entryX": 100,
-          "entryY": 187.64860887996525,
+          "entryX": 59.723586396525604,
+          "entryY": 159.7235863965256,
           "exitX": 59.72358639652561,
           "exitY": 140.2764136034744,
           "radiusX": 13.75122775687305,
           "radiusY": 13.75122775687305,
           "axisRotation": 0,
           "largeArcFlag": 0,
-          "sweepFlag": 1,
-          "segments": [
-            {
-              "kind": "arc",
-              "exitX": 59.723586396525604,
-              "exitY": 159.7235863965256,
-              "radiusX": 137.5122775687305,
-              "radiusY": 137.5122775687305,
-              "axisRotation": 0,
-              "largeArcFlag": 0,
-              "sweepFlag": 1
-            },
-            {
-              "kind": "arc",
-              "exitX": 59.72358639652561,
-              "exitY": 140.2764136034744,
-              "radiusX": 13.75122775687305,
-              "radiusY": 13.75122775687305,
-              "axisRotation": 0,
-              "largeArcFlag": 0,
-              "sweepFlag": 1
-            },
-            {
-              "kind": "line",
-              "endX": 100,
-              "endY": 100
-            }
-          ]
+          "sweepFlag": 1
         },
         "cornerRadius": 300
       }

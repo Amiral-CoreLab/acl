@@ -1,4 +1,4 @@
-import { Point, type PointLike } from './point';
+import { Point } from './point';
 
 /**
  * FR: Représente un morceau de primitive entre deux points après découpe.
@@ -20,13 +20,10 @@ export class SplitSegment {
   }
 
   public pointAt(t: number): Point {
-    return new Point(
-      this.start.x + (this.end.x - this.start.x) * t,
-      this.start.y + (this.end.y - this.start.y) * t,
-    );
+    return new Point(this.start.x + (this.end.x - this.start.x) * t, this.start.y + (this.end.y - this.start.y) * t);
   }
 
-  public getParameter(point: PointLike): number {
+  public getParameter(point: Point): number {
     const directionX = this.end.x - this.start.x;
     const directionY = this.end.y - this.start.y;
     const pointDirectionX = point.x - this.start.x;
