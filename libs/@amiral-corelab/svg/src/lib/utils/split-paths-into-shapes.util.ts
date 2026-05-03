@@ -7,14 +7,18 @@ import { SegmentSplitPoint } from '../classes/segment-split-point';
 import { SplitEdgeCommand } from '../classes/split-edge-command';
 import { SplitGraphNode } from '../classes/split-graph-node';
 import { SplitSegment } from '../classes/split-segment';
-import { SvgArcEndpointParameters } from '../classes/svg-arc-endpoint-parameters';
+import type { SvgArcEndpointParameters } from '../classes/svg-arc-endpoint-parameters';
 import { Vector } from '../classes/vector';
+import { DirectEdge } from '../classes/direct-edge';
+import { CommandMove } from '../classes/command-move';
+import { CommandLine } from '../classes/command-line';
+import { CommandArc } from '../classes/command-arc';
+import { CommandClose } from '../classes/command-close';
 
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const MINIMUM_FACE_VERTEX_COUNT = 3;
-const SVG_ARC_TOKEN_COUNT = 7;
 const DEGREES_IN_HALF_TURN = 180;
 const HALF_TURN = Math.PI;
 const FULL_TURN = Math.PI * TWO;
@@ -97,20 +101,6 @@ function getSegmentIntersection(firstSegment: SplitSegment, secondSegment: Split
   }
 
   return firstSegment.pointAt(firstT);
-}
-
-function tokenizePathData(d: string): string[] {
-  return d.match(/[AaLlMmZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gu) ?? [];
-}
-
-function isPathCommand(token: string | undefined): boolean {
-  return token !== undefined && /^[AaLlMmZz]$/u.test(token);
-}
-
-function readNumber(tokens: string[], index: number): number | undefined {
-  const token = tokens[index];
-
-  return token === undefined || isPathCommand(token) ? undefined : Number(token);
 }
 
 function getVectorAngle(from: Vector, to: Vector): number {
@@ -255,43 +245,6 @@ function getPrimitivePoint(primitive: Primitive, t: number): Point {
   );
 }
 
-function readArcEndpointParameters(tokens: string[], index: number): SvgArcEndpointParameters | undefined {
-  const values = Array.from({ length: SVG_ARC_TOKEN_COUNT }, (_, offset) => readNumber(tokens, index + offset));
-
-  if (values.some((value) => value === undefined)) {
-    return undefined;
-  }
-
-  const [radiusX, radiusY, axisRotation, largeArcFlag, sweepFlag, endX, endY] = values;
-
-  if (
-    radiusX === undefined ||
-    radiusY === undefined ||
-    axisRotation === undefined ||
-    largeArcFlag === undefined ||
-    sweepFlag === undefined ||
-    endX === undefined ||
-    endY === undefined
-  ) {
-    return undefined;
-  }
-
-  return new SvgArcEndpointParameters(radiusX, radiusY, axisRotation, largeArcFlag, sweepFlag, new Point(endX, endY));
-}
-
-function addLinePrimitive(primitives: Primitive[], start: Point, end: Point): void {
-  if (Point.isEqual(start, end)) {
-    return;
-  }
-
-  primitives.push({
-    kind: 'line',
-    index: primitives.length,
-    start,
-    end,
-  });
-}
-
 function isPointOnEdge(point: Point, start: Point, end: Point): boolean {
   const edge = Vector.subtract(end, start);
   const pointDirection = Vector.subtract(point, start);
@@ -299,42 +252,6 @@ function isPointOnEdge(point: Point, start: Point, end: Point): boolean {
   const t = lengthSquared === ZERO ? ZERO : Vector.dot(pointDirection, edge) / lengthSquared;
 
   return Vector.cross(edge, pointDirection) === ZERO && t >= ZERO && t <= ONE;
-}
-
-function readPoint(tokens: string[], index: number): Point | undefined {
-  const x = readNumber(tokens, index);
-  const y = readNumber(tokens, index + ONE);
-
-  return x === undefined || y === undefined ? undefined : new Point(x, y);
-}
-
-function addPointCommandPrimitive(
-  primitives: Primitive[],
-  command: string,
-  currentPoint: Point | undefined,
-  nextPoint: Point,
-): void {
-  if (command === 'L' && currentPoint) {
-    addLinePrimitive(primitives, currentPoint, nextPoint);
-  }
-}
-
-function addArcCommandPrimitive(
-  primitives: Primitive[],
-  currentPoint: Point,
-  arcParameters: SvgArcEndpointParameters,
-  sourceVertex: Vertex | undefined,
-): Point {
-  const arcPrimitive = createArcPrimitive(primitives.length, currentPoint, arcParameters, sourceVertex);
-  const nextPoint = arcParameters.end;
-
-  if (arcPrimitive) {
-    primitives.push(arcPrimitive);
-  } else {
-    addLinePrimitive(primitives, currentPoint, nextPoint);
-  }
-
-  return nextPoint;
 }
 
 function getVertexArcCommandCount(vertex: Vertex): number {
@@ -377,64 +294,71 @@ function getArcSourceVertices(path: Path): Vertex[] {
   });
 }
 
-// eslint-disable-next-line max-lines-per-function
 function parsePathPrimitives(path: Path): Primitive[] {
-  const tokens = tokenizePathData(path.d);
-  const primitives: Primitive[] = [];
   const arcSourceVertices = getArcSourceVertices(path);
-  let index = ZERO;
+  console.log(arcSourceVertices);
   let arcSourceVertexIndex = ZERO;
-  let command = '';
   let currentPoint: Point | undefined;
+  let lastPoint: Point | undefined;
   let subpathStart: Point | undefined;
 
-  while (index < tokens.length) {
-    if (isPathCommand(tokens[index])) {
-      command = tokens[index] ?? '';
-      index += ONE;
-    }
+  const primitives: Primitive[] = [];
 
-    if (command === 'M' || command === 'L') {
-      const nextPoint = readPoint(tokens, index);
+  path.commands.forEach((command) => {
+    if (command instanceof CommandMove) {
+      subpathStart = new Point(command.x, command.y);
+      lastPoint = new Point(command.x, command.y);
+    } else if (command instanceof CommandLine && lastPoint) {
+      currentPoint = new Point(command.x, command.y);
 
-      if (nextPoint === undefined) {
-        break;
-      }
+      primitives.push({
+        kind: 'line',
+        index: primitives.length,
+        start: lastPoint,
+        end: currentPoint,
+      });
 
-      addPointCommandPrimitive(primitives, command, currentPoint, nextPoint);
-
-      if (command === 'M') {
-        subpathStart = nextPoint;
-      }
-
-      currentPoint = nextPoint;
-      index += TWO;
-      continue;
-    }
-
-    if (command === 'A' && currentPoint) {
-      const arcParameters = readArcEndpointParameters(tokens, index);
-
-      if (!arcParameters) {
-        break;
-      }
+      lastPoint = currentPoint;
+    } else if (command instanceof CommandArc && lastPoint) {
+      const arcParameters: SvgArcEndpointParameters = {
+        radiusX: command.radiusX,
+        radiusY: command.radiusY,
+        axisRotation: command.axisRotation,
+        largeArcFlag: command.largeArcFlag,
+        sweepFlag: command.sweepFlag,
+        end: new Point(command.endX, command.endY),
+      };
 
       const sourceVertex = arcSourceVertices[arcSourceVertexIndex];
       arcSourceVertexIndex += ONE;
-      currentPoint = addArcCommandPrimitive(primitives, currentPoint, arcParameters, sourceVertex);
-      index += SVG_ARC_TOKEN_COUNT;
-      continue;
-    }
 
-    if (command === 'Z' && currentPoint && subpathStart) {
-      addLinePrimitive(primitives, currentPoint, subpathStart);
-      currentPoint = subpathStart;
-      index += ONE;
-      continue;
-    }
+      const arcPrimitive = createArcPrimitive(primitives.length, lastPoint, arcParameters, sourceVertex);
 
-    index += ONE;
-  }
+      if (arcPrimitive) {
+        primitives.push(arcPrimitive);
+      } else {
+        primitives.push({
+          kind: 'line',
+          index: primitives.length,
+          start: lastPoint,
+          end: arcParameters.end,
+        });
+      }
+
+      lastPoint = arcParameters.end;
+    } else if (command instanceof CommandClose && lastPoint && subpathStart) {
+      primitives.push({
+        kind: 'line',
+        index: primitives.length,
+        start: lastPoint,
+        end: subpathStart,
+      });
+
+      lastPoint = subpathStart;
+    }
+  });
+
+  console.log(primitives);
 
   return primitives;
 }
@@ -700,13 +624,13 @@ function getCanonicalFaceKey(faceKeys: string[]): string {
 }
 
 function walkFace(
-  startEdge: DirectedEdge,
+  startEdge: DirectEdge,
   visitedDirectedEdges: Set<string>,
   adjacency: Map<string, string[]>,
 ): string[] {
   const faceKeys: string[] = [];
-  let currentFromKey = startEdge.fromKey;
-  let currentToKey = startEdge.toKey;
+  let currentFromKey = startEdge.from.key;
+  let currentToKey = startEdge.to.key;
 
   while (!visitedDirectedEdges.has(getDirectedEdgeKey({ fromKey: currentFromKey, toKey: currentToKey }))) {
     visitedDirectedEdges.add(getDirectedEdgeKey({ fromKey: currentFromKey, toKey: currentToKey }));
@@ -899,7 +823,7 @@ function getCornerTangentOffsets(vertices: Vertex[]): number[] {
 
 function getComputedArcEntry(vertex: Vertex, vertices: Vertex[], index: number): Point | undefined {
   if (vertex.customCornerArc !== undefined) {
-    return new Point(vertex.customCornerArc.entryX, vertex.customCornerArc.entryY);
+    return new Point(vertex.customCornerArc.entry.x, vertex.customCornerArc.entry.y);
   }
 
   if (vertex.cornerRadius <= ZERO) {
@@ -1129,11 +1053,7 @@ function getArcRunCustomVertex(
 
   return cloneVertex(sourceVertex, {
     entry: new Point(entry.x, entry.y),
-    entryX: entry.x,
-    entryY: entry.y,
     exit: new Point(exit.x, exit.y),
-    exitX: exit.x,
-    exitY: exit.y,
     radiusX: lastPrimitive.radiusX,
     radiusY: lastPrimitive.radiusY,
     axisRotation: (lastPrimitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
@@ -1156,11 +1076,7 @@ function getStartAnchoredArcVertex(
 
   return cloneVertex(new Vertex(vertex.x, vertex.y, vertex.cornerRadius), {
     entry: new Point(vertex.x, vertex.y),
-    entryX: vertex.x,
-    entryY: vertex.y,
     exit: new Point(exit.x, exit.y),
-    exitX: exit.x,
-    exitY: exit.y,
     radiusX: primitive.radiusX,
     radiusY: primitive.radiusY,
     axisRotation: (primitive.axisRotation * DEGREES_IN_HALF_TURN) / HALF_TURN,
@@ -1176,8 +1092,7 @@ function overrideCustomCornerArcEntry(vertex: Vertex, entryPoint: Point): Vertex
 
   return cloneVertex(vertex, {
     ...vertex.customCornerArc,
-    entryX: entryPoint.x,
-    entryY: entryPoint.y,
+    entry: new Point(entryPoint.x, entryPoint.y),
   });
 }
 
@@ -1336,8 +1251,8 @@ function getFaceVertices(
                 overrideCustomCornerArcEntry(
                   distributedVertex,
                   new Point(
-                    anchoredVertex.customCornerArc?.exitX ?? anchoredVertex.x,
-                    anchoredVertex.customCornerArc?.exitY ?? anchoredVertex.y,
+                    anchoredVertex.customCornerArc?.exit.x ?? anchoredVertex.x,
+                    anchoredVertex.customCornerArc?.exit.y ?? anchoredVertex.y,
                   ),
                 ),
               );
@@ -1462,9 +1377,16 @@ function getGraphFaces(
 
   for (const [fromKey, neighborKeys] of adjacency) {
     for (const toKey of neighborKeys) {
-      const startEdge = { fromKey, toKey };
+      const [fromX, fromY] = fromKey.split(',').map(Number);
+      const [toX, toY] = toKey.split(',').map(Number);
 
-      if (visitedDirectedEdges.has(getDirectedEdgeKey(startEdge))) {
+      if (fromX === undefined || fromY === undefined || toX === undefined || toY === undefined) {
+        continue;
+      }
+
+      const startEdge = new DirectEdge(new Point(fromX, fromY), new Point(toX, toY));
+
+      if (visitedDirectedEdges.has(startEdge.key)) {
         continue;
       }
 

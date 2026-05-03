@@ -6,11 +6,7 @@ import { Point } from './point';
  */
 export interface VertexCustomCornerArc {
   readonly entry: Point;
-  readonly entryX: number;
-  readonly entryY: number;
   readonly exit: Point;
-  readonly exitX: number;
-  readonly exitY: number;
   readonly radiusX: number;
   readonly radiusY: number;
   readonly axisRotation: number;

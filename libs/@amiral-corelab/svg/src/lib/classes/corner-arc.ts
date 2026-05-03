@@ -2,16 +2,18 @@ import type { SweepFlagEnum } from '../enums';
 import { AxisRotationEnum, LargeArcFlagEnum } from '../enums';
 import type { CornerGeometry } from './corner-geometry';
 import type { Vertex } from './vertex';
+import { CommandArc } from './command-arc';
+import { CommandMove } from './command-move';
+import { CommandLine } from './command-line';
+import { Point } from './point';
 
 /**
  * FR: Représente l'arc SVG calculé pour arrondir un coin.
  * EN: Represents the SVG arc computed to round a corner.
  */
 export class CornerArc {
-  public entryX: number;
-  public entryY: number;
-  public exitX: number;
-  public exitY: number;
+  public entry: Point;
+  public exit: Point;
   public radius: number;
   public sweepFlag: SweepFlagEnum;
   public vertex: Vertex;
@@ -29,28 +31,36 @@ export class CornerArc {
       throw new Error('Corner radius must be finite and greater than zero.');
     }
 
-    this.entryX = vertex.x + geometry.incomingUnitVector.x * tangentOffset;
-    this.entryY = vertex.y + geometry.incomingUnitVector.y * tangentOffset;
-    this.exitX = vertex.x + geometry.outgoingUnitVector.x * tangentOffset;
-    this.exitY = vertex.y + geometry.outgoingUnitVector.y * tangentOffset;
+    this.entry = new Point(
+      vertex.x + geometry.incomingUnitVector.x * tangentOffset,
+      vertex.y + geometry.incomingUnitVector.y * tangentOffset,
+    );
+    this.exit = new Point(
+      vertex.x + geometry.outgoingUnitVector.x * tangentOffset,
+      vertex.y + geometry.outgoingUnitVector.y * tangentOffset,
+    );
     this.radius = radius;
     this.sweepFlag = geometry.sweepFlag;
     this.vertex = vertex;
   }
 
-  public get moveToEntryCommand(): string {
-    return `M${this.entryX} ${this.entryY}`;
+  public get moveToEntryCommand(): CommandMove {
+    return CommandMove.fromPoint(this.entry);
   }
 
-  public get lineToEntryCommand(): string {
-    return `L${this.entryX} ${this.entryY}`;
+  public get lineToEntryCommand(): CommandLine {
+    return CommandLine.fromPoint(this.entry);
   }
 
-  public get arcToExitCommand(): string {
-    return `A${this.radius} ${this.radius} ${AxisRotationEnum.None} ${LargeArcFlagEnum.Small} ${this.sweepFlag} ${this.exitX} ${this.exitY}`;
-  }
-
-  public get svgPathCommands(): string[] {
-    return [this.lineToEntryCommand, this.arcToExitCommand];
+  public get arcToExitCommand(): CommandArc {
+    return new CommandArc(
+      this.radius,
+      this.radius,
+      AxisRotationEnum.None,
+      LargeArcFlagEnum.Small,
+      this.sweepFlag,
+      this.exit.x,
+      this.exit.y,
+    );
   }
 }

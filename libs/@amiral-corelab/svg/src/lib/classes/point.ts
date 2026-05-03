@@ -1,4 +1,6 @@
 import { Vector } from './vector';
+import { CommandMove } from './command-move';
+import { CommandLine } from './command-line';
 
 /**
  * FR: Représente un point 2D de base utilisé dans la géométrie SVG.
@@ -21,12 +23,12 @@ export class Point {
     return Vector.fromPoints(this, target);
   }
 
-  public get moveToCommand(): string {
-    return `M${this.x} ${this.y}`;
+  public get moveToCommand(): CommandMove {
+    return CommandMove.fromPoint(this);
   }
 
-  public get lineToCommand(): string {
-    return `L${this.x} ${this.y}`;
+  public get lineToCommand(): CommandLine {
+    return CommandLine.fromPoint(this);
   }
 
   public get key(): string {

@@ -2,6 +2,11 @@ import { assert, getNeighborIndexes, isFirstIndex, isLastIndex, wrapIndex } from
 import type { Vertex, VertexCustomCornerArc } from './vertex';
 import { CornerArc } from './corner-arc';
 import { CornerGeometry } from './corner-geometry';
+import { CommandArc } from './command-arc';
+import { CommandLine } from './command-line';
+import { CommandMove } from './command-move';
+import type { Command } from './command';
+import { CommandClose } from './command-close';
 
 type PathCornerArc = CornerArc | VertexCustomCornerArc;
 
@@ -114,23 +119,31 @@ export class Path {
     });
   }
 
-  private static getArcMoveToEntryCommand(cornerArc: PathCornerArc): string {
-    return `M${cornerArc.entryX} ${cornerArc.entryY}`;
+  private static getArcMoveToEntryCommand(cornerArc: PathCornerArc): CommandMove {
+    return CommandMove.fromPoint(cornerArc.entry);
   }
 
-  private static getArcLineToEntryCommand(cornerArc: PathCornerArc): string {
-    return `L${cornerArc.entryX} ${cornerArc.entryY}`;
+  private static getArcLineToEntryCommand(cornerArc: PathCornerArc): CommandLine {
+    return CommandLine.fromPoint(cornerArc.entry);
   }
 
-  private static getArcToExitCommand(cornerArc: PathCornerArc): string {
+  private static getArcToExitCommand(cornerArc: PathCornerArc): CommandArc {
     if (cornerArc instanceof CornerArc) {
       return cornerArc.arcToExitCommand;
     }
 
-    return `A${cornerArc.radiusX} ${cornerArc.radiusY} ${cornerArc.axisRotation} ${cornerArc.largeArcFlag} ${cornerArc.sweepFlag} ${cornerArc.exitX} ${cornerArc.exitY}`;
+    return new CommandArc(
+      cornerArc.radiusX,
+      cornerArc.radiusY,
+      cornerArc.axisRotation,
+      cornerArc.largeArcFlag,
+      cornerArc.sweepFlag,
+      cornerArc.exit.x,
+      cornerArc.exit.y,
+    );
   }
 
-  private getMoveCommand(vertex: Vertex, cornerArc?: PathCornerArc): string {
+  private getMoveCommand(vertex: Vertex, cornerArc?: PathCornerArc): Command {
     if (!this.isPathClosed) {
       return vertex.moveToCommand;
     }
@@ -146,7 +159,7 @@ export class Path {
     const { previousIndex } = getNeighborIndexes(index, this.vertices.length);
     const previousCornerArc = cornerArcs[previousIndex];
 
-    return previousCornerArc?.exitX === vertex.x && previousCornerArc.exitY === vertex.y;
+    return previousCornerArc?.exit.x === vertex.x && previousCornerArc.exit.y === vertex.y;
   }
 
   private isCurrentCornerArcEntryPreviousArcExit(
@@ -161,12 +174,12 @@ export class Path {
     const { previousIndex } = getNeighborIndexes(index, this.vertices.length);
     const previousCornerArc = cornerArcs[previousIndex];
 
-    return previousCornerArc?.exitX === cornerArc.entryX && previousCornerArc.exitY === cornerArc.entryY;
+    return previousCornerArc?.exit.x === cornerArc.entry.x && previousCornerArc.exit.y === cornerArc.entry.y;
   }
 
-  private getPathCommands(cornerArcs: (PathCornerArc | undefined)[]): string[] {
+  private getPathCommands(cornerArcs: (PathCornerArc | undefined)[]): Command[] {
     const { vertices, isPathClosed } = this;
-    const pathCommands: string[] = [];
+    const pathCommands: Command[] = [];
 
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     for (let index = 0; index < vertices.length; index += 1) {
@@ -188,7 +201,7 @@ export class Path {
 
         if (
           !this.isCurrentCornerArcEntryPreviousArcExit(index, cornerArc, cornerArcs) &&
-          (previousVertex?.x !== cornerArc.entryX || previousVertex.y !== cornerArc.entryY)
+          (previousVertex?.x !== cornerArc.entry.x || previousVertex.y !== cornerArc.entry.y)
         ) {
           pathCommands.push(Path.getArcLineToEntryCommand(cornerArc));
         }
@@ -204,26 +217,30 @@ export class Path {
     }
 
     if (this.isPathClosed) {
-      pathCommands.push('Z');
+      pathCommands.push(new CommandClose());
     }
 
     return pathCommands;
   }
 
-  public get d(): string {
+  public get commands(): Command[] {
     const [firstVertex] = this.vertices;
 
     if (!firstVertex) {
-      return '';
+      return [];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (this.vertices.length === 1) {
-      return this.getMoveCommand(firstVertex);
+      return [this.getMoveCommand(firstVertex)];
     }
 
     const cornerArcs = this.createCornerArcs();
 
-    return [...this.getPathCommands(cornerArcs)].join(' ');
+    return [...this.getPathCommands(cornerArcs)];
+  }
+
+  public get d(): string {
+    return this.commands.map((x) => x.d).join(' ');
   }
 }
