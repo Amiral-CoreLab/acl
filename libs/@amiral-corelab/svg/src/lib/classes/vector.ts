@@ -25,6 +25,26 @@ export class Vector {
     return `${point.x},${point.y}`;
   }
 
+  /**
+   * Computes the signed angle from one vector to another.
+   *
+   * The result is positive for one rotation direction and negative for the other. This matches the
+   * `angle(u, v)` formula used by SVG arc endpoint-to-center conversion.
+   *
+   * @param fromVector Source vector `u`.
+   * @param toVector Target vector `v`.
+   *
+   * @returns The signed angle from `fromVector` to `toVector`, in radians.
+   *
+   * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+   */
+  public static signedAngle(fromVector: Vector, toVector: Vector): number {
+    const crossProduct = Vector.cross(fromVector, toVector);
+    const dotProduct = Vector.dot(fromVector, toVector);
+
+    return Math.atan2(crossProduct, dotProduct);
+  }
+
   public readonly x: number;
   public readonly y: number;
 

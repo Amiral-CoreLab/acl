@@ -1,6 +1,7 @@
 export * from './acl-dom-rect';
 export * from './acl-dom-matrix';
 export * from './acl-dom-point';
+export * from './arc';
 export * from './corner-arc';
 export * from './corner-geometry';
 export * from './graphics-element';

@@ -31,7 +31,7 @@ export class AppComponent implements AfterViewInit {
 
     const path2 = new Path([
       new Vertex(100, 50, 0),
-      new Vertex(150, 50, 25),
+      new Vertex(200, 50, 25),
       new Vertex(150, 300, 0),
       new Vertex(100, 300, 0),
     ]);

@@ -14,6 +14,7 @@ import { CommandMove } from '../classes/command-move';
 import { CommandLine } from '../classes/command-line';
 import { CommandArc } from '../classes/command-arc';
 import { CommandClose } from '../classes/command-close';
+import { getPathGeometriesUtil } from './get-path-geometries.util';
 
 const ZERO = 0;
 const ONE = 1;
@@ -296,7 +297,6 @@ function getArcSourceVertices(path: Path): Vertex[] {
 
 function parsePathPrimitives(path: Path): Primitive[] {
   const arcSourceVertices = getArcSourceVertices(path);
-  console.log(arcSourceVertices);
   let arcSourceVertexIndex = ZERO;
   let currentPoint: Point | undefined;
   let lastPoint: Point | undefined;
@@ -357,8 +357,6 @@ function parsePathPrimitives(path: Path): Primitive[] {
       lastPoint = subpathStart;
     }
   });
-
-  console.log(primitives);
 
   return primitives;
 }
@@ -991,6 +989,7 @@ function removePreviousArcExitVertices(vertices: Vertex[]): Vertex[] {
       !(
         isPlainVertex(vertex) &&
         previousVertex.customCornerArc !== undefined &&
+        Point.isEqual(vertex, previousVertex.customCornerArc.exit) &&
         (nextVertex.cornerRadius > ZERO || nextVertex.customCornerArc !== undefined)
       )
     );
@@ -1023,9 +1022,113 @@ function collapseTechnicalArcExitVertices(vertices: Vertex[]): Vertex[] {
     return !(
       previousVertex?.customCornerArc !== undefined &&
       isPlainVertex(vertex) &&
+      Point.isEqual(vertex, previousVertex.customCornerArc.exit) &&
       (nextVertex?.cornerRadius ?? ZERO) > ZERO
     );
   });
+}
+
+function normalizeClosingTechnicalArcVertex(vertices: Vertex[]): Vertex[] {
+  const firstVertex = vertices[ZERO];
+  const lastVertex = vertices[vertices.length - ONE];
+  const closingArc = lastVertex?.customCornerArc;
+
+  if (
+    vertices.length <= MINIMUM_FACE_VERTEX_COUNT ||
+    firstVertex === undefined ||
+    lastVertex === undefined ||
+    closingArc === undefined ||
+    !Point.isEqual(lastVertex, closingArc.entry) ||
+    !Point.isEqual(firstVertex, closingArc.exit) ||
+    firstVertex.customCornerArc !== undefined ||
+    closingArc.radiusX > firstVertex.vectorTo(vertices[ONE] ?? firstVertex).length ||
+    closingArc.radiusY > firstVertex.vectorTo(vertices[ONE] ?? firstVertex).length
+  ) {
+    return vertices;
+  }
+
+  return [...vertices.slice(ONE, -ONE), cloneVertex(firstVertex, closingArc)];
+}
+
+function normalizeLeadingArcIntoNextRoundedCorner(vertices: Vertex[]): Vertex[] {
+  const firstVertex = vertices[ZERO];
+  const secondVertex = vertices[ONE];
+  const thirdVertex = vertices[TWO];
+  const firstArc = firstVertex?.customCornerArc;
+  const secondArc = secondVertex?.customCornerArc;
+
+  if (
+    vertices.length !== MINIMUM_FACE_VERTEX_COUNT ||
+    firstArc === undefined ||
+    secondArc === undefined ||
+    secondVertex === undefined ||
+    thirdVertex === undefined ||
+    secondVertex.cornerRadius <= ZERO ||
+    !Point.isEqual(firstArc.exit, secondArc.entry)
+  ) {
+    return vertices;
+  }
+
+  const leadingPoint = new Vertex(secondArc.entry.x, secondArc.entry.y);
+  const roundedVertex = overrideCustomCornerArcEntry(secondVertex, secondVertex);
+  const lowerCornerPoint = roundedVertex.customCornerArc?.exit;
+  const roundedArc = roundedVertex.customCornerArc;
+
+  if (lowerCornerPoint === undefined || roundedArc === undefined) {
+    return [leadingPoint, roundedVertex, thirdVertex];
+  }
+
+  const upperCornerPoint = new Point(lowerCornerPoint.x, thirdVertex.y - (lowerCornerPoint.y - thirdVertex.y));
+  const cornerRadius = thirdVertex.vectorTo(upperCornerPoint).length;
+  const bottomArcVertex = cloneVertex(new Vertex(roundedVertex.x, roundedVertex.y), {
+    entry: new Point(lowerCornerPoint.x, lowerCornerPoint.y),
+    exit: new Point(roundedVertex.x, roundedVertex.y),
+    radiusX: roundedArc.radiusX,
+    radiusY: roundedArc.radiusY,
+    axisRotation: roundedArc.axisRotation,
+    largeArcFlag: roundedArc.largeArcFlag,
+    sweepFlag: roundedArc.sweepFlag === ONE ? ZERO : ONE,
+  });
+  const topArcVertex = cloneVertex(leadingPoint, {
+    entry: leadingPoint,
+    exit: firstArc.entry,
+    radiusX: firstArc.radiusX,
+    radiusY: firstArc.radiusY,
+    axisRotation: firstArc.axisRotation,
+    largeArcFlag: firstArc.largeArcFlag,
+    sweepFlag: firstArc.sweepFlag === ONE ? ZERO : ONE,
+  });
+  const cornerVertex = cloneVertex(new Vertex(thirdVertex.x, thirdVertex.y), {
+    entry: upperCornerPoint,
+    exit: new Point(lowerCornerPoint.x, lowerCornerPoint.y),
+    radiusX: cornerRadius,
+    radiusY: cornerRadius,
+    axisRotation: ZERO,
+    largeArcFlag: ZERO,
+    sweepFlag: ZERO,
+  });
+
+  return [bottomArcVertex, topArcVertex, cornerVertex];
+}
+
+function isPointOnSourceAxis(point: Point, sourceVertex: Vertex): boolean {
+  return isEqual(point.x, sourceVertex.x) || isEqual(point.y, sourceVertex.y);
+}
+
+function getSourceAxisSplitPoint(
+  edgeCommand: SplitEdgeCommand,
+  primitive: ArcPrimitive,
+  nodes: Map<string, SplitGraphNode>,
+): Point | undefined {
+  const { sourceVertex } = primitive;
+
+  if (sourceVertex === undefined || sourceVertex.cornerRadius <= ZERO) {
+    return undefined;
+  }
+
+  const fromPoint = nodes.get(edgeCommand.fromKey)?.point;
+
+  return fromPoint !== undefined && isPointOnSourceAxis(fromPoint, sourceVertex) ? fromPoint : undefined;
 }
 
 function getArcRunCustomVertex(
@@ -1050,8 +1153,9 @@ function getArcRunCustomVertex(
 
   const entry = getPrimitivePoint(firstPrimitive, firstEdgeCommand.tStart);
   const exit = nodes.get(lastEdgeCommand.toKey)?.point ?? getPrimitivePoint(lastPrimitive, lastEdgeCommand.tEnd);
+  const logicalPoint = getSourceAxisSplitPoint(lastEdgeCommand, lastPrimitive, nodes) ?? sourceVertex;
 
-  return cloneVertex(sourceVertex, {
+  return cloneVertex(new Vertex(logicalPoint.x, logicalPoint.y, sourceVertex.cornerRadius), {
     entry: new Point(entry.x, entry.y),
     exit: new Point(exit.x, exit.y),
     radiusX: lastPrimitive.radiusX,
@@ -1310,7 +1414,11 @@ function getFaceVertices(
 
   return collapseTechnicalArcExitVertices(
     removeArcEntryVertices(
-      removePreviousArcExitVertices(removeRedundantStraightVertices(compactModelVertices(vertices))),
+      removePreviousArcExitVertices(
+        removeRedundantStraightVertices(
+          normalizeLeadingArcIntoNextRoundedCorner(normalizeClosingTechnicalArcVertex(compactModelVertices(vertices))),
+        ),
+      ),
     ),
   );
 }
@@ -1405,6 +1513,8 @@ function getGraphFaces(
 }
 
 export function splitPathsIntoShapes(paths: Path[]): Path[] {
+  console.log(paths.map((path) => getPathGeometriesUtil(path.commands)));
+
   const primitives = paths
     .flatMap((path) => parsePathPrimitives(path))
     .map((primitive, index) => ({ ...primitive, index }));
