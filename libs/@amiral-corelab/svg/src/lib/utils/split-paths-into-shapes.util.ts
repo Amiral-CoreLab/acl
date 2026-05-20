@@ -14,7 +14,6 @@ import { CommandMove } from '../classes/command-move';
 import { CommandLine } from '../classes/command-line';
 import { CommandArc } from '../classes/command-arc';
 import { CommandClose } from '../classes/command-close';
-import { getPathGeometriesUtil } from './get-path-geometries.util';
 
 const ZERO = 0;
 const ONE = 1;
@@ -1513,7 +1512,7 @@ function getGraphFaces(
 }
 
 export function splitPathsIntoShapes(paths: Path[]): Path[] {
-  console.log(paths.map((path) => getPathGeometriesUtil(path.commands)));
+  console.log(paths.map((x) => x.primitives));
 
   const primitives = paths
     .flatMap((path) => parsePathPrimitives(path))

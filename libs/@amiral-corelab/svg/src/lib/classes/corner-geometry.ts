@@ -23,7 +23,6 @@ export class CornerGeometry {
   public readonly sweepFlag: SweepFlagEnum;
 
   public constructor(previousVertex: Vertex, cornerVertex: Vertex, nextVertex: Vertex) {
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (cornerVertex.cornerRadius <= 0) {
       throw new Error('Corner radius must be greater than zero.');
     }
@@ -35,7 +34,6 @@ export class CornerGeometry {
     this.incomingVector = cornerVertex.vectorTo(previousVertex);
     this.outgoingVector = cornerVertex.vectorTo(nextVertex);
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (this.incomingVector.length === 0 || this.outgoingVector.length === 0) {
       throw new Error('Incoming and outgoing edges must not be zero.');
     }
@@ -47,16 +45,13 @@ export class CornerGeometry {
       this.incomingUnitVector.x * this.outgoingUnitVector.x + this.incomingUnitVector.y * this.outgoingUnitVector.y;
     const angle = Math.acos(dotProduct);
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (angle === 0 || angle === Math.PI) {
       throw new Error('Incoming and outgoing edges must not be parallel.');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     this.tangentFactor = Math.tan(angle / 2);
     this.tangentOffset = this.cornerVertex.cornerRadius / this.tangentFactor;
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (this.tangentOffset === 0 || !Number.isFinite(this.tangentOffset) || !Number.isFinite(this.tangentFactor)) {
       throw new Error('Corner angle does not allow a valid tangent offset.');
     }
@@ -64,7 +59,6 @@ export class CornerGeometry {
     const crossProduct =
       this.incomingUnitVector.x * this.outgoingUnitVector.y - this.incomingUnitVector.y * this.outgoingUnitVector.x;
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     this.sweepFlag = crossProduct >= 0 ? SweepFlagEnum.Clockwise : SweepFlagEnum.Counterclockwise;
   }
 }

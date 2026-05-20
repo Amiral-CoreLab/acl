@@ -60,9 +60,7 @@ export class Vector {
   public get normalized(): Vector {
     const { length } = this;
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (length === 0) {
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       return new Vector(0, 0);
     }
 

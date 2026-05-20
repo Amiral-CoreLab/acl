@@ -1,5 +1,5 @@
 import type { Vertex } from './vertex';
-import type { Arc } from '@amiral-corelab/svg';
+import type { Arc } from './arc';
 
 export class ArcPrimitive {
   public readonly geometry: Arc;

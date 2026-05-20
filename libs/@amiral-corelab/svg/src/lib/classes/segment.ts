@@ -1,4 +1,4 @@
-import type { Point } from '@amiral-corelab/svg';
+import type { Point } from './point';
 
 export class Segment {
   public readonly start: Point;

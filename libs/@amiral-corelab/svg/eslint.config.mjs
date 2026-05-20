@@ -23,6 +23,9 @@ export default defineConfig([
           style: 'kebab-case',
         },
       ],
+      '@typescript-eslint/no-magic-numbers': 'off',
+      complexity: 'off',
+      'max-lines-per-function': 'off',
     },
   },
   {

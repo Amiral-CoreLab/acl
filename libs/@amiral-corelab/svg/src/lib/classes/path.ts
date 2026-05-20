@@ -7,8 +7,14 @@ import { CommandLine } from './command-line';
 import { CommandMove } from './command-move';
 import type { Command } from './command';
 import { CommandClose } from './command-close';
+import { Segment } from './segment';
+import { Arc } from './arc';
+import { SegmentPrimitive } from './segment-primitive';
+import { ArcPrimitive } from './arc-primitive';
+import type { Point } from './point';
 
 type PathCornerArc = CornerArc | VertexCustomCornerArc;
+export type PathPrimitive = SegmentPrimitive | ArcPrimitive;
 
 /**
  * FR: Représente un chemin SVG construit à partir d'une suite de sommets.
@@ -54,9 +60,9 @@ export class Path {
 
   private getNormalizedCornerTangentOffsets(cornerGeometries: (CornerGeometry | undefined)[]): number[] {
     const { vertices, isPathClosed } = this;
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+
     const tangentOffsets = cornerGeometries.map((cornerGeometry) => cornerGeometry?.tangentOffset ?? 0);
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+
     const edgeCount = isPathClosed ? vertices.length : vertices.length - 1;
 
     const normalizedCornerOffsets = tangentOffsets.map((offset) => ({
@@ -64,19 +70,17 @@ export class Path {
       outgoing: offset,
     }));
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     for (let index = 0; index < edgeCount; index += 1) {
       const { currentIndex, nextIndex } = getNeighborIndexes(index, vertices.length);
       const currentGeometry = cornerGeometries[currentIndex];
       const nextGeometry = cornerGeometries[nextIndex];
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+
       const currentTangentOffset = currentGeometry?.tangentOffset ?? 0;
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+
       const nextTangentOffset = nextGeometry?.tangentOffset ?? 0;
       const totalOffset = currentTangentOffset + nextTangentOffset;
       const edgeLength = this.getEdgeLength(currentIndex, nextIndex);
 
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       if (edgeLength === undefined || edgeLength === 0 || totalOffset <= edgeLength) {
         continue;
       }
@@ -84,12 +88,10 @@ export class Path {
       // Keep both corners proportional on the shared edge.
       const scale = edgeLength / totalOffset;
 
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       if (currentTangentOffset > 0 && normalizedCornerOffsets[currentIndex]) {
         normalizedCornerOffsets[currentIndex].outgoing = currentTangentOffset * scale;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       if (nextTangentOffset > 0 && normalizedCornerOffsets[nextIndex]) {
         normalizedCornerOffsets[nextIndex].incoming = nextTangentOffset * scale;
       }
@@ -181,7 +183,6 @@ export class Path {
     const { vertices, isPathClosed } = this;
     const pathCommands: Command[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     for (let index = 0; index < vertices.length; index += 1) {
       const vertexIndex = wrapIndex(index, vertices.length);
       const vertex = vertices[vertexIndex];
@@ -190,7 +191,6 @@ export class Path {
         continue;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       const isOpenPathLastVertex = index === vertices.length - 1 && !isPathClosed;
       const cornerArc = isOpenPathLastVertex ? undefined : cornerArcs[vertexIndex];
 
@@ -223,6 +223,98 @@ export class Path {
     return pathCommands;
   }
 
+  private static isSamePoint(first: Point, second: Point): boolean {
+    return first.x === second.x && first.y === second.y;
+  }
+
+  private getCornerArc(index: number, cornerArcs: (PathCornerArc | undefined)[]): PathCornerArc | undefined {
+    const isOpenPathLastVertex = index === this.vertices.length - 1 && !this.isPathClosed;
+
+    return isOpenPathLastVertex ? undefined : cornerArcs[index];
+  }
+
+  private shouldAddSegmentToCornerEntry(
+    index: number,
+    cornerArc: PathCornerArc,
+    cornerArcs: (PathCornerArc | undefined)[],
+  ): boolean {
+    const previousVertex = this.vertices[wrapIndex(index - 1, this.vertices.length)];
+    const isEntryPreviousArcExit = this.isCurrentCornerArcEntryPreviousArcExit(index, cornerArc, cornerArcs);
+    const isEntryPreviousVertex = previousVertex ? Path.isSamePoint(previousVertex, cornerArc.entry) : false;
+
+    return !isEntryPreviousArcExit && !isEntryPreviousVertex;
+  }
+
+  private getPathPrimitives(cornerArcs: (PathCornerArc | undefined)[]): PathPrimitive[] {
+    const [firstVertex, ...remainingVertices] = this.vertices;
+    const [firstCornerArc, ...remainingCornerArcs] = cornerArcs;
+
+    if (!firstVertex) {
+      return [];
+    }
+
+    let currentPathPoint = firstCornerArc ? firstCornerArc.entry : firstVertex;
+    let currentPointVertex = firstCornerArc ? undefined : firstVertex;
+    const subpathStartPoint = currentPathPoint;
+    const subpathStartVertex = currentPointVertex;
+    const primitives: PathPrimitive[] = [];
+
+    if (firstCornerArc) {
+      const arc = Arc.fromCommand(firstCornerArc.entry, Path.getArcToExitCommand(firstCornerArc));
+
+      if (arc) {
+        primitives.push(new ArcPrimitive(arc, firstVertex));
+      } else {
+        primitives.push(new SegmentPrimitive(new Segment(firstCornerArc.entry, firstCornerArc.exit), firstVertex));
+      }
+    }
+
+    // TODO: corriger la boucle avec les index etc...
+
+    for (let index = 0; index < remainingVertices.length; index += 1) {
+      const vertex = remainingVertices[index];
+
+      if (!vertex) {
+        continue;
+      }
+
+      const cornerArc = this.getCornerArc(index, remainingCornerArcs);
+
+      if (cornerArc && this.shouldAddSegmentToCornerEntry(index, cornerArc, remainingCornerArcs)) {
+        primitives.push(new SegmentPrimitive(new Segment(currentPathPoint, cornerArc.entry), currentPointVertex));
+      } else if (this.isPreviousCornerArcExit(vertex, index, remainingCornerArcs)) {
+        currentPathPoint = vertex;
+        currentPointVertex = vertex;
+        continue;
+      } else {
+        primitives.push(new SegmentPrimitive(new Segment(currentPathPoint, vertex), currentPointVertex, vertex));
+        currentPathPoint = vertex;
+        currentPointVertex = vertex;
+      }
+
+      if (cornerArc) {
+        const arc = Arc.fromCommand(cornerArc.entry, Path.getArcToExitCommand(cornerArc));
+
+        if (arc) {
+          primitives.push(new ArcPrimitive(arc, vertex));
+        } else {
+          primitives.push(new SegmentPrimitive(new Segment(cornerArc.entry, cornerArc.exit), vertex));
+        }
+
+        currentPathPoint = cornerArc.exit;
+        currentPointVertex = undefined;
+      }
+    }
+
+    if (this.isPathClosed) {
+      primitives.push(
+        new SegmentPrimitive(new Segment(currentPathPoint, subpathStartPoint), currentPointVertex, subpathStartVertex),
+      );
+    }
+
+    return primitives;
+  }
+
   public get commands(): Command[] {
     const [firstVertex] = this.vertices;
 
@@ -230,7 +322,6 @@ export class Path {
       return [];
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     if (this.vertices.length === 1) {
       return [this.getMoveCommand(firstVertex)];
     }
@@ -238,6 +329,22 @@ export class Path {
     const cornerArcs = this.createCornerArcs();
 
     return [...this.getPathCommands(cornerArcs)];
+  }
+
+  public get primitives(): PathPrimitive[] {
+    const [firstVertex] = this.vertices;
+
+    if (!firstVertex) {
+      return [];
+    }
+
+    if (this.vertices.length === 1) {
+      return [];
+    }
+
+    const cornerArcs = this.createCornerArcs();
+
+    return [...this.getPathPrimitives(cornerArcs)];
   }
 
   public get d(): string {
