@@ -1,353 +1,298 @@
-import { assert, getNeighborIndexes, isFirstIndex, isLastIndex, wrapIndex } from '@amiral-corelab/core';
-import type { Vertex, VertexCustomCornerArc } from './vertex';
-import { CornerArc } from './corner-arc';
-import { CornerGeometry } from './corner-geometry';
-import { CommandArc } from './command-arc';
-import { CommandLine } from './command-line';
-import { CommandMove } from './command-move';
-import type { Command } from './command';
-import { CommandClose } from './command-close';
+import type { InitArg } from '@amiral-corelab/core';
+import { getNeighborIndexes, isFirstIndex, isLastIndex } from '@amiral-corelab/core';
+import type { PathPrimitive } from '../types';
+import type { Vertex } from './vertex';
+import type { PathCommand } from './path-command';
+import { CornerVertices } from './corner-vertices';
+import { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geometry';
 import { Segment } from './segment';
-import { Arc } from './arc';
-import { SegmentPrimitive } from './segment-primitive';
-import { ArcPrimitive } from './arc-primitive';
-import type { Point } from './point';
-
-type PathCornerArc = CornerArc | VertexCustomCornerArc;
-export type PathPrimitive = SegmentPrimitive | ArcPrimitive;
+import { PathCommandMove } from './path-command-move';
+import { PathCommandLine } from './path-command-line';
+import { PathCommandArc } from './path-command-arc';
+import { PathCommandClose } from './path-command-close';
 
 /**
- * FR: Représente un chemin SVG construit à partir d'une suite de sommets.
- * EN: Represents an SVG path built from an ordered list of vertices.
+ * Represents a logical SVG path model built from ordered vertices.
+ *
+ * The path stores authoring data, not final SVG path data. Vertices can be resolved into
+ * drawable primitives, then converted to SVG path commands.
+ *
+ * @see https://www.w3.org/TR/SVG2/paths.html
  */
 export class Path {
-  public vertices: Vertex[] = [];
-  public isPathClosed = false;
+  /**
+   * Ordered vertices defining the logical path outline.
+   */
+  public readonly vertices: Vertex[] = [];
 
-  public constructor(vertices: Vertex[]) {
-    this.vertices = vertices;
+  /**
+   * Whether the path has a closing edge from the last vertex back to the first vertex.
+   */
+  public readonly closed: boolean;
+
+  /**
+   * Creates a path from optional vertices and closed state.
+   *
+   * @param initArg Source path values.
+   */
+  public constructor(initArg?: InitArg<Path>) {
+    this.vertices = initArg?.vertices ?? [];
+    this.closed = initArg?.closed ?? false;
   }
 
-  private createCornerGeometry(index: number): CornerGeometry | undefined {
+  /**
+   * Gets the neighboring vertices around a vertex index.
+   *
+   * Open path endpoints do not have a complete corner context, so the missing neighbor is
+   * returned as `undefined`. Closed paths wrap around the first and last vertices.
+   *
+   * @param index Vertex index to inspect.
+   *
+   * @returns Previous, current, and next vertices when available.
+   */
+  private getNeighborVertices(index: number): {
+    previousVertex: Vertex | undefined;
+    currentVertex: Vertex | undefined;
+    nextVertex: Vertex | undefined;
+  } {
     const { vertices } = this;
-
-    if (!this.isPathClosed && (isFirstIndex(index) || isLastIndex(index, vertices.length))) {
-      return undefined;
-    }
-
     const { previousIndex, currentIndex, nextIndex } = getNeighborIndexes(index, vertices.length);
-    const previousPoint = vertices[previousIndex];
-    const currentPoint = vertices[currentIndex];
-    const nextPoint = vertices[nextIndex];
 
-    assert(previousPoint !== undefined, 'Previous point is undefined');
-    assert(currentPoint !== undefined, 'Current point is undefined');
-    assert(nextPoint !== undefined, 'Next point is undefined');
-
-    try {
-      return new CornerGeometry(previousPoint, currentPoint, nextPoint);
-    } catch {
-      return undefined;
-    }
-  }
-
-  private getEdgeLength(currentIndex: number, nextIndex: number): number | undefined {
-    const currentVertex = this.vertices[currentIndex];
-    const nextVertex = this.vertices[nextIndex];
-
-    return currentVertex && nextVertex ? currentVertex.vectorTo(nextVertex).length : undefined;
-  }
-
-  private getNormalizedCornerTangentOffsets(cornerGeometries: (CornerGeometry | undefined)[]): number[] {
-    const { vertices, isPathClosed } = this;
-
-    const tangentOffsets = cornerGeometries.map((cornerGeometry) => cornerGeometry?.tangentOffset ?? 0);
-
-    const edgeCount = isPathClosed ? vertices.length : vertices.length - 1;
-
-    const normalizedCornerOffsets = tangentOffsets.map((offset) => ({
-      incoming: offset,
-      outgoing: offset,
-    }));
-
-    for (let index = 0; index < edgeCount; index += 1) {
-      const { currentIndex, nextIndex } = getNeighborIndexes(index, vertices.length);
-      const currentGeometry = cornerGeometries[currentIndex];
-      const nextGeometry = cornerGeometries[nextIndex];
-
-      const currentTangentOffset = currentGeometry?.tangentOffset ?? 0;
-
-      const nextTangentOffset = nextGeometry?.tangentOffset ?? 0;
-      const totalOffset = currentTangentOffset + nextTangentOffset;
-      const edgeLength = this.getEdgeLength(currentIndex, nextIndex);
-
-      if (edgeLength === undefined || edgeLength === 0 || totalOffset <= edgeLength) {
-        continue;
+    if (!this.closed) {
+      if (isFirstIndex(index)) {
+        return {
+          previousVertex: undefined,
+          currentVertex: vertices[currentIndex],
+          nextVertex: vertices[nextIndex],
+        };
       }
 
-      // Keep both corners proportional on the shared edge.
-      const scale = edgeLength / totalOffset;
-
-      if (currentTangentOffset > 0 && normalizedCornerOffsets[currentIndex]) {
-        normalizedCornerOffsets[currentIndex].outgoing = currentTangentOffset * scale;
-      }
-
-      if (nextTangentOffset > 0 && normalizedCornerOffsets[nextIndex]) {
-        normalizedCornerOffsets[nextIndex].incoming = nextTangentOffset * scale;
+      if (isLastIndex(index, vertices.length)) {
+        return {
+          previousVertex: vertices[previousIndex],
+          currentVertex: vertices[currentIndex],
+          nextVertex: undefined,
+        };
       }
     }
 
-    return normalizedCornerOffsets.map((offsets) => Math.min(offsets.incoming, offsets.outgoing));
+    return {
+      previousVertex: vertices[previousIndex],
+      currentVertex: vertices[currentIndex],
+      nextVertex: vertices[nextIndex],
+    };
   }
 
-  private createCornerArcs(): (PathCornerArc | undefined)[] {
-    const { vertices } = this;
-    const cornerGeometries = vertices.map((_, index) => this.createCornerGeometry(index));
-    const normalizedTangentOffsets = this.getNormalizedCornerTangentOffsets(cornerGeometries);
+  /**
+   * Builds corner vertex contexts for every path vertex that has two neighbors.
+   *
+   * Open path endpoints do not produce a context because they do not have both an incoming
+   * and outgoing path edge.
+   *
+   * @returns One corner context per vertex when available.
+   */
+  private getCornersVertices(): (CornerVertices | undefined)[] {
+    return this.vertices.map<CornerVertices | undefined>((_, index) => {
+      const { previousVertex, currentVertex, nextVertex } = this.getNeighborVertices(index);
 
-    return cornerGeometries.map((geometry, index) => {
-      const vertex = vertices[index];
-      const tangentOffset = normalizedTangentOffsets[index];
-
-      if (vertex?.customCornerArc) {
-        return vertex.customCornerArc;
-      }
-
-      if (!vertex || !geometry || tangentOffset === undefined) {
+      if (!previousVertex || !currentVertex || !nextVertex) {
         return undefined;
       }
 
-      return new CornerArc(vertex, geometry, tangentOffset);
+      return new CornerVertices({ previous: previousVertex, current: currentVertex, next: nextVertex });
     });
   }
 
-  private static getArcMoveToEntryCommand(cornerArc: PathCornerArc): CommandMove {
-    return CommandMove.fromPoint(cornerArc.entry);
+  /**
+   * Resolves radius-based corner geometries for every path vertex.
+   *
+   * Vertices without a radius corner definition, or with geometry that cannot be resolved,
+   * are represented as `undefined`.
+   *
+   * @returns One optional radius corner geometry per vertex.
+   */
+  private getCornerGeometries(): (CornerDefinitionRadiusGeometry | undefined)[] {
+    return this.getCornersVertices().map<CornerDefinitionRadiusGeometry | undefined>((cornerVertices) => {
+      if (!cornerVertices) {
+        return undefined;
+      }
+
+      try {
+        return CornerDefinitionRadiusGeometry.fromCornerVertices(cornerVertices);
+      } catch {
+        return undefined;
+      }
+    });
   }
 
-  private static getArcLineToEntryCommand(cornerArc: PathCornerArc): CommandLine {
-    return CommandLine.fromPoint(cornerArc.entry);
+  /**
+   * Computes the straight-edge length between two path vertices.
+   *
+   * This measures the logical path edge, not the fitted segment that may remain after rounded
+   * corners consume part of the edge.
+   *
+   * @param fromIndex Source vertex index.
+   * @param toIndex Target vertex index.
+   *
+   * @returns Edge length, or `undefined` when either vertex is missing.
+   */
+  private getPathEdgeLength(fromIndex: number, toIndex: number): number | undefined {
+    const fromVertex = this.vertices[fromIndex];
+    const toVertex = this.vertices[toIndex];
+
+    return fromVertex?.getVectorTo(toVertex).getLength();
   }
 
-  private static getArcToExitCommand(cornerArc: PathCornerArc): CommandArc {
-    if (cornerArc instanceof CornerArc) {
-      return cornerArc.arcToExitCommand;
-    }
+  /**
+   * Fits radius corner geometries so adjacent rounded corners fit on each path edge.
+   *
+   * SVG paths are made of segments between current points. When two neighboring radius corners
+   * consume more than the available straight-edge length, their tangent offsets are scaled
+   * proportionally and their entry/exit tangent points are rebuilt from that fitted offset.
+   *
+   * @returns One fitted radius corner geometry per vertex, or `undefined` where no radius
+   * geometry is available.
+   *
+   * @see https://www.w3.org/TR/SVG2/paths.html#PathDataGeneralInformation
+   */
+  private getFittedCornerGeometries(): (CornerDefinitionRadiusGeometry | undefined)[] {
+    const cornerGeometries = this.getCornerGeometries();
+    const { vertices, closed } = this;
+    const tangentOffsets = cornerGeometries.map((cornerGeometry) => cornerGeometry?.tangentOffset ?? 0);
+    const fittedTangentOffsets = tangentOffsets.map((tangentOffset) => ({
+      incoming: tangentOffset,
+      outgoing: tangentOffset,
+    }));
+    const edgeCount = closed ? vertices.length : vertices.length - 1;
 
-    return new CommandArc(
-      cornerArc.radiusX,
-      cornerArc.radiusY,
-      cornerArc.axisRotation,
-      cornerArc.largeArcFlag,
-      cornerArc.sweepFlag,
-      cornerArc.exit.x,
-      cornerArc.exit.y,
-    );
-  }
+    for (let index = 0; index < edgeCount; index += 1) {
+      const { currentIndex, nextIndex } = getNeighborIndexes(index, vertices.length);
+      const currentOutgoingTangentOffset = cornerGeometries[currentIndex]?.tangentOffset ?? 0;
+      const nextIncomingTangentOffset = cornerGeometries[nextIndex]?.tangentOffset ?? 0;
+      const totalTangentOffset = currentOutgoingTangentOffset + nextIncomingTangentOffset;
+      const pathEdgeLength = this.getPathEdgeLength(currentIndex, nextIndex);
 
-  private getMoveCommand(vertex: Vertex, cornerArc?: PathCornerArc): Command {
-    if (!this.isPathClosed) {
-      return vertex.moveToCommand;
-    }
-
-    return cornerArc ? Path.getArcMoveToEntryCommand(cornerArc) : vertex.moveToCommand;
-  }
-
-  private isPreviousCornerArcExit(vertex: Vertex, index: number, cornerArcs: (PathCornerArc | undefined)[]): boolean {
-    if (isFirstIndex(index)) {
-      return false;
-    }
-
-    const { previousIndex } = getNeighborIndexes(index, this.vertices.length);
-    const previousCornerArc = cornerArcs[previousIndex];
-
-    return previousCornerArc?.exit.x === vertex.x && previousCornerArc.exit.y === vertex.y;
-  }
-
-  private isCurrentCornerArcEntryPreviousArcExit(
-    index: number,
-    cornerArc: PathCornerArc,
-    cornerArcs: (PathCornerArc | undefined)[],
-  ): boolean {
-    if (isFirstIndex(index)) {
-      return false;
-    }
-
-    const { previousIndex } = getNeighborIndexes(index, this.vertices.length);
-    const previousCornerArc = cornerArcs[previousIndex];
-
-    return previousCornerArc?.exit.x === cornerArc.entry.x && previousCornerArc.exit.y === cornerArc.entry.y;
-  }
-
-  private getPathCommands(cornerArcs: (PathCornerArc | undefined)[]): Command[] {
-    const { vertices, isPathClosed } = this;
-    const pathCommands: Command[] = [];
-
-    for (let index = 0; index < vertices.length; index += 1) {
-      const vertexIndex = wrapIndex(index, vertices.length);
-      const vertex = vertices[vertexIndex];
-
-      if (!vertex) {
+      if (pathEdgeLength === undefined || pathEdgeLength === 0 || totalTangentOffset <= pathEdgeLength) {
         continue;
       }
 
-      const isOpenPathLastVertex = index === vertices.length - 1 && !isPathClosed;
-      const cornerArc = isOpenPathLastVertex ? undefined : cornerArcs[vertexIndex];
+      const tangentOffsetScale = pathEdgeLength / totalTangentOffset;
 
-      if (isFirstIndex(index)) {
-        pathCommands.push(cornerArc ? Path.getArcMoveToEntryCommand(cornerArc) : vertex.moveToCommand);
-      } else if (cornerArc) {
-        const previousVertex = vertices[wrapIndex(index - 1, vertices.length)];
-
-        if (
-          !this.isCurrentCornerArcEntryPreviousArcExit(index, cornerArc, cornerArcs) &&
-          (previousVertex?.x !== cornerArc.entry.x || previousVertex.y !== cornerArc.entry.y)
-        ) {
-          pathCommands.push(Path.getArcLineToEntryCommand(cornerArc));
-        }
-      } else if (this.isPreviousCornerArcExit(vertex, index, cornerArcs)) {
-        continue;
-      } else {
-        pathCommands.push(vertex.lineToCommand);
+      if (currentOutgoingTangentOffset > 0 && fittedTangentOffsets[currentIndex]) {
+        fittedTangentOffsets[currentIndex].outgoing = currentOutgoingTangentOffset * tangentOffsetScale;
       }
 
-      if (cornerArc) {
-        pathCommands.push(Path.getArcToExitCommand(cornerArc));
+      if (nextIncomingTangentOffset > 0 && fittedTangentOffsets[nextIndex]) {
+        fittedTangentOffsets[nextIndex].incoming = nextIncomingTangentOffset * tangentOffsetScale;
       }
     }
 
-    if (this.isPathClosed) {
-      pathCommands.push(new CommandClose());
-    }
+    return cornerGeometries.map<CornerDefinitionRadiusGeometry | undefined>((cornerGeometry, index) => {
+      const fittedTangentOffset = fittedTangentOffsets[index];
 
-    return pathCommands;
+      if (!cornerGeometry || fittedTangentOffset === undefined) {
+        return undefined;
+      }
+
+      return cornerGeometry.withTangentOffset(Math.min(fittedTangentOffset.incoming, fittedTangentOffset.outgoing));
+    });
   }
 
-  private static isSamePoint(first: Point, second: Point): boolean {
-    return first.x === second.x && first.y === second.y;
-  }
-
-  private getCornerArc(index: number, cornerArcs: (PathCornerArc | undefined)[]): PathCornerArc | undefined {
-    const isOpenPathLastVertex = index === this.vertices.length - 1 && !this.isPathClosed;
-
-    return isOpenPathLastVertex ? undefined : cornerArcs[index];
-  }
-
-  private shouldAddSegmentToCornerEntry(
-    index: number,
-    cornerArc: PathCornerArc,
-    cornerArcs: (PathCornerArc | undefined)[],
-  ): boolean {
-    const previousVertex = this.vertices[wrapIndex(index - 1, this.vertices.length)];
-    const isEntryPreviousArcExit = this.isCurrentCornerArcEntryPreviousArcExit(index, cornerArc, cornerArcs);
-    const isEntryPreviousVertex = previousVertex ? Path.isSamePoint(previousVertex, cornerArc.entry) : false;
-
-    return !isEntryPreviousArcExit && !isEntryPreviousVertex;
-  }
-
-  private getPathPrimitives(cornerArcs: (PathCornerArc | undefined)[]): PathPrimitive[] {
-    const [firstVertex, ...remainingVertices] = this.vertices;
-    const [firstCornerArc, ...remainingCornerArcs] = cornerArcs;
-
-    if (!firstVertex) {
-      return [];
-    }
-
-    let currentPathPoint = firstCornerArc ? firstCornerArc.entry : firstVertex;
-    let currentPointVertex = firstCornerArc ? undefined : firstVertex;
-    const subpathStartPoint = currentPathPoint;
-    const subpathStartVertex = currentPointVertex;
+  /**
+   * Builds drawable path primitives from fitted corner geometries.
+   *
+   * Each logical path edge becomes a straight segment between the current corner exit and
+   * the next corner entry. When the next vertex has a fitted radius corner, its centered arc
+   * is appended after that segment.
+   *
+   * @returns Path primitives in drawing order.
+   */
+  private getPrimitives(): PathPrimitive[] {
+    const { vertices, closed } = this;
+    const fittedCornerGeometries = this.getFittedCornerGeometries();
+    const edgeCount = closed ? vertices.length : vertices.length - 1;
     const primitives: PathPrimitive[] = [];
 
-    if (firstCornerArc) {
-      const arc = Arc.fromCommand(firstCornerArc.entry, Path.getArcToExitCommand(firstCornerArc));
+    for (let index = 0; index < edgeCount; index += 1) {
+      const { currentIndex, nextIndex } = getNeighborIndexes(index, vertices.length);
+      const currentVertex = vertices[currentIndex];
+      const nextVertex = vertices[nextIndex];
 
-      if (arc) {
-        primitives.push(new ArcPrimitive(arc, firstVertex));
-      } else {
-        primitives.push(new SegmentPrimitive(new Segment(firstCornerArc.entry, firstCornerArc.exit), firstVertex));
-      }
-    }
-
-    // TODO: corriger la boucle avec les index etc...
-
-    for (let index = 0; index < remainingVertices.length; index += 1) {
-      const vertex = remainingVertices[index];
-
-      if (!vertex) {
+      if (!currentVertex || !nextVertex) {
         continue;
       }
 
-      const cornerArc = this.getCornerArc(index, remainingCornerArcs);
+      const currentCornerGeometry = fittedCornerGeometries[currentIndex];
+      const nextCornerGeometry = fittedCornerGeometries[nextIndex];
+      const segmentStart = currentCornerGeometry?.exit ?? currentVertex;
+      const segmentEnd = nextCornerGeometry?.entry ?? nextVertex;
 
-      if (cornerArc && this.shouldAddSegmentToCornerEntry(index, cornerArc, remainingCornerArcs)) {
-        primitives.push(new SegmentPrimitive(new Segment(currentPathPoint, cornerArc.entry), currentPointVertex));
-      } else if (this.isPreviousCornerArcExit(vertex, index, remainingCornerArcs)) {
-        currentPathPoint = vertex;
-        currentPointVertex = vertex;
-        continue;
-      } else {
-        primitives.push(new SegmentPrimitive(new Segment(currentPathPoint, vertex), currentPointVertex, vertex));
-        currentPathPoint = vertex;
-        currentPointVertex = vertex;
+      if (segmentStart.getVectorTo(segmentEnd).getLength() > 0) {
+        primitives.push(new Segment({ start: segmentStart, end: segmentEnd }));
       }
 
-      if (cornerArc) {
-        const arc = Arc.fromCommand(cornerArc.entry, Path.getArcToExitCommand(cornerArc));
-
-        if (arc) {
-          primitives.push(new ArcPrimitive(arc, vertex));
-        } else {
-          primitives.push(new SegmentPrimitive(new Segment(cornerArc.entry, cornerArc.exit), vertex));
-        }
-
-        currentPathPoint = cornerArc.exit;
-        currentPointVertex = undefined;
+      if (nextCornerGeometry) {
+        primitives.push(nextCornerGeometry.toArcCenter());
       }
-    }
-
-    if (this.isPathClosed) {
-      primitives.push(
-        new SegmentPrimitive(new Segment(currentPathPoint, subpathStartPoint), currentPointVertex, subpathStartVertex),
-      );
     }
 
     return primitives;
   }
 
-  public get commands(): Command[] {
-    const [firstVertex] = this.vertices;
-
-    if (!firstVertex) {
-      return [];
-    }
-
-    if (this.vertices.length === 1) {
-      return [this.getMoveCommand(firstVertex)];
-    }
-
-    const cornerArcs = this.createCornerArcs();
-
-    return [...this.getPathCommands(cornerArcs)];
+  /**
+   * Converts the logical path model into drawable geometry primitives.
+   *
+   * @returns Path primitives resolved from vertices and corner definitions.
+   */
+  public toPrimitives(): PathPrimitive[] {
+    return this.getPrimitives();
   }
 
-  public get primitives(): PathPrimitive[] {
-    const [firstVertex] = this.vertices;
-
-    if (!firstVertex) {
-      return [];
+  private getPrimitiveStart(primitive: PathPrimitive): Vertex | Segment['start'] {
+    if (primitive instanceof Segment) {
+      return primitive.start;
     }
 
-    if (this.vertices.length === 1) {
-      return [];
-    }
-
-    const cornerArcs = this.createCornerArcs();
-
-    return [...this.getPathPrimitives(cornerArcs)];
+    return primitive.start;
   }
 
-  public get d(): string {
-    return this.commands.map((x) => x.d).join(' ');
+  private getCommandFromPrimitive(primitive: PathPrimitive): PathCommand {
+    if (primitive instanceof Segment) {
+      return new PathCommandLine({ point: primitive.end });
+    }
+
+    return new PathCommandArc({
+      radiusX: primitive.radiusX,
+      radiusY: primitive.radiusY,
+      axisRotation: primitive.axisRotation,
+      largeArcFlag: primitive.largeArcFlag,
+      sweepFlag: primitive.sweepFlag,
+      point: primitive.end,
+    });
+  }
+
+  /**
+   * Converts the logical path model into SVG path commands.
+   *
+   * @returns SVG path commands.
+   */
+  public toCommands(): PathCommand[] {
+    const [firstPrimitive, ...remainingPrimitives] = this.toPrimitives();
+
+    if (!firstPrimitive) {
+      return [];
+    }
+
+    const commands: PathCommand[] = [
+      new PathCommandMove({ point: this.getPrimitiveStart(firstPrimitive) }),
+      this.getCommandFromPrimitive(firstPrimitive),
+      ...remainingPrimitives.map((primitive) => this.getCommandFromPrimitive(primitive)),
+    ];
+
+    if (this.closed) {
+      commands.push(new PathCommandClose());
+    }
+
+    return commands;
   }
 }

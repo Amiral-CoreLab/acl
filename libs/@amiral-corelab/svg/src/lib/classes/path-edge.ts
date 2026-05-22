@@ -1,5 +1,5 @@
-import { Vertex } from './vertex';
 import type { InitArg } from '@amiral-corelab/core';
+import { Vertex } from './vertex';
 
 /**
  * Represents a logical directed edge between two path vertices.

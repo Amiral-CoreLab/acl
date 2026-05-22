@@ -1,5 +1,5 @@
-import { CornerDefinitionArc } from './corner-definition-arc';
 import type { InitArg } from '@amiral-corelab/core';
+import { CornerDefinitionArc } from './corner-definition-arc';
 import { Point } from './point';
 
 /**
@@ -55,5 +55,45 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
     this.axisRotation = initArg?.axisRotation ?? 0;
     this.startAngle = initArg?.startAngle ?? 0;
     this.deltaAngle = initArg?.deltaAngle ?? 0;
+  }
+
+  private getPointAtAngle(angle: number): Point {
+    const cosRotation = Math.cos(this.axisRotation);
+    const sinRotation = Math.sin(this.axisRotation);
+    const x = this.radiusX * Math.cos(angle);
+    const y = this.radiusY * Math.sin(angle);
+
+    return new Point({
+      x: this.center.x + cosRotation * x - sinRotation * y,
+      y: this.center.y + sinRotation * x + cosRotation * y,
+    });
+  }
+
+  /**
+   * Start point of the arc.
+   */
+  public get start(): Point {
+    return this.getPointAtAngle(this.startAngle);
+  }
+
+  /**
+   * End point of the arc.
+   */
+  public get end(): Point {
+    return this.getPointAtAngle(this.startAngle + this.deltaAngle);
+  }
+
+  /**
+   * SVG large-arc flag derived from the angular extent.
+   */
+  public get largeArcFlag(): number {
+    return Math.abs(this.deltaAngle) > Math.PI ? 1 : 0;
+  }
+
+  /**
+   * SVG sweep flag derived from the signed angular extent.
+   */
+  public get sweepFlag(): number {
+    return this.deltaAngle >= 0 ? 1 : 0;
   }
 }

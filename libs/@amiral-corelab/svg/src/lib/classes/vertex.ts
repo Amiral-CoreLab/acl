@@ -1,32 +1,30 @@
+import type { InitArg } from '@amiral-corelab/core';
 import { Point } from './point';
+import type { CornerDefinition } from './corner-definition';
 
 /**
- * FR: Décrit un arc personnalisé attaché à un sommet quand un simple radius ne suffit pas.
- * EN: Describes a custom arc attached to a vertex when a simple radius is not enough.
- */
-export interface VertexCustomCornerArc {
-  readonly entry: Point;
-  readonly exit: Point;
-  readonly radiusX: number;
-  readonly radiusY: number;
-  readonly axisRotation: number;
-  readonly largeArcFlag: number;
-  readonly sweepFlag: number;
-}
-
-/**
- * FR: Représente un sommet de chemin avec un rayon de coin et un arc personnalisé éventuel.
- * EN: Represents a path vertex with a corner radius and an optional custom arc.
+ * Represents a logical vertex of a path.
+ *
+ * A vertex is a point used to define the intended outline of a path. It may carry a corner
+ * definition describing how the corner at this point should be handled, but it does not store
+ * resolved drawing geometry such as segments or computed arcs.
+ *
+ * @see https://www.w3.org/TR/SVG2/paths.html
  */
 export class Vertex extends Point {
-  public readonly customCornerArc: VertexCustomCornerArc | undefined;
-  public readonly cornerRadius: number;
+  /**
+   * Optional definition describing how the corner at this vertex should be resolved.
+   */
+  public readonly cornerDefinition: CornerDefinition | undefined;
 
-  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-  public constructor(x: number, y: number, cornerRadius = 0, customCornerArc?: VertexCustomCornerArc) {
-    super(x, y);
+  /**
+   * Creates a path vertex from optional point and corner definition values.
+   *
+   * @param initArg Source vertex values.
+   */
+  public constructor(initArg?: InitArg<Vertex>) {
+    super(initArg);
 
-    this.cornerRadius = cornerRadius;
-    this.customCornerArc = customCornerArc;
+    this.cornerDefinition = initArg?.cornerDefinition ?? undefined;
   }
 }

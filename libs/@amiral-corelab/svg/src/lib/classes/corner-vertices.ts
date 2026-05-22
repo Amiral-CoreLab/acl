@@ -1,5 +1,5 @@
-import { Vertex } from './vertex';
 import type { InitArg } from '@amiral-corelab/core';
+import { Vertex } from './vertex';
 
 /**
  * Groups the three vertices needed to resolve a path corner.

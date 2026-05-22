@@ -1,69 +1,130 @@
+import type { InitArg } from '@amiral-corelab/core';
 import type { Point } from './point';
 
 /**
- * FR: Représente un vecteur 2D utilisé pour les calculs de direction et de longueur.
- * EN: Represents a 2D vector used for direction and length calculations.
+ * Represents a 2D vector used for direction and distance calculations.
+ *
+ * Unlike a point, a vector is not a position in the SVG user coordinate system. It describes
+ * an offset or direction, such as the direction from one point to another.
+ *
+ * SVG arc implementation notes use vectors to compute angles and arc direction.
+ *
+ * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
 export class Vector {
-  public static fromPoints(from: Point, to: Point): Vector {
-    return new Vector(to.x - from.x, to.y - from.y);
-  }
+  /**
+   * Horizontal vector component.
+   */
+  public readonly x: number;
 
-  public static subtract(first: Point, second: Point): Vector {
-    return new Vector(first.x - second.x, first.y - second.y);
-  }
+  /**
+   * Vertical vector component.
+   */
+  public readonly y: number;
 
-  public static cross(first: Vector, second: Vector): number {
-    return first.x * second.y - first.y * second.x;
-  }
-
-  public static dot(first: Vector, second: Vector): number {
-    return first.x * second.x + first.y * second.y;
-  }
-
-  public static pointKey(point: Point): string {
-    return `${point.x},${point.y}`;
+  /**
+   * Creates a vector from optional component values.
+   *
+   * @param initArg Source vector values.
+   */
+  public constructor(initArg?: InitArg<Vector>) {
+    this.x = initArg?.x ?? 0;
+    this.y = initArg?.y ?? 0;
   }
 
   /**
-   * Computes the signed angle from one vector to another.
+   * Computes the vector length.
    *
-   * The result is positive for one rotation direction and negative for the other. This matches the
-   * `angle(u, v)` formula used by SVG arc endpoint-to-center conversion.
+   * @returns Euclidean length of the vector.
+   */
+  public getLength(): number {
+    return Math.hypot(this.x, this.y);
+  }
+
+  /**
+   * Computes the dot product with another vector.
    *
-   * @param fromVector Source vector `u`.
-   * @param toVector Target vector `v`.
+   * The dot product is used to measure the angle between two directions.
    *
-   * @returns The signed angle from `fromVector` to `toVector`, in radians.
+   * @param vector Vector to compare with this vector.
+   *
+   * @returns Dot product of both vectors.
    *
    * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
    */
-  public static signedAngle(fromVector: Vector, toVector: Vector): number {
-    const crossProduct = Vector.cross(fromVector, toVector);
-    const dotProduct = Vector.dot(fromVector, toVector);
+  public getDotProduct(vector: Vector): number {
+    return this.x * vector.x + this.y * vector.y;
+  }
+
+  /**
+   * Computes the unsigned angle to another vector.
+   *
+   * Both vectors are normalized before computing the angle. The dot product is clamped to
+   * the valid `acos` range to avoid `NaN` caused by floating point drift.
+   *
+   * @param vector Target vector.
+   *
+   * @returns Angle between both vectors, in radians.
+   *
+   * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+   */
+  public getUnsignedAngleTo(vector: Vector): number {
+    const from = this.normalize();
+    const to = vector.normalize();
+    const dotProduct = from.getDotProduct(to);
+    const clampedDotProduct = Math.max(-1, Math.min(1, dotProduct));
+
+    return Math.acos(clampedDotProduct);
+  }
+
+  /**
+   * Computes the signed angle to another vector.
+   *
+   * The sign is derived from the 2D cross product. SVG arc conversion uses the same
+   * `atan2(cross, dot)` form to preserve arc direction.
+   *
+   * @param vector Target vector.
+   *
+   * @returns Signed angle from this vector to the target vector, in radians.
+   *
+   * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+   */
+  public getSignedAngleTo(vector: Vector): number {
+    const crossProduct = this.x * vector.y - this.y * vector.x;
+    const dotProduct = this.getDotProduct(vector);
 
     return Math.atan2(crossProduct, dotProduct);
   }
 
-  public readonly x: number;
-  public readonly y: number;
-
-  public constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
-
-  public get length(): number {
-    return Math.hypot(this.x, this.y);
-  }
-
-  public get normalized(): Vector {
-    const { length } = this;
+  /**
+   * Creates a unit vector with the same direction.
+   *
+   * A zero-length vector cannot be normalized to a direction, so it returns a zero vector.
+   *
+   * @returns Normalized vector.
+   */
+  public normalize(): Vector {
+    const length = this.getLength();
 
     if (length === 0) {
-      return new Vector(0, 0);
+      return new Vector();
     }
 
-    return new Vector(this.x / length, this.y / length);
+    return new Vector({
+      x: this.x / length,
+      y: this.y / length,
+    });
+  }
+
+  /**
+   * Creates a vector from one point to another.
+   *
+   * @param from Start point.
+   * @param to End point.
+   *
+   * @returns Vector representing `to - from`.
+   */
+  public static fromPoints(from: Point, to: Point): Vector {
+    return new Vector({ x: to.x - from.x, y: to.y - from.y });
   }
 }

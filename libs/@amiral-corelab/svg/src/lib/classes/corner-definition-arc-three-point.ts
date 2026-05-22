@@ -1,5 +1,5 @@
-import { CornerDefinitionArc } from './corner-definition-arc';
 import type { InitArg } from '@amiral-corelab/core';
+import { CornerDefinitionArc } from './corner-definition-arc';
 import { Point } from './point';
 
 /**

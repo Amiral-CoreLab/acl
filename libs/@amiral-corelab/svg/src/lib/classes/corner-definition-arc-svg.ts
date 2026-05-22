@@ -1,6 +1,6 @@
 import type { InitArg } from '@amiral-corelab/core';
-import { Point } from './point';
 import { CornerDefinitionArc } from './corner-definition-arc';
+import { Point } from './point';
 
 /**
  * Defines a vertex corner with SVG elliptical arc endpoint parameters.

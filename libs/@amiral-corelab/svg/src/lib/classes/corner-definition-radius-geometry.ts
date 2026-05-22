@@ -4,6 +4,7 @@ import { Point } from './point';
 import { CornerDefinitionRadius } from './corner-definition-radius';
 import { Vector } from './vector';
 import type { CornerVertices } from './corner-vertices';
+import { CornerDefinitionArcCenter } from './corner-definition-arc-center';
 
 /**
  * Stores the local geometry computed from a radius-based corner definition.
@@ -110,6 +111,71 @@ export class CornerDefinitionRadiusGeometry {
   }
 
   /**
+   * Creates a copy fitted to a different tangent offset.
+   *
+   * Fitting changes the consumed distance on both adjacent edges. The tangent points and
+   * effective radius are recomputed from the stored corner angle and unit directions.
+   *
+   * @param tangentOffset Fitted distance from the corner point to entry and exit.
+   *
+   * @returns Radius geometry rebuilt with the fitted tangent offset.
+   */
+  public withTangentOffset(tangentOffset: number): CornerDefinitionRadiusGeometry {
+    const radius = tangentOffset * this.halfAngleTangent;
+    const entry = this.currentPoint.moveAlongVector(this.incomingUnitVector, tangentOffset);
+    const exit = this.currentPoint.moveAlongVector(this.outgoingUnitVector, tangentOffset);
+
+    return new CornerDefinitionRadiusGeometry({
+      previousPoint: this.previousPoint,
+      currentPoint: this.currentPoint,
+      nextPoint: this.nextPoint,
+      radius,
+      incomingVector: this.incomingVector,
+      outgoingVector: this.outgoingVector,
+      incomingUnitVector: this.incomingUnitVector,
+      outgoingUnitVector: this.outgoingUnitVector,
+      cornerAngle: this.cornerAngle,
+      halfAngleTangent: this.halfAngleTangent,
+      tangentOffset,
+      entry,
+      exit,
+    });
+  }
+
+  /**
+   * Converts this fitted radius geometry to a center-parameterized circular arc.
+   *
+   * The arc center lies on the corner angle bisector. Its distance from the corner point is
+   * derived from the radius and half-angle sine. The signed delta angle preserves the drawing
+   * direction from entry to exit.
+   *
+   * @returns Center-parameterized arc for this rounded corner.
+   *
+   * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+   */
+  public toArcCenter(): CornerDefinitionArcCenter {
+    const bisectorVector = new Vector({
+      x: this.incomingUnitVector.x + this.outgoingUnitVector.x,
+      y: this.incomingUnitVector.y + this.outgoingUnitVector.y,
+    }).normalize();
+    const centerDistance = this.radius / Math.sin(this.cornerAngle / 2);
+    const center = this.currentPoint.moveAlongVector(bisectorVector, centerDistance);
+    const startVector = Vector.fromPoints(center, this.entry);
+    const endVector = Vector.fromPoints(center, this.exit);
+    const startAngle = Math.atan2(startVector.y, startVector.x);
+    const deltaAngle = startVector.getSignedAngleTo(endVector);
+
+    return new CornerDefinitionArcCenter({
+      center,
+      radiusX: this.radius,
+      radiusY: this.radius,
+      axisRotation: 0,
+      startAngle,
+      deltaAngle,
+    });
+  }
+
+  /**
    * Computes radius corner geometry from the previous, current, and next path vertices.
    *
    * The calculation follows the standard rounded-corner construction: vectors are built from
@@ -148,7 +214,7 @@ export class CornerDefinitionRadiusGeometry {
     const outgoingUnitVector = outgoingVector.normalize();
 
     // 3. Compute the corner angle. Clamp avoids NaN from floating point drift around [-1, 1].
-    const cornerAngle = incomingVector.getAngleTo(outgoingVector);
+    const cornerAngle = incomingVector.getUnsignedAngleTo(outgoingVector);
 
     assert(cornerAngle !== 0, 'Incoming and outgoing edges must not have the same direction.');
     assert(cornerAngle !== Math.PI, 'Incoming and outgoing edges must not be opposite directions.');
