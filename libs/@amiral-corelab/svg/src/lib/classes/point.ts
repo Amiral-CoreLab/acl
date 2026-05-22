@@ -8,7 +8,7 @@ import { Vector } from './vector';
  * commands move or draw from the current point to another point expressed with these
  * coordinates.
  *
- * @see https://www.w3.org/TR/SVG/paths.html#PathDataGeneralInformation
+ * @see https://www.w3.org/TR/SVG2/paths.html#PathDataGeneralInformation
  */
 export class Point {
   /**
@@ -34,7 +34,7 @@ export class Point {
   /**
    * Creates a new point moved from this point along a vector.
    *
-   * The vector provides the direction or offset, and `distance` scales that vector. This is
+   * The vector provides the direction or offset, and `scale` multiplies that vector. This is
    * useful when placing tangent points on a path edge, such as the entry and exit points of
    * a rounded corner.
    *
@@ -52,6 +52,15 @@ export class Point {
     });
   }
 
+  /**
+   * Creates the vector from this point to another point.
+   *
+   * Use this when the result is an offset or direction rather than another position.
+   *
+   * @param point Target point.
+   *
+   * @returns Vector representing `point - this`.
+   */
   public getVectorTo(point: Point = new Point()): Vector {
     return Vector.fromPoints(this, point);
   }

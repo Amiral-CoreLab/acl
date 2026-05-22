@@ -7,10 +7,17 @@ import { Point } from './point';
  * A segment has an explicit start point and end point. In SVG path data, a straight line
  * command draws a segment from the current point to a target point.
  *
- * @see https://www.w3.org/TR/SVG/paths.html#PathDataLinetoCommands
+ * @see https://www.w3.org/TR/SVG2/paths.html#PathDataLinetoCommands
  */
 export class Segment {
+  /**
+   * First point of the finite straight line.
+   */
   public readonly start: Point;
+
+  /**
+   * Last point of the finite straight line.
+   */
   public readonly end: Point;
 
   /**

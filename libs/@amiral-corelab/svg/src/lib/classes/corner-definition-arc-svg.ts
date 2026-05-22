@@ -9,7 +9,7 @@ import { Point } from './point';
  * the command, and the exit point is the command target. The radii, axis rotation, and flags
  * select the ellipse and the arc section to draw.
  *
- * @see https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
+ * @see https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
  */
 export class CornerDefinitionArcSvg extends CornerDefinitionArc {
   /**
@@ -33,7 +33,9 @@ export class CornerDefinitionArcSvg extends CornerDefinitionArc {
   public readonly radiusY: number;
 
   /**
-   * Rotation of the ellipse x-axis relative to the SVG user coordinate system.
+   * Rotation of the ellipse x-axis relative to the SVG user coordinate system, in degrees.
+   *
+   * This matches the SVG `A` command `x-axis-rotation` parameter.
    */
   public readonly axisRotation: number;
 

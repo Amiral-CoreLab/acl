@@ -26,6 +26,11 @@ export class PathCommandMove extends PathCommand {
     this.point = initArg?.point ?? new Point();
   }
 
+  /**
+   * Serializes this command as an SVG `M` path data fragment.
+   *
+   * @returns SVG move command data.
+   */
   public getD(): string {
     return `M${this.point.x} ${this.point.y}`;
   }

@@ -21,17 +21,23 @@ export class PathCommandArc extends PathCommand {
   public readonly radiusY: number;
 
   /**
-   * Rotation of the ellipse x-axis relative to the SVG user coordinate system.
+   * Rotation of the ellipse x-axis relative to the SVG user coordinate system, in degrees.
+   *
+   * SVG path data serializes `x-axis-rotation` in degrees.
    */
   public readonly axisRotation: number;
 
   /**
    * SVG large-arc flag.
+   *
+   * Selects the smaller arc section with `0` or the larger arc section with `1`.
    */
   public readonly largeArcFlag: number;
 
   /**
    * SVG sweep flag.
+   *
+   * Selects which direction around the ellipse is drawn.
    */
   public readonly sweepFlag: number;
 
@@ -56,6 +62,11 @@ export class PathCommandArc extends PathCommand {
     this.point = initArg?.point ?? new Point();
   }
 
+  /**
+   * Serializes this command as an SVG `A` path data fragment.
+   *
+   * @returns SVG arc command data.
+   */
   public getD(): string {
     return `A${this.radiusX} ${this.radiusY} ${this.axisRotation} ${this.largeArcFlag} ${this.sweepFlag} ${this.point.x} ${this.point.y}`;
   }

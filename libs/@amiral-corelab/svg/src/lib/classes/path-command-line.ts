@@ -26,6 +26,11 @@ export class PathCommandLine extends PathCommand {
     this.point = initArg?.point ?? new Point();
   }
 
+  /**
+   * Serializes this command as an SVG `L` path data fragment.
+   *
+   * @returns SVG line command data.
+   */
   public getD(): string {
     return `L${this.point.x} ${this.point.y}`;
   }

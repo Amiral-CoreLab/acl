@@ -7,6 +7,8 @@ import { Point } from './point';
  *
  * This format stores the ellipse center, radii, rotation, start angle, and angular extent.
  * The entry and exit points are derived from `startAngle` and `startAngle + deltaAngle`.
+ * Angle values in this class are stored in radians because they are used directly with
+ * JavaScript trigonometric functions.
  *
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
@@ -27,17 +29,17 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
   public readonly radiusY: number;
 
   /**
-   * Rotation of the ellipse x-axis relative to the SVG user coordinate system.
+   * Rotation of the ellipse x-axis relative to the SVG user coordinate system, in radians.
    */
   public readonly axisRotation: number;
 
   /**
-   * Angle where the arc starts on the ellipse.
+   * Angle where the arc starts on the ellipse, in radians.
    */
   public readonly startAngle: number;
 
   /**
-   * Signed angular extent from the start angle to the end angle.
+   * Signed angular extent from the start angle to the end angle, in radians.
    */
   public readonly deltaAngle: number;
 
@@ -57,6 +59,13 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
     this.deltaAngle = initArg?.deltaAngle ?? 0;
   }
 
+  /**
+   * Computes a point on the rotated ellipse for a center-parameterized angle.
+   *
+   * @param angle Angle on the ellipse before axis rotation, in radians.
+   *
+   * @returns Point in the SVG user coordinate system.
+   */
   private getPointAtAngle(angle: number): Point {
     const cosRotation = Math.cos(this.axisRotation);
     const sinRotation = Math.sin(this.axisRotation);
@@ -70,14 +79,14 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
   }
 
   /**
-   * Start point of the arc.
+   * Start point of the arc in the SVG user coordinate system.
    */
   public get start(): Point {
     return this.getPointAtAngle(this.startAngle);
   }
 
   /**
-   * End point of the arc.
+   * End point of the arc in the SVG user coordinate system.
    */
   public get end(): Point {
     return this.getPointAtAngle(this.startAngle + this.deltaAngle);
@@ -85,6 +94,9 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
 
   /**
    * SVG large-arc flag derived from the angular extent.
+   *
+   * The SVG `A` command uses this flag to choose the smaller or larger arc section between
+   * the same two endpoints.
    */
   public get largeArcFlag(): number {
     return Math.abs(this.deltaAngle) > Math.PI ? 1 : 0;
@@ -92,6 +104,9 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
 
   /**
    * SVG sweep flag derived from the signed angular extent.
+   *
+   * The SVG `A` command uses this flag to choose the positive-angle or negative-angle
+   * direction around the ellipse.
    */
   public get sweepFlag(): number {
     return this.deltaAngle >= 0 ? 1 : 0;

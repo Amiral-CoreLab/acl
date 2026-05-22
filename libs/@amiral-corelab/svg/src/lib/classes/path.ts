@@ -10,6 +10,7 @@ import { PathCommandMove } from './path-command-move';
 import { PathCommandLine } from './path-command-line';
 import { PathCommandArc } from './path-command-arc';
 import { PathCommandClose } from './path-command-close';
+import type { Point } from './point';
 
 /**
  * Represents a logical SVG path model built from ordered vertices.
@@ -20,6 +21,17 @@ import { PathCommandClose } from './path-command-close';
  * @see https://www.w3.org/TR/SVG2/paths.html
  */
 export class Path {
+  /**
+   * Converts radians used by geometry classes to degrees used by SVG path data.
+   *
+   * @param angle Angle in radians.
+   *
+   * @returns Angle in degrees.
+   */
+  private static radiansToDegrees(angle: number): number {
+    return (angle * 180) / Math.PI;
+  }
+
   /**
    * Ordered vertices defining the logical path outline.
    */
@@ -176,6 +188,9 @@ export class Path {
         continue;
       }
 
+      // Two radius corners consume more than the straight edge can provide. Keep their
+      // proportions, but reduce both tangent offsets so their tangent points still lie on
+      // the same SVG path segment.
       const tangentOffsetScale = pathEdgeLength / totalTangentOffset;
 
       if (currentOutgoingTangentOffset > 0 && fittedTangentOffsets[currentIndex]) {
@@ -248,7 +263,14 @@ export class Path {
     return this.getPrimitives();
   }
 
-  private getPrimitiveStart(primitive: PathPrimitive): Vertex | Segment['start'] {
+  /**
+   * Gets the first drawable point of a primitive.
+   *
+   * @param primitive Primitive to inspect.
+   *
+   * @returns Start point used by the initial SVG `M` command.
+   */
+  private getPrimitiveStart(primitive: PathPrimitive): Point {
     if (primitive instanceof Segment) {
       return primitive.start;
     }
@@ -256,6 +278,13 @@ export class Path {
     return primitive.start;
   }
 
+  /**
+   * Converts a drawable primitive to its matching SVG path command.
+   *
+   * @param primitive Primitive to convert.
+   *
+   * @returns SVG path command drawing the primitive from the current point.
+   */
   private getCommandFromPrimitive(primitive: PathPrimitive): PathCommand {
     if (primitive instanceof Segment) {
       return new PathCommandLine({ point: primitive.end });
@@ -264,7 +293,7 @@ export class Path {
     return new PathCommandArc({
       radiusX: primitive.radiusX,
       radiusY: primitive.radiusY,
-      axisRotation: primitive.axisRotation,
+      axisRotation: Path.radiansToDegrees(primitive.axisRotation),
       largeArcFlag: primitive.largeArcFlag,
       sweepFlag: primitive.sweepFlag,
       point: primitive.end,

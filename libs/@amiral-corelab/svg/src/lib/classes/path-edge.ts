@@ -14,12 +14,12 @@ export class PathEdge {
   /**
    * Source vertex of the logical path connection.
    */
-  public from: Vertex;
+  public readonly from: Vertex;
 
   /**
    * Target vertex of the logical path connection.
    */
-  public to: Vertex;
+  public readonly to: Vertex;
 
   /**
    * Creates a path edge from optional source and target vertices.

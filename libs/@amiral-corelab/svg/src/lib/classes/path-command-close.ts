@@ -8,6 +8,11 @@ import { PathCommand } from './path-command';
  * @see https://www.w3.org/TR/SVG2/paths.html#PathDataClosePathCommand
  */
 export class PathCommandClose extends PathCommand {
+  /**
+   * Serializes this command as an SVG `Z` path data fragment.
+   *
+   * @returns SVG close command data.
+   */
   public getD(): string {
     return 'Z';
   }
