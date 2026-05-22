@@ -1,16 +1,14 @@
 import type { InitArg } from '@amiral-corelab/core';
-import { getNeighborIndexes, isFirstIndex, isLastIndex } from '@amiral-corelab/core';
+import { getNeighborIndexes, getSingleton, isFirstIndex, isLastIndex } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
 import type { Vertex } from './vertex';
 import type { PathCommand } from './path-command';
 import { CornerVertices } from './corner-vertices';
 import { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geometry';
 import { Segment } from './segment';
-import { PathCommandMove } from './path-command-move';
-import { PathCommandLine } from './path-command-line';
-import { PathCommandArc } from './path-command-arc';
 import { PathCommandClose } from './path-command-close';
-import type { Point } from './point';
+import { PathCommandMove } from './path-command-move';
+import { PathPrimitiveCommandService } from '../services';
 
 /**
  * Represents a logical SVG path model built from ordered vertices.
@@ -21,17 +19,6 @@ import type { Point } from './point';
  * @see https://www.w3.org/TR/SVG2/paths.html
  */
 export class Path {
-  /**
-   * Converts radians used by geometry classes to degrees used by SVG path data.
-   *
-   * @param angle Angle in radians.
-   *
-   * @returns Angle in degrees.
-   */
-  private static radiansToDegrees(angle: number): number {
-    return (angle * 180) / Math.PI;
-  }
-
   /**
    * Ordered vertices defining the logical path outline.
    */
@@ -51,6 +38,8 @@ export class Path {
     this.vertices = initArg?.vertices ?? [];
     this.closed = initArg?.closed ?? false;
   }
+
+  private readonly pathPrimitiveCommandService = getSingleton(PathPrimitiveCommandService);
 
   /**
    * Gets the neighboring vertices around a vertex index.
@@ -188,9 +177,8 @@ export class Path {
         continue;
       }
 
-      // Two radius corners consume more than the straight edge can provide. Keep their
-      // proportions, but reduce both tangent offsets so their tangent points still lie on
-      // the same SVG path segment.
+      // Two radius corners consume more than the straight edge can provide.
+      // Keep their proportions but reduce both tangent offsets so their tangent points still lie on the same SVG path segment.
       const tangentOffsetScale = pathEdgeLength / totalTangentOffset;
 
       if (currentOutgoingTangentOffset > 0 && fittedTangentOffsets[currentIndex]) {
@@ -264,58 +252,21 @@ export class Path {
   }
 
   /**
-   * Gets the first drawable point of a primitive.
-   *
-   * @param primitive Primitive to inspect.
-   *
-   * @returns Start point used by the initial SVG `M` command.
-   */
-  private getPrimitiveStart(primitive: PathPrimitive): Point {
-    if (primitive instanceof Segment) {
-      return primitive.start;
-    }
-
-    return primitive.start;
-  }
-
-  /**
-   * Converts a drawable primitive to its matching SVG path command.
-   *
-   * @param primitive Primitive to convert.
-   *
-   * @returns SVG path command drawing the primitive from the current point.
-   */
-  private getCommandFromPrimitive(primitive: PathPrimitive): PathCommand {
-    if (primitive instanceof Segment) {
-      return new PathCommandLine({ point: primitive.end });
-    }
-
-    return new PathCommandArc({
-      radiusX: primitive.radiusX,
-      radiusY: primitive.radiusY,
-      axisRotation: Path.radiansToDegrees(primitive.axisRotation),
-      largeArcFlag: primitive.largeArcFlag,
-      sweepFlag: primitive.sweepFlag,
-      point: primitive.end,
-    });
-  }
-
-  /**
    * Converts the logical path model into SVG path commands.
    *
    * @returns SVG path commands.
    */
   public toCommands(): PathCommand[] {
-    const [firstPrimitive, ...remainingPrimitives] = this.toPrimitives();
+    const primitives = this.toPrimitives();
+    const [firstPrimitive] = primitives;
 
     if (!firstPrimitive) {
       return [];
     }
 
     const commands: PathCommand[] = [
-      new PathCommandMove({ point: this.getPrimitiveStart(firstPrimitive) }),
-      this.getCommandFromPrimitive(firstPrimitive),
-      ...remainingPrimitives.map((primitive) => this.getCommandFromPrimitive(primitive)),
+      new PathCommandMove({ point: this.pathPrimitiveCommandService.getStartPoint(firstPrimitive) }),
+      ...primitives.map((primitive) => this.pathPrimitiveCommandService.toCommand(primitive)),
     ];
 
     if (this.closed) {

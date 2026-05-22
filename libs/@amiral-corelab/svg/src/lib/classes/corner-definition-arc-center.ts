@@ -81,14 +81,14 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
   /**
    * Start point of the arc in the SVG user coordinate system.
    */
-  public get start(): Point {
+  public getStart(): Point {
     return this.getPointAtAngle(this.startAngle);
   }
 
   /**
    * End point of the arc in the SVG user coordinate system.
    */
-  public get end(): Point {
+  public getEnd(): Point {
     return this.getPointAtAngle(this.startAngle + this.deltaAngle);
   }
 
@@ -98,7 +98,7 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
    * The SVG `A` command uses this flag to choose the smaller or larger arc section between
    * the same two endpoints.
    */
-  public get largeArcFlag(): number {
+  public getLargeArcFlag(): number {
     return Math.abs(this.deltaAngle) > Math.PI ? 1 : 0;
   }
 
@@ -108,7 +108,7 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
    * The SVG `A` command uses this flag to choose the positive-angle or negative-angle
    * direction around the ellipse.
    */
-  public get sweepFlag(): number {
+  public getSweepFlag(): number {
     return this.deltaAngle >= 0 ? 1 : 0;
   }
 }

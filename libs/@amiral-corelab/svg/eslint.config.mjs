@@ -26,6 +26,13 @@ export default defineConfig([
       '@typescript-eslint/no-magic-numbers': 'off',
       complexity: 'off',
       'max-lines-per-function': 'off',
+      'max-lines': 'off',
+    },
+  },
+  {
+    files: ['**/services/**/*.ts'],
+    rules: {
+      '@typescript-eslint/class-methods-use-this': 'off',
     },
   },
   {
