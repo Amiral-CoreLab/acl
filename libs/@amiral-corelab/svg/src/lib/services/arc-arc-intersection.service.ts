@@ -9,8 +9,7 @@ import { AngleService } from './angle.service';
 @Singleton()
 export class ArcArcIntersectionService {
   private readonly epsilon = 1e-9;
-  private readonly tangencyValueEpsilon = 1e-7;
-  private readonly arcIntersectionSampleAngle = Math.PI / 128;
+  private readonly rootValueEpsilon = 1e-7;
   private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
   private readonly angleService = getSingleton(AngleService);
 
@@ -22,11 +21,15 @@ export class ArcArcIntersectionService {
     return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
   }
 
-  private getSmallestAngleDifference(angleA: number, angleB: number): number {
-    const fullTurn = Math.PI * 2;
-    const difference = this.angleService.normalizeRadians(angleA - angleB);
+  private getPointInLocalCoordinates(point: Point, arc: CornerDefinitionArcCenter): Point {
+    return this.arcCenterGeometryService.getPointInLocalCoordinates(point, arc);
+  }
 
-    return Math.min(difference, fullTurn - difference);
+  private getSmallestAxisAngleDifference(angleA: number, angleB: number): number {
+    const halfTurn = Math.PI;
+    const difference = (((angleA - angleB) % halfTurn) + halfTurn) % halfTurn;
+
+    return Math.min(difference, halfTurn - difference);
   }
 
   private areSameEllipse(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
@@ -34,8 +37,136 @@ export class ArcArcIntersectionService {
       this.isNearlySamePoint(arcA.center, arcB.center) &&
       Math.abs(arcA.radiusX - arcB.radiusX) <= this.epsilon &&
       Math.abs(arcA.radiusY - arcB.radiusY) <= this.epsilon &&
-      this.getSmallestAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon
+      this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon
     );
+  }
+
+  private getPolynomialValue(coefficients: number[], value: number): number {
+    return [...coefficients].reverse().reduce((result, coefficient) => result * value + coefficient, 0);
+  }
+
+  private trimPolynomial(coefficients: number[]): number[] {
+    const trimmed = [...coefficients];
+
+    while (trimmed.length > 1 && Math.abs(trimmed[trimmed.length - 1] ?? 0) <= this.epsilon) {
+      trimmed.pop();
+    }
+
+    return trimmed;
+  }
+
+  private normalizePolynomial(coefficients: number[]): number[] {
+    const largestCoefficient = coefficients.reduce(
+      (maximum, coefficient) => Math.max(maximum, Math.abs(coefficient)),
+      0,
+    );
+
+    if (largestCoefficient <= this.epsilon) {
+      return coefficients;
+    }
+
+    return coefficients.map((coefficient) => coefficient / largestCoefficient);
+  }
+
+  private getPolynomialDerivative(coefficients: number[]): number[] {
+    return coefficients.slice(1).map((coefficient, index) => coefficient * (index + 1));
+  }
+
+  private getPolynomialRootBound(coefficients: number[]): number {
+    const trimmedCoefficients = this.trimPolynomial(coefficients);
+    const leadingCoefficient = Math.abs(trimmedCoefficients[trimmedCoefficients.length - 1] ?? 1);
+
+    if (leadingCoefficient <= this.epsilon) {
+      return 1;
+    }
+
+    const largestRatio = trimmedCoefficients
+      .slice(0, -1)
+      .reduce((maximum, coefficient) => Math.max(maximum, Math.abs(coefficient) / leadingCoefficient), 0);
+
+    return 1 + largestRatio;
+  }
+
+  private deduplicateNumbers(values: number[], epsilon = this.epsilon): number[] {
+    return [...values]
+      .sort((valueA, valueB) => valueA - valueB)
+      .filter(
+        (value, index, sortedValues) => index === 0 || Math.abs(value - (sortedValues[index - 1] ?? value)) > epsilon,
+      );
+  }
+
+  private bisectRoot(coefficients: number[], start: number, end: number): number {
+    let bracketStart = start;
+    let bracketEnd = end;
+    let startValue = this.getPolynomialValue(coefficients, bracketStart);
+
+    for (let iteration = 0; iteration < 96; iteration += 1) {
+      const middle = (bracketStart + bracketEnd) / 2;
+      const middleValue = this.getPolynomialValue(coefficients, middle);
+
+      if (Math.abs(middleValue) <= this.rootValueEpsilon) {
+        return middle;
+      }
+
+      if (startValue * middleValue <= 0) {
+        bracketEnd = middle;
+      } else {
+        bracketStart = middle;
+        startValue = middleValue;
+      }
+    }
+
+    return (bracketStart + bracketEnd) / 2;
+  }
+
+  private getRealPolynomialRoots(coefficients: number[]): number[] {
+    const trimmedCoefficients = this.trimPolynomial(this.normalizePolynomial(coefficients));
+    const degree = trimmedCoefficients.length - 1;
+
+    if (degree <= 0) {
+      return [];
+    }
+
+    if (degree === 1) {
+      const [constant = 0, linear = 0] = trimmedCoefficients;
+
+      return Math.abs(linear) <= this.epsilon ? [] : [-constant / linear];
+    }
+
+    const bound = this.getPolynomialRootBound(trimmedCoefficients);
+    const derivativeRoots = this.getRealPolynomialRoots(this.getPolynomialDerivative(trimmedCoefficients)).filter(
+      (root) => root >= -bound - this.epsilon && root <= bound + this.epsilon,
+    );
+    const criticalPoints = this.deduplicateNumbers([-bound, ...derivativeRoots, bound]);
+    const roots: number[] = [];
+
+    for (const criticalPoint of criticalPoints) {
+      if (Math.abs(this.getPolynomialValue(trimmedCoefficients, criticalPoint)) <= this.rootValueEpsilon) {
+        roots.push(criticalPoint);
+      }
+    }
+
+    for (let index = 0; index < criticalPoints.length - 1; index += 1) {
+      const start = criticalPoints[index];
+      const end = criticalPoints[index + 1];
+
+      if (start === undefined || end === undefined || Math.abs(end - start) <= this.epsilon) {
+        continue;
+      }
+
+      const startValue = this.getPolynomialValue(trimmedCoefficients, start);
+      const endValue = this.getPolynomialValue(trimmedCoefficients, end);
+
+      if (Math.abs(startValue) <= this.rootValueEpsilon || Math.abs(endValue) <= this.rootValueEpsilon) {
+        continue;
+      }
+
+      if (startValue * endValue < 0) {
+        roots.push(this.bisectRoot(trimmedCoefficients, start, end));
+      }
+    }
+
+    return this.deduplicateNumbers(roots, Math.sqrt(this.epsilon));
   }
 
   private deduplicateIntersections(intersections: PathPrimitiveIntersection[]): PathPrimitiveIntersection[] {
@@ -87,58 +218,56 @@ export class ArcArcIntersectionService {
     return this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(angleA), arcB);
   }
 
-  private findCrossingAngle(
-    arcA: CornerDefinitionArcCenter,
-    arcB: CornerDefinitionArcCenter,
-    angleStart: number,
-    angleEnd: number,
-  ): number {
-    let start = angleStart;
-    let end = angleEnd;
-    let startValue = this.getEllipseValue(arcA, arcB, start);
+  private getEllipseIntersectionPolynomial(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): number[] {
+    const cosA = Math.cos(arcA.axisRotation);
+    const sinA = Math.sin(arcA.axisRotation);
+    const center = this.getPointInLocalCoordinates(arcA.center, arcB);
+    const localCosPoint = this.getPointInLocalCoordinates(
+      new Point({
+        x: arcA.center.x + cosA * arcA.radiusX,
+        y: arcA.center.y + sinA * arcA.radiusX,
+      }),
+      arcB,
+    );
+    const localSinPoint = this.getPointInLocalCoordinates(
+      new Point({
+        x: arcA.center.x - sinA * arcA.radiusY,
+        y: arcA.center.y + cosA * arcA.radiusY,
+      }),
+      arcB,
+    );
+    const cosVector = center.getVectorTo(localCosPoint);
+    const sinVector = center.getVectorTo(localSinPoint);
+    const radiusXSquared = arcB.radiusX ** 2;
+    const radiusYSquared = arcB.radiusY ** 2;
+    const cosSquared = cosVector.x ** 2 / radiusXSquared + cosVector.y ** 2 / radiusYSquared;
+    const sinSquared = sinVector.x ** 2 / radiusXSquared + sinVector.y ** 2 / radiusYSquared;
+    const sinCos = 2 * ((cosVector.x * sinVector.x) / radiusXSquared + (cosVector.y * sinVector.y) / radiusYSquared);
+    const cos = 2 * ((center.x * cosVector.x) / radiusXSquared + (center.y * cosVector.y) / radiusYSquared);
+    const sin = 2 * ((center.x * sinVector.x) / radiusXSquared + (center.y * sinVector.y) / radiusYSquared);
+    const constant = center.x ** 2 / radiusXSquared + center.y ** 2 / radiusYSquared - 1;
 
-    for (let iteration = 0; iteration < 64; iteration += 1) {
-      const middle = (start + end) / 2;
-      const middleValue = this.getEllipseValue(arcA, arcB, middle);
-
-      if (this.isZero(middleValue)) {
-        return middle;
-      }
-
-      if (startValue * middleValue <= 0) {
-        end = middle;
-      } else {
-        start = middle;
-        startValue = middleValue;
-      }
-    }
-
-    return (start + end) / 2;
+    return [
+      cosSquared + cos + constant,
+      2 * sinCos + 2 * sin,
+      -2 * cosSquared + 4 * sinSquared + 2 * constant,
+      -2 * sinCos + 2 * sin,
+      cosSquared - cos + constant,
+    ];
   }
 
-  private findMinimumAbsValueAngle(
-    arcA: CornerDefinitionArcCenter,
-    arcB: CornerDefinitionArcCenter,
-    angleStart: number,
-    angleEnd: number,
-  ): number {
-    let start = angleStart;
-    let end = angleEnd;
+  private getEllipseIntersectionAngles(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): number[] {
+    const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
+    const angles = this.getRealPolynomialRoots(polynomial).map((root) => 2 * Math.atan(root));
 
-    for (let iteration = 0; iteration < 48; iteration += 1) {
-      const first = start + (end - start) / 3;
-      const second = end - (end - start) / 3;
-      const firstValue = Math.abs(this.getEllipseValue(arcA, arcB, first));
-      const secondValue = Math.abs(this.getEllipseValue(arcA, arcB, second));
-
-      if (firstValue < secondValue) {
-        end = second;
-      } else {
-        start = first;
-      }
+    if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= this.rootValueEpsilon) {
+      angles.push(Math.PI);
     }
 
-    return (start + end) / 2;
+    return this.deduplicateNumbers(
+      angles.map((angle) => this.angleService.normalizeRadians(angle)),
+      Math.sqrt(this.epsilon),
+    );
   }
 
   private createIntersections(
@@ -167,17 +296,21 @@ export class ArcArcIntersectionService {
   /**
    * Computes intersections between two center arcs.
    *
-   * Crossing intersections are found by bracketing sign changes of the second ellipse's
-   * implicit equation along the first arc. Tangencies are improved by also searching local
-   * minima of the absolute implicit value. Same-ellipse overlaps return the overlap boundary
-   * points, which gives split points without manufacturing a single arbitrary overlap point.
+   * Intersections between distinct ellipses are found by substituting the first arc's
+   * center-parameterized equation into the second ellipse's implicit equation. The resulting
+   * trigonometric quadratic is converted to a quartic with `tan(angle / 2)`, then real roots
+   * are isolated numerically. Same-ellipse overlaps return the overlap boundary points,
+   * which gives split points without manufacturing a single arbitrary overlap point.
    *
    * @param arcA First arc.
    * @param arcB Second arc.
    *
    * @returns Intersections between both arcs.
    */
-  public getIntersections(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): PathPrimitiveIntersection[] {
+  public getIntersections(
+    arcA: CornerDefinitionArcCenter,
+    arcB: CornerDefinitionArcCenter,
+  ): PathPrimitiveIntersection[] {
     if (
       this.isZero(arcA.radiusX) ||
       this.isZero(arcA.radiusY) ||
@@ -191,39 +324,14 @@ export class ArcArcIntersectionService {
       return this.getSameEllipseArcIntersections(arcA, arcB);
     }
 
-    const sampleCount = Math.max(32, Math.ceil(Math.abs(arcA.deltaAngle) / this.arcIntersectionSampleAngle));
-    const intersections: PathPrimitiveIntersection[] = [];
+    return this.deduplicateIntersections(
+      this.getEllipseIntersectionAngles(arcA, arcB).flatMap((angle) => {
+        if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > this.rootValueEpsilon) {
+          return [];
+        }
 
-    for (let index = 0; index < sampleCount; index += 1) {
-      const parameterStart = index / sampleCount;
-      const parameterEnd = (index + 1) / sampleCount;
-      const angleStart = arcA.startAngle + arcA.deltaAngle * parameterStart;
-      const angleEnd = arcA.startAngle + arcA.deltaAngle * parameterEnd;
-      const valueStart = this.getEllipseValue(arcA, arcB, angleStart);
-      const valueEnd = this.getEllipseValue(arcA, arcB, angleEnd);
-
-      if (this.isZero(valueStart)) {
-        intersections.push(...this.createIntersections(arcA, arcB, angleStart));
-      }
-
-      if (valueStart * valueEnd <= 0) {
-        intersections.push(...this.createIntersections(arcA, arcB, this.findCrossingAngle(arcA, arcB, angleStart, angleEnd)));
-        continue;
-      }
-
-      const minimumAngle = this.findMinimumAbsValueAngle(arcA, arcB, angleStart, angleEnd);
-
-      if (Math.abs(this.getEllipseValue(arcA, arcB, minimumAngle)) <= this.tangencyValueEpsilon) {
-        intersections.push(...this.createIntersections(arcA, arcB, minimumAngle));
-      }
-    }
-
-    const endAngle = arcA.startAngle + arcA.deltaAngle;
-
-    if (this.isZero(this.getEllipseValue(arcA, arcB, endAngle))) {
-      intersections.push(...this.createIntersections(arcA, arcB, endAngle));
-    }
-
-    return this.deduplicateIntersections(intersections);
+        return this.createIntersections(arcA, arcB, angle);
+      }),
+    );
   }
 }

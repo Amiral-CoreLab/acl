@@ -87,7 +87,7 @@ libs/@amiral-corelab/svg/src/lib
 `PathPrimitive` is currently:
 
 ```ts
-Segment | CornerDefinitionArcCenter
+Segment | CornerDefinitionArcCenter;
 ```
 
 Decision: `Point` is not a `PathPrimitive`. `Move` is generated from the start point of the
@@ -162,9 +162,10 @@ Important details:
 - Results are not rounded or snapped.
 - `SegmentSegmentIntersectionService` uses the standard equation `p + t*r = q + u*s`.
 - `SegmentArcIntersectionService` solves line/ellipse in the arc local coordinate system.
-- `ArcArcIntersectionService` uses numeric sampling + bisection for crossings, searches local
-  minima of the implicit ellipse value for tangencies, and returns overlap boundary points for
-  same-ellipse arcs.
+- `ArcArcIntersectionService` substitutes arc A's center-parametric ellipse into arc B's
+  implicit ellipse equation, converts the resulting trigonometric quadratic to a quartic with
+  `tan(angle / 2)`, isolates real roots, and returns overlap boundary points for same-ellipse
+  arcs.
 
 Public methods:
 
@@ -236,12 +237,8 @@ This command should pass before handing work back.
 ## Next Refactors
 
 1. Add focused tests for origin-aware split filtering, primitive splitting, arc/arc tangency,
-   same-ellipse arc overlap boundaries, and face extraction.
+   same-ellipse arc overlap boundaries, quartic ellipse/ellipse intersections, and face
+   extraction.
 
-2. Decide whether arc/arc intersections need a fully analytic ellipse/ellipse implementation.
-   The current numeric implementation is more robust than the original sampling-only version,
-   but general overlapping non-identical ellipses and near-degenerate cases may need stricter
-   treatment.
-
-3. Improve face area calculation for arcs with an analytic center-arc line integral instead of
+2. Improve face area calculation for arcs with an analytic center-arc line integral instead of
    sampling.
