@@ -1,4 +1,5 @@
 import type { InitArg } from '@amiral-corelab/core';
+import type { Point } from './point';
 
 /**
  * Represents an axis-aligned bounding box in the SVG user coordinate system.
@@ -95,5 +96,25 @@ export class BoundingBox {
    */
   public static fromMinMax(minX: number, minY: number, maxX: number, maxY: number): BoundingBox {
     return new BoundingBox({ minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+  }
+
+  /**
+   * Creates a bounding box containing all provided points.
+   *
+   * @param points Points to enclose.
+   *
+   * @returns Bounding box spanning the point set.
+   */
+  public static fromPoints(points: Point[]): BoundingBox {
+    if (points.length === 0) {
+      return new BoundingBox();
+    }
+
+    const minX = Math.min(...points.map((point) => point.x));
+    const minY = Math.min(...points.map((point) => point.y));
+    const maxX = Math.max(...points.map((point) => point.x));
+    const maxY = Math.max(...points.map((point) => point.y));
+
+    return BoundingBox.fromMinMax(minX, minY, maxX, maxY);
   }
 }

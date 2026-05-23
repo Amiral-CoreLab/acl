@@ -86,30 +86,6 @@ export class PathPrimitiveIntersectionService {
     ];
   }
 
-  private getPointInArcLocalCoordinates(point: Point, arc: CornerDefinitionArcCenter): Point {
-    const cosRotation = Math.cos(arc.axisRotation);
-    const sinRotation = Math.sin(arc.axisRotation);
-    const x = point.x - arc.center.x;
-    const y = point.y - arc.center.y;
-
-    return new Point({
-      x: cosRotation * x + sinRotation * y,
-      y: -sinRotation * x + cosRotation * y,
-    });
-  }
-
-  private getPointEllipseValue(point: Point, arc: CornerDefinitionArcCenter): number {
-    const localPoint = this.getPointInArcLocalCoordinates(point, arc);
-
-    return localPoint.x ** 2 / arc.radiusX ** 2 + localPoint.y ** 2 / arc.radiusY ** 2 - 1;
-  }
-
-  private getPointAngleOnArc(point: Point, arc: CornerDefinitionArcCenter): number {
-    const localPoint = this.getPointInArcLocalCoordinates(point, arc);
-
-    return Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
-  }
-
   /**
    * Computes intersections between a segment and a center-parameterized arc.
    *
@@ -132,8 +108,8 @@ export class PathPrimitiveIntersectionService {
       return [];
     }
 
-    const start = this.getPointInArcLocalCoordinates(segment.start, arc);
-    const end = this.getPointInArcLocalCoordinates(segment.end, arc);
+    const start = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.start, arc);
+    const end = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.end, arc);
     const direction = start.getVectorTo(end);
     const radiusXSquared = arc.radiusX ** 2;
     const radiusYSquared = arc.radiusY ** 2;
@@ -208,8 +184,8 @@ export class PathPrimitiveIntersectionService {
       const parameterEnd = (index + 1) / sampleCount;
       const angleStart = arcA.startAngle + arcA.deltaAngle * parameterStart;
       const angleEnd = arcA.startAngle + arcA.deltaAngle * parameterEnd;
-      const valueStart = this.getPointEllipseValue(arcA.getPointAtAngle(angleStart), arcB);
-      const valueEnd = this.getPointEllipseValue(arcA.getPointAtAngle(angleEnd), arcB);
+      const valueStart = this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(angleStart), arcB);
+      const valueEnd = this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(angleEnd), arcB);
 
       if (this.isZero(valueStart)) {
         intersections.push(...this.createArcArcIntersections(arcA, arcB, angleStart));
@@ -230,7 +206,7 @@ export class PathPrimitiveIntersectionService {
 
     const endAngle = arcA.startAngle + arcA.deltaAngle;
 
-    if (this.isZero(this.getPointEllipseValue(arcA.getPointAtAngle(endAngle), arcB))) {
+    if (this.isZero(this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(endAngle), arcB))) {
       intersections.push(...this.createArcArcIntersections(arcA, arcB, endAngle));
     }
 
@@ -255,11 +231,11 @@ export class PathPrimitiveIntersectionService {
   ): number {
     let start = angleStart;
     let end = angleEnd;
-    let startValue = this.getPointEllipseValue(arcA.getPointAtAngle(start), arcB);
+    let startValue = this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(start), arcB);
 
     for (let iteration = 0; iteration < 64; iteration += 1) {
       const middle = (start + end) / 2;
-      const middleValue = this.getPointEllipseValue(arcA.getPointAtAngle(middle), arcB);
+      const middleValue = this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(middle), arcB);
 
       if (this.isZero(middleValue)) {
         return middle;
@@ -282,7 +258,7 @@ export class PathPrimitiveIntersectionService {
     angleA: number,
   ): PathPrimitiveIntersection[] {
     const point = arcA.getPointAtAngle(angleA);
-    const angleB = this.getPointAngleOnArc(point, arcB);
+    const angleB = this.arcCenterGeometryService.getPointAngleOnArc(point, arcB);
 
     if (!this.arcCenterGeometryService.isAngleOnArc(angleB, arcB.startAngle, arcB.deltaAngle)) {
       return [];

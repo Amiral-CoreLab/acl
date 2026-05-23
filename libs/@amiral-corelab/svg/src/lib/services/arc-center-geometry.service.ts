@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { AngleService } from './angle.service';
-import type { CornerDefinitionArcCenter } from '../classes';
+import { Point, type CornerDefinitionArcCenter } from '../classes';
 
 /**
  * Provides geometry helpers for center-parameterized arcs.
@@ -14,6 +14,60 @@ import type { CornerDefinitionArcCenter } from '../classes';
 @Singleton()
 export class ArcCenterGeometryService {
   private readonly angleService = getSingleton(AngleService);
+
+  /**
+   * Converts a point from SVG user coordinates to the local coordinate system of an arc.
+   *
+   * The local coordinate system is centered on the arc ellipse and rotated so the local axes
+   * match the unrotated ellipse radii.
+   *
+   * @param point Point in the SVG user coordinate system.
+   * @param arc Center-parameterized arc defining the local coordinate system.
+   *
+   * @returns Point in the arc local coordinate system.
+   */
+  public getPointInLocalCoordinates(point: Point, arc: CornerDefinitionArcCenter): Point {
+    const cosRotation = Math.cos(arc.axisRotation);
+    const sinRotation = Math.sin(arc.axisRotation);
+    const x = point.x - arc.center.x;
+    const y = point.y - arc.center.y;
+
+    return new Point({
+      x: cosRotation * x + sinRotation * y,
+      y: -sinRotation * x + cosRotation * y,
+    });
+  }
+
+  /**
+   * Evaluates the implicit ellipse equation for a point.
+   *
+   * A point on the ellipse returns `0`, a point inside returns a negative value, and a point
+   * outside returns a positive value.
+   *
+   * @param point Point in the SVG user coordinate system.
+   * @param arc Arc whose ellipse should be evaluated.
+   *
+   * @returns Implicit ellipse equation value.
+   */
+  public getPointEllipseValue(point: Point, arc: CornerDefinitionArcCenter): number {
+    const localPoint = this.getPointInLocalCoordinates(point, arc);
+
+    return localPoint.x ** 2 / arc.radiusX ** 2 + localPoint.y ** 2 / arc.radiusY ** 2 - 1;
+  }
+
+  /**
+   * Computes the ellipse parameter angle for a point.
+   *
+   * @param point Point in the SVG user coordinate system.
+   * @param arc Arc whose ellipse should provide the angle.
+   *
+   * @returns Ellipse parameter angle in radians.
+   */
+  public getPointAngleOnArc(point: Point, arc: CornerDefinitionArcCenter): number {
+    const localPoint = this.getPointInLocalCoordinates(point, arc);
+
+    return Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
+  }
 
   /**
    * Tests whether an ellipse parameter angle is included in an arc sweep.

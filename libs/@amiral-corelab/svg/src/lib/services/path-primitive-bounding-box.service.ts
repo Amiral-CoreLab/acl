@@ -1,6 +1,5 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
-import type { Point } from '../classes';
 import { BoundingBox, CornerDefinitionArcCenter, Segment } from '../classes';
 import { ArcCenterGeometryService } from './arc-center-geometry.service';
 
@@ -17,22 +16,6 @@ import { ArcCenterGeometryService } from './arc-center-geometry.service';
 @Singleton()
 export class PathPrimitiveBoundingBoxService {
   private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
-
-  /**
-   * Computes the axis-aligned bounding box containing all provided points.
-   *
-   * @param points Points to enclose.
-   *
-   * @returns Bounding box containing every point.
-   */
-  private getPointsBoundingBox(points: Point[]): BoundingBox {
-    const minX = Math.min(...points.map((point) => point.x));
-    const minY = Math.min(...points.map((point) => point.y));
-    const maxX = Math.max(...points.map((point) => point.x));
-    const maxY = Math.max(...points.map((point) => point.y));
-
-    return BoundingBox.fromMinMax(minX, minY, maxX, maxY);
-  }
 
   /**
    * Computes a segment bounding box from its endpoints.
@@ -70,7 +53,7 @@ export class PathPrimitiveBoundingBoxService {
       }
     }
 
-    return this.getPointsBoundingBox(points);
+    return BoundingBox.fromPoints(points);
   }
 
   /**
