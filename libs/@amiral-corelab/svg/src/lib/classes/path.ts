@@ -8,6 +8,8 @@ import { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geome
 import { Segment } from './segment';
 import { PathCommandClose } from './path-command-close';
 import { PathCommandMove } from './path-command-move';
+import { PathPrimitiveOrigin } from './path-primitive-origin';
+import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
 import { PathPrimitiveCommandService } from '../services';
 
 /**
@@ -249,6 +251,34 @@ export class Path {
    */
   public toPrimitives(): PathPrimitive[] {
     return this.getPrimitives();
+  }
+
+  /**
+   * Converts the logical path model into drawable primitives with source metadata.
+   *
+   * @param pathId Stable identifier for this path.
+   *
+   * @returns Path primitives resolved from vertices and wrapped with origin metadata.
+   */
+  public toPrimitivesWithOrigin(pathId: string): PathPrimitiveWithOrigin[] {
+    const primitives = this.toPrimitives();
+    const lastPrimitiveIndex = primitives.length - 1;
+
+    return primitives.map((primitive, primitiveIndex) => {
+      const previousPrimitiveIndex = primitiveIndex > 0 ? primitiveIndex - 1 : undefined;
+      const nextPrimitiveIndex = primitiveIndex < lastPrimitiveIndex ? primitiveIndex + 1 : undefined;
+
+      return new PathPrimitiveWithOrigin({
+        primitive,
+        origin: new PathPrimitiveOrigin({
+          pathId,
+          primitiveIndex,
+          previousPrimitiveIndex:
+            previousPrimitiveIndex ?? (this.closed && lastPrimitiveIndex > 0 ? lastPrimitiveIndex : undefined),
+          nextPrimitiveIndex: nextPrimitiveIndex ?? (this.closed && lastPrimitiveIndex > 0 ? 0 : undefined),
+        }),
+      });
+    });
   }
 
   /**

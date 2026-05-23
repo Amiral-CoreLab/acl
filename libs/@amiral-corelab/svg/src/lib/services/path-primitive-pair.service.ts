@@ -1,7 +1,9 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
 import { PathPrimitiveBoundingBoxService } from './path-primitive-bounding-box.service';
-import { PathPrimitivePair } from '../classes';
+import { PathPrimitivePair, PathPrimitiveWithOrigin } from '../classes';
+
+type PathPrimitivePairInput = PathPrimitive | PathPrimitiveWithOrigin;
 
 /**
  * Builds candidate primitive pairs for exact geometry operations.
@@ -14,6 +16,14 @@ import { PathPrimitivePair } from '../classes';
 export class PathPrimitivePairService {
   private readonly pathPrimitiveBoundingBoxService = getSingleton(PathPrimitiveBoundingBoxService);
 
+  private getPrimitiveInputItem(input: PathPrimitivePairInput): PathPrimitiveWithOrigin {
+    if (input instanceof PathPrimitiveWithOrigin) {
+      return input;
+    }
+
+    return new PathPrimitiveWithOrigin({ primitive: input });
+  }
+
   /**
    * Gets unique primitive pairs whose bounding boxes overlap.
    *
@@ -23,11 +33,16 @@ export class PathPrimitivePairService {
    *
    * @returns Candidate pairs for exact intersection checks.
    */
-  public getIntersectingBoundingBoxPairs(primitives: PathPrimitive[]): PathPrimitivePair[] {
-    const items = primitives.map((primitive) => ({
-      primitive,
-      boundingBox: this.pathPrimitiveBoundingBoxService.getBoundingBox(primitive),
-    }));
+  public getIntersectingBoundingBoxPairs(inputs: PathPrimitivePairInput[]): PathPrimitivePair[] {
+    const items = inputs.map((input) => {
+      const item = this.getPrimitiveInputItem(input);
+
+      return {
+        primitive: item.primitive,
+        origin: input instanceof PathPrimitiveWithOrigin ? item.origin : undefined,
+        boundingBox: this.pathPrimitiveBoundingBoxService.getBoundingBox(item.primitive),
+      };
+    });
 
     const pairs: PathPrimitivePair[] = [];
 
@@ -48,6 +63,8 @@ export class PathPrimitivePairService {
           new PathPrimitivePair({
             primitiveA: itemA.primitive,
             primitiveB: itemB.primitive,
+            originA: itemA.origin,
+            originB: itemB.origin,
           }),
         );
       }

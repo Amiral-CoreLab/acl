@@ -1,5 +1,6 @@
 import type { InitArg } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
+import type { PathPrimitiveOrigin } from './path-primitive-origin';
 import { Point } from './point';
 import { Segment } from './segment';
 
@@ -32,6 +33,16 @@ export class PathPrimitiveIntersection {
   public readonly primitiveB: PathPrimitive;
 
   /**
+   * Source metadata for `primitiveA`, when available.
+   */
+  public readonly originA: PathPrimitiveOrigin | undefined;
+
+  /**
+   * Source metadata for `primitiveB`, when available.
+   */
+  public readonly originB: PathPrimitiveOrigin | undefined;
+
+  /**
    * Normalized intersection position on `primitiveA`.
    */
   public readonly parameterA: number;
@@ -50,6 +61,8 @@ export class PathPrimitiveIntersection {
     this.point = initArg?.point ?? new Point();
     this.primitiveA = initArg?.primitiveA ?? new Segment();
     this.primitiveB = initArg?.primitiveB ?? new Segment();
+    this.originA = initArg?.originA ?? undefined;
+    this.originB = initArg?.originB ?? undefined;
     this.parameterA = initArg?.parameterA ?? 0;
     this.parameterB = initArg?.parameterB ?? 0;
   }
