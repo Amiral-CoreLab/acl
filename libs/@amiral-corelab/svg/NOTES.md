@@ -160,10 +160,11 @@ Important details:
 
 - `epsilon = 1e-9` is used only in comparison predicates.
 - Results are not rounded or snapped.
-- Segment/segment uses the standard equation `p + t*r = q + u*s`.
-- Segment/arc solves line/ellipse in the arc local coordinate system.
-- Arc/arc currently uses numeric sampling + bisection on arc A, then filters by arc B sweep.
-- Arc/arc tangency may need a more robust dedicated implementation later.
+- `SegmentSegmentIntersectionService` uses the standard equation `p + t*r = q + u*s`.
+- `SegmentArcIntersectionService` solves line/ellipse in the arc local coordinate system.
+- `ArcArcIntersectionService` uses numeric sampling + bisection for crossings, searches local
+  minima of the implicit ellipse value for tangencies, and returns overlap boundary points for
+  same-ellipse arcs.
 
 Public methods:
 
@@ -174,6 +175,36 @@ Public methods:
 
 `getSplitIntersections()` filters endpoint/endpoint contacts, because those are usually
 existing primitive continuity rather than a new split point.
+
+With `PathPrimitiveWithOrigin` metadata, only adjacent primitives in the same source path are
+treated as existing continuity. Without metadata, endpoint/endpoint contacts keep the legacy
+filtering behavior.
+
+### PathPrimitiveSplitService
+
+Splits:
+
+- `Segment`
+- `CornerDefinitionArcCenter`
+
+Split parameters come from `PathPrimitiveIntersection.parameterA/parameterB`. Endpoint
+parameters are ignored with epsilon comparisons. Returned split primitives keep computed
+coordinates/angles without rounding or snapping.
+
+### PathPrimitiveArrangementService
+
+Pipeline:
+
+```txt
+PathPrimitive[] | PathPrimitiveWithOrigin[]
+  -> split primitives
+  -> graph nodes/half-edges
+  -> closed interior faces
+```
+
+The arrangement graph compares points with epsilon to connect nodes, but keeps the original
+point values. Faces store directed boundary edges, boundary primitives, node points, and an
+approximate signed area. Arc area is currently approximated by sampling the arc boundary.
 
 ## Known Design Decisions
 
@@ -204,40 +235,13 @@ This command should pass before handing work back.
 
 ## Next Refactors
 
-1. Add primitive origin metadata.
+1. Add focused tests for origin-aware split filtering, primitive splitting, arc/arc tangency,
+   same-ellipse arc overlap boundaries, and face extraction.
 
-   Needed fields could be:
+2. Decide whether arc/arc intersections need a fully analytic ellipse/ellipse implementation.
+   The current numeric implementation is more robust than the original sampling-only version,
+   but general overlapping non-identical ellipses and near-degenerate cases may need stricter
+   treatment.
 
-   - path id
-   - primitive index
-   - previous primitive index
-   - next primitive index
-
-   Reason: distinguish true intersections from normal adjacent contacts in the same path.
-
-2. Split `PathPrimitiveIntersectionService`.
-
-   It is getting large. Possible extraction:
-
-   - `SegmentSegmentIntersectionService`
-   - `SegmentArcIntersectionService`
-   - `ArcArcIntersectionService`
-
-3. Improve arc/arc intersections.
-
-   Current implementation handles crossing intersections by sampling + bisection. It may miss
-   perfect tangencies or overlapping arcs. Later work should decide whether to implement
-   analytic circle/ellipse cases or use a robust numeric geometry approach.
-
-4. Implement primitive splitting.
-
-   Use `PathPrimitiveIntersection.parameterA/parameterB` to split primitives.
-
-5. Build arrangement/faces.
-
-   Pipeline:
-
-   ```txt
-   Path[] -> primitives -> candidate pairs -> exact intersections -> split primitives -> graph -> closed faces
-   ```
-
+3. Improve face area calculation for arcs with an analytic center-arc line integral instead of
+   sampling.
