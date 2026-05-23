@@ -276,6 +276,13 @@ export class Path {
     return commands;
   }
 
+  /**
+   * Serializes this path to an SVG `d` attribute value.
+   *
+   * @returns SVG path data string.
+   *
+   * @see https://www.w3.org/TR/SVG2/paths.html#DProperty
+   */
   public toD(): string {
     return this.toCommands()
       .map((command) => command.getD())

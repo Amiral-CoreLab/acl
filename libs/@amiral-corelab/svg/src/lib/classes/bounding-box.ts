@@ -61,6 +61,16 @@ export class BoundingBox {
     this.height = initArg?.height ?? 0;
   }
 
+  /**
+   * Tests whether this box overlaps another axis-aligned bounding box.
+   *
+   * This is a broad-phase geometry check: intersecting boxes only mean the enclosed
+   * geometry may intersect and still needs an exact primitive intersection test.
+   *
+   * @param boundingBox Bounding box to compare with this one.
+   *
+   * @returns Whether the two boxes overlap or touch.
+   */
   public intersects(boundingBox: BoundingBox): boolean {
     return (
       this.minX <= boundingBox.maxX &&

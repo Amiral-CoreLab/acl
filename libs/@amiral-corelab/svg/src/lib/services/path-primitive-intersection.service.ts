@@ -4,32 +4,67 @@ import { CornerDefinitionArcCenter, PathPrimitiveIntersection, Point, Segment } 
 import { PathPrimitivePairService } from './path-primitive-pair.service';
 import { ArcCenterGeometryService } from './arc-center-geometry.service';
 
+/**
+ * Computes exact intersections between path primitives.
+ *
+ * Bounding-box filtering is delegated to `PathPrimitivePairService`; this service receives
+ * candidate primitive pairs and performs the geometry-specific checks for segment/segment,
+ * segment/arc, and arc/arc intersections.
+ *
+ * @see https://www.w3.org/TR/SVG2/paths.html#PathDataGeneralInformation
+ * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+ */
 @Singleton()
 export class PathPrimitiveIntersectionService {
+  /**
+   * Numeric tolerance used only by comparison predicates.
+   *
+   * Intersection points and parameters are kept as computed. This value only decides whether
+   * a computed number is close enough to a boundary or to another computed point for a
+   * geometric predicate.
+   */
   private readonly epsilon = 1e-9;
   private readonly arcIntersectionSampleAngle = Math.PI / 64;
   private readonly pathPrimitivePairService = getSingleton(PathPrimitivePairService);
   private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
 
+  private isZero(value: number): boolean {
+    return Math.abs(value) <= this.epsilon;
+  }
+
+  private isInUnitInterval(parameter: number): boolean {
+    return parameter >= -this.epsilon && parameter <= 1 + this.epsilon;
+  }
+
+  private isNearlySamePoint(pointA: Point, pointB: Point): boolean {
+    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
+  }
+
+  /**
+   * Computes intersections between two finite straight segments.
+   *
+   * The calculation solves `p + t*r = q + u*s`, where `t` and `u` become the normalized
+   * parameters returned on the intersection object.
+   *
+   * @param segmentA First segment.
+   * @param segmentB Second segment.
+   *
+   * @returns Intersections between both segments.
+   */
   private getSegmentSegmentIntersections(segmentA: Segment, segmentB: Segment): PathPrimitiveIntersection[] {
     const vectorA = segmentA.start.getVectorTo(segmentA.end);
     const vectorB = segmentB.start.getVectorTo(segmentB.end);
     const startOffset = segmentA.start.getVectorTo(segmentB.start);
     const denominator = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
 
-    if (Math.abs(denominator) <= this.epsilon) {
+    if (this.isZero(denominator)) {
       return [];
     }
 
     const parameterA = (startOffset.x * vectorB.y - startOffset.y * vectorB.x) / denominator;
     const parameterB = (startOffset.x * vectorA.y - startOffset.y * vectorA.x) / denominator;
 
-    if (
-      parameterA < -this.epsilon ||
-      parameterA > 1 + this.epsilon ||
-      parameterB < -this.epsilon ||
-      parameterB > 1 + this.epsilon
-    ) {
+    if (!this.isInUnitInterval(parameterA) || !this.isInUnitInterval(parameterB)) {
       return [];
     }
 
@@ -75,12 +110,25 @@ export class PathPrimitiveIntersectionService {
     return Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
   }
 
+  /**
+   * Computes intersections between a segment and a center-parameterized arc.
+   *
+   * The segment is transformed into the ellipse local coordinate system, then substituted
+   * into the ellipse equation. Candidate solutions are filtered against both the segment
+   * interval and the arc sweep.
+   *
+   * @param segment Segment to intersect.
+   * @param arc Arc to intersect.
+   * @param reversePrimitiveOrder Whether returned primitive/parameter order should be arc then segment.
+   *
+   * @returns Intersections between the segment and arc.
+   */
   private getSegmentArcIntersections(
     segment: Segment,
     arc: CornerDefinitionArcCenter,
     reversePrimitiveOrder = false,
   ): PathPrimitiveIntersection[] {
-    if (arc.radiusX === 0 || arc.radiusY === 0) {
+    if (this.isZero(arc.radiusX) || this.isZero(arc.radiusY)) {
       return [];
     }
 
@@ -94,20 +142,19 @@ export class PathPrimitiveIntersectionService {
     const quadraticC = start.x ** 2 / radiusXSquared + start.y ** 2 / radiusYSquared - 1;
     const discriminant = quadraticB ** 2 - 4 * quadraticA * quadraticC;
 
-    if (quadraticA === 0 || discriminant < -this.epsilon) {
+    if (this.isZero(quadraticA) || discriminant < -this.epsilon) {
       return [];
     }
 
-    const segmentParameters =
-      Math.abs(discriminant) <= this.epsilon
-        ? [-quadraticB / (2 * quadraticA)]
-        : [
-            (-quadraticB - Math.sqrt(discriminant)) / (2 * quadraticA),
-            (-quadraticB + Math.sqrt(discriminant)) / (2 * quadraticA),
-          ];
+    const segmentParameters = this.isZero(discriminant)
+      ? [-quadraticB / (2 * quadraticA)]
+      : [
+          (-quadraticB - Math.sqrt(discriminant)) / (2 * quadraticA),
+          (-quadraticB + Math.sqrt(discriminant)) / (2 * quadraticA),
+        ];
 
     return segmentParameters.flatMap((segmentParameter) => {
-      if (segmentParameter < -this.epsilon || segmentParameter > 1 + this.epsilon) {
+      if (!this.isInUnitInterval(segmentParameter)) {
         return [];
       }
 
@@ -144,7 +191,12 @@ export class PathPrimitiveIntersectionService {
     arcA: CornerDefinitionArcCenter,
     arcB: CornerDefinitionArcCenter,
   ): PathPrimitiveIntersection[] {
-    if (arcA.radiusX === 0 || arcA.radiusY === 0 || arcB.radiusX === 0 || arcB.radiusY === 0) {
+    if (
+      this.isZero(arcA.radiusX) ||
+      this.isZero(arcA.radiusY) ||
+      this.isZero(arcB.radiusX) ||
+      this.isZero(arcB.radiusY)
+    ) {
       return [];
     }
 
@@ -159,7 +211,7 @@ export class PathPrimitiveIntersectionService {
       const valueStart = this.getPointEllipseValue(arcA.getPointAtAngle(angleStart), arcB);
       const valueEnd = this.getPointEllipseValue(arcA.getPointAtAngle(angleEnd), arcB);
 
-      if (Math.abs(valueStart) <= this.epsilon) {
+      if (this.isZero(valueStart)) {
         intersections.push(...this.createArcArcIntersections(arcA, arcB, angleStart));
       }
 
@@ -178,13 +230,23 @@ export class PathPrimitiveIntersectionService {
 
     const endAngle = arcA.startAngle + arcA.deltaAngle;
 
-    if (Math.abs(this.getPointEllipseValue(arcA.getPointAtAngle(endAngle), arcB)) <= this.epsilon) {
+    if (this.isZero(this.getPointEllipseValue(arcA.getPointAtAngle(endAngle), arcB))) {
       intersections.push(...this.createArcArcIntersections(arcA, arcB, endAngle));
     }
 
     return this.deduplicateIntersections(intersections);
   }
 
+  /**
+   * Refines an arc/arc intersection angle by bisection.
+   *
+   * @param arcA Arc being sampled.
+   * @param arcB Arc whose ellipse equation is tested.
+   * @param angleStart Start angle of the bracket.
+   * @param angleEnd End angle of the bracket.
+   *
+   * @returns Refined angle on `arcA`.
+   */
   private findArcArcIntersectionAngle(
     arcA: CornerDefinitionArcCenter,
     arcB: CornerDefinitionArcCenter,
@@ -199,7 +261,7 @@ export class PathPrimitiveIntersectionService {
       const middle = (start + end) / 2;
       const middleValue = this.getPointEllipseValue(arcA.getPointAtAngle(middle), arcB);
 
-      if (Math.abs(middleValue) <= this.epsilon) {
+      if (this.isZero(middleValue)) {
         return middle;
       }
 
@@ -241,15 +303,25 @@ export class PathPrimitiveIntersectionService {
     return intersections.filter((intersection, index) =>
       intersections.every(
         (otherIntersection, otherIndex) =>
-          otherIndex >= index ||
-          Math.hypot(
-            intersection.point.x - otherIntersection.point.x,
-            intersection.point.y - otherIntersection.point.y,
-          ) > this.epsilon,
+          otherIndex >= index || !this.isNearlySamePoint(intersection.point, otherIntersection.point),
       ),
     );
   }
 
+  private deduplicateNearlySamePoints(points: Point[]): Point[] {
+    return points.filter((point, index) =>
+      points.every((otherPoint, otherIndex) => otherIndex >= index || !this.isNearlySamePoint(point, otherPoint)),
+    );
+  }
+
+  /**
+   * Computes intersections between two path primitives.
+   *
+   * @param primitiveA First primitive.
+   * @param primitiveB Second primitive.
+   *
+   * @returns Exact intersections for the primitive pair.
+   */
   public getIntersections(primitiveA: PathPrimitive, primitiveB: PathPrimitive): PathPrimitiveIntersection[] {
     if (primitiveA instanceof Segment && primitiveB instanceof Segment) {
       return this.getSegmentSegmentIntersections(primitiveA, primitiveB);
@@ -270,6 +342,16 @@ export class PathPrimitiveIntersectionService {
     return [];
   }
 
+  /**
+   * Computes all exact intersections between candidate primitive pairs.
+   *
+   * Candidate pairs are first filtered by bounding-box overlap, then passed through exact
+   * primitive intersection tests.
+   *
+   * @param primitives Primitives to inspect.
+   *
+   * @returns All primitive-pair intersections.
+   */
   public getAllIntersections(primitives: PathPrimitive[]): PathPrimitiveIntersection[] {
     const pairs = this.pathPrimitivePairService.getIntersectingBoundingBoxPairs(primitives);
 
@@ -284,7 +366,33 @@ export class PathPrimitiveIntersectionService {
     return this.isEndpointParameter(intersection.parameterA) && this.isEndpointParameter(intersection.parameterB);
   }
 
+  /**
+   * Gets intersections that should create split points.
+   *
+   * Shared endpoint-to-endpoint contacts are filtered out because they usually represent
+   * existing primitive continuity rather than a new crossing point.
+   *
+   * @param primitives Primitives to inspect.
+   *
+   * @returns Intersections useful for splitting primitives.
+   */
   public getSplitIntersections(primitives: PathPrimitive[]): PathPrimitiveIntersection[] {
     return this.getAllIntersections(primitives).filter((intersection) => !this.isOnlySharedEndpoint(intersection));
+  }
+
+  /**
+   * Gets unique split intersection points.
+   *
+   * This method keeps the computed point values, but groups nearly identical points for
+   * display/counting purposes.
+   *
+   * @param primitives Primitives to inspect.
+   *
+   * @returns Unique points useful for visualizing or counting split locations.
+   */
+  public getSplitIntersectionPoints(primitives: PathPrimitive[]): Point[] {
+    return this.deduplicateNearlySamePoints(
+      this.getSplitIntersections(primitives).map((intersection) => intersection.point),
+    );
   }
 }

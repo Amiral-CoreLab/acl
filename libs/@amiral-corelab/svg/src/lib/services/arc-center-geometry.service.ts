@@ -2,6 +2,15 @@ import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { AngleService } from './angle.service';
 import type { CornerDefinitionArcCenter } from '../classes';
 
+/**
+ * Provides geometry helpers for center-parameterized arcs.
+ *
+ * Center-parameterized arcs store center, radii, axis rotation, start angle, and signed
+ * delta angle. SVG implementation notes use this representation while converting endpoint
+ * arc parameters to center parameters.
+ *
+ * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+ */
 @Singleton()
 export class ArcCenterGeometryService {
   private readonly angleService = getSingleton(AngleService);

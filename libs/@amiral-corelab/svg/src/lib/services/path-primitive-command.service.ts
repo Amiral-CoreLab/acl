@@ -60,6 +60,13 @@ export class PathPrimitiveCommandService {
     });
   }
 
+  /**
+   * Gets the first point of a path primitive.
+   *
+   * @param primitive Primitive to inspect.
+   *
+   * @returns Primitive start point.
+   */
   public getStartPoint(primitive: PathPrimitive): Point {
     if (primitive instanceof Segment) {
       return primitive.start;
@@ -68,6 +75,13 @@ export class PathPrimitiveCommandService {
     return primitive.getStart();
   }
 
+  /**
+   * Gets the last point of a path primitive.
+   *
+   * @param primitive Primitive to inspect.
+   *
+   * @returns Primitive end point.
+   */
   public getEndPoint(primitive: PathPrimitive): Point {
     if (primitive instanceof Segment) {
       return primitive.end;
