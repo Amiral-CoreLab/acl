@@ -205,7 +205,12 @@ PathPrimitive[] | PathPrimitiveWithOrigin[]
 
 The arrangement graph compares points with epsilon to connect nodes, but keeps the original
 point values. Faces store directed boundary edges, boundary primitives, node points, and an
-approximate signed area. Arc area is currently approximated by sampling the arc boundary.
+analytic signed area computed from the boundary line integral. Segment area uses the standard
+shoelace contribution. Arc area uses the center-arc integral:
+
+```txt
+1/2 * (rx * ry * deltaAngle + cx * (end.y - start.y) - cy * (end.x - start.x))
+```
 
 ## Known Design Decisions
 
@@ -239,6 +244,3 @@ This command should pass before handing work back.
 1. Add focused tests for origin-aware split filtering, primitive splitting, arc/arc tangency,
    same-ellipse arc overlap boundaries, quartic ellipse/ellipse intersections, and face
    extraction.
-
-2. Improve face area calculation for arcs with an analytic center-arc line integral instead of
-   sampling.

@@ -27,7 +27,6 @@ type TraversalEdge = {
 export class PathPrimitiveArrangementService {
   private readonly epsilon = 1e-9;
   private readonly areaEpsilon = 1e-8;
-  private readonly arcAreaSamples = 24;
   private readonly pathPrimitiveSplitService = getSingleton(PathPrimitiveSplitService);
   private readonly pathPrimitiveCommandService = getSingleton(PathPrimitiveCommandService);
 
@@ -160,22 +159,24 @@ export class PathPrimitiveArrangementService {
     return (segment.start.x * segment.end.y - segment.end.x * segment.start.y) / 2;
   }
 
+  private getArcAreaContribution(arc: CornerDefinitionArcCenter): number {
+    const start = arc.getStart();
+    const end = arc.getEnd();
+
+    return (
+      (arc.radiusX * arc.radiusY * arc.deltaAngle +
+        arc.center.x * (end.y - start.y) -
+        arc.center.y * (end.x - start.x)) /
+      2
+    );
+  }
+
   private getPrimitiveAreaContribution(primitive: PathPrimitive): number {
     if (primitive instanceof Segment) {
       return this.getSegmentAreaContribution(primitive);
     }
 
-    let area = 0;
-    let previousPoint = primitive.getStart();
-
-    for (let index = 1; index <= this.arcAreaSamples; index += 1) {
-      const parameter = index / this.arcAreaSamples;
-      const point = primitive.getPointAtAngle(primitive.startAngle + primitive.deltaAngle * parameter);
-      area += this.getSegmentAreaContribution(new Segment({ start: previousPoint, end: point }));
-      previousPoint = point;
-    }
-
-    return area;
+    return this.getArcAreaContribution(primitive);
   }
 
   private getFaceSignedArea(edges: PathPrimitiveGraphEdge[]): number {
