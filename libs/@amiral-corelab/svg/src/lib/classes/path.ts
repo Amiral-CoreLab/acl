@@ -275,4 +275,10 @@ export class Path {
 
     return commands;
   }
+
+  public toD(): string {
+    return this.toCommands()
+      .map((command) => command.getD())
+      .join(' ');
+  }
 }

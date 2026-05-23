@@ -62,11 +62,17 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
   /**
    * Computes a point on the rotated ellipse for a center-parameterized angle.
    *
+   * This follows the center-parameterized form used by SVG arc implementation notes:
+   * a point is first evaluated on the local ellipse, then rotated into the SVG user
+   * coordinate system.
+   *
    * @param angle Angle on the ellipse before axis rotation, in radians.
    *
    * @returns Point in the SVG user coordinate system.
+   *
+   * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
    */
-  private getPointAtAngle(angle: number): Point {
+  public getPointAtAngle(angle: number): Point {
     const cosRotation = Math.cos(this.axisRotation);
     const sinRotation = Math.sin(this.axisRotation);
     const x = this.radiusX * Math.cos(angle);
@@ -90,25 +96,5 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
    */
   public getEnd(): Point {
     return this.getPointAtAngle(this.startAngle + this.deltaAngle);
-  }
-
-  /**
-   * SVG large-arc flag derived from the angular extent.
-   *
-   * The SVG `A` command uses this flag to choose the smaller or larger arc section between
-   * the same two endpoints.
-   */
-  public getLargeArcFlag(): number {
-    return Math.abs(this.deltaAngle) > Math.PI ? 1 : 0;
-  }
-
-  /**
-   * SVG sweep flag derived from the signed angular extent.
-   *
-   * The SVG `A` command uses this flag to choose the positive-angle or negative-angle
-   * direction around the ellipse.
-   */
-  public getSweepFlag(): number {
-    return this.deltaAngle >= 0 ? 1 : 0;
   }
 }

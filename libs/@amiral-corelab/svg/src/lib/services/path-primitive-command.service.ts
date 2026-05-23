@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
-import type { PathCommand, Point } from '../classes';
+import type { CornerDefinitionArcCenter, PathCommand, Point } from '../classes';
 import { PathCommandArc, PathCommandLine, Segment } from '../classes';
 import { AngleService } from './angle.service';
 
@@ -19,6 +19,26 @@ export class PathPrimitiveCommandService {
   private readonly angleService = getSingleton(AngleService);
 
   /**
+   * SVG large-arc flag derived from the angular extent.
+   *
+   * The SVG `A` command uses this flag to choose the smaller or larger arc section between
+   * the same two endpoints.
+   */
+  private getLargeArcFlag(arc: CornerDefinitionArcCenter): number {
+    return Math.abs(arc.deltaAngle) > Math.PI ? 1 : 0;
+  }
+
+  /**
+   * SVG sweep flag derived from the signed angular extent.
+   *
+   * The SVG `A` command uses this flag to choose the positive-angle or negative-angle
+   * direction around the ellipse.
+   */
+  private getSweepFlag(arc: CornerDefinitionArcCenter): number {
+    return arc.deltaAngle >= 0 ? 1 : 0;
+  }
+
+  /**
    * Converts one path primitive to its matching SVG path command.
    *
    * @param primitive Primitive to convert.
@@ -34,20 +54,10 @@ export class PathPrimitiveCommandService {
       radiusX: primitive.radiusX,
       radiusY: primitive.radiusY,
       axisRotation: this.angleService.radiansToDegrees(primitive.axisRotation),
-      largeArcFlag: primitive.getLargeArcFlag(),
-      sweepFlag: primitive.getSweepFlag(),
+      largeArcFlag: this.getLargeArcFlag(primitive),
+      sweepFlag: this.getSweepFlag(primitive),
       point: primitive.getEnd(),
     });
-  }
-
-  public toCommands(primitives: PathPrimitive[]): PathCommand[] {
-    return primitives.map((primitive) => this.toCommand(primitive));
-  }
-
-  public toD(primitives: PathPrimitive[]): string {
-    return this.toCommands(primitives)
-      .map((command) => command.getD())
-      .join(' ');
   }
 
   public getStartPoint(primitive: PathPrimitive): Point {

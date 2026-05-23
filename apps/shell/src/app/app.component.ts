@@ -1,6 +1,7 @@
 import type { AfterViewInit } from '@angular/core';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { CornerDefinitionRadius, Path, Vertex } from '@amiral-corelab/svg';
+import { CornerDefinitionRadius, Path, PathPrimitiveIntersectionService, Vertex } from '@amiral-corelab/svg';
+import { getSingleton } from '@amiral-corelab/core';
 
 @Component({
   selector: 'acl-shell-root',
@@ -15,7 +16,6 @@ export class AppComponent implements AfterViewInit {
       closed: true,
       vertices: [
         new Vertex({ x: 100, y: 100, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
-        new Vertex({ x: 200, y: 100, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
         new Vertex({ x: 300, y: 100, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
         new Vertex({ x: 300, y: 150, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
         new Vertex({ x: 250, y: 150, cornerDefinition: new CornerDefinitionRadius({ radius: 25 }) }),
@@ -26,18 +26,28 @@ export class AppComponent implements AfterViewInit {
       ],
     });
 
-    console.log(path.toPrimitives());
-    console.log(path.toCommands());
+    const path2 = new Path({
+      closed: true,
+      vertices: [
+        new Vertex({ x: 100, y: 50, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 150, y: 50, cornerDefinition: new CornerDefinitionRadius({ radius: 25 }) }),
+        new Vertex({ x: 150, y: 300, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 100, y: 300, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+      ],
+    });
 
     const svg = document.getElementById('svg') as unknown as SVGSVGElement;
     const pathEL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathEL.setAttribute(
-      'd',
-      path
-        .toCommands()
-        .map((command) => command.getD())
-        .join(' '),
-    );
+    pathEL.setAttribute('d', path.toD() + path2.toD());
+    pathEL.style.fill = 'none';
+    pathEL.style.stroke = 'black';
+    pathEL.style.strokeWidth = '2';
     svg.appendChild(pathEL);
+
+    const pathPrimitiveIntersectionService = getSingleton(PathPrimitiveIntersectionService);
+
+    console.log(
+      pathPrimitiveIntersectionService.getSplitIntersections([...path.toPrimitives(), ...path2.toPrimitives()]),
+    );
   }
 }

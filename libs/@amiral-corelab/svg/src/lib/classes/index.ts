@@ -1,3 +1,4 @@
+export * from './bounding-box';
 export * from './corner-definition';
 export * from './corner-definition-arc';
 export * from './corner-definition-arc-bulge';
@@ -14,6 +15,8 @@ export * from './path-command-close';
 export * from './path-command-line';
 export * from './path-command-move';
 export * from './path-edge';
+export * from './path-primitive-intersection';
+export * from './path-primitive-pair';
 export * from './point';
 export * from './segment';
 export * from './vector';
