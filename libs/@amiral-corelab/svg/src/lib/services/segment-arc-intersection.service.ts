@@ -2,6 +2,7 @@ import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
+import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 
 /**
  * Computes exact intersections between a finite straight segment and a center arc.
@@ -13,15 +14,15 @@ import { ArcCenterService } from './arc-center.service';
  */
 @Singleton()
 export class SegmentArcIntersectionService {
-  private readonly epsilon = 1e-9;
   private readonly arcCenterService = getSingleton(ArcCenterService);
+  private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
-  private isZero(value: number): boolean {
-    return Math.abs(value) <= this.epsilon;
+  private isZero(value: number, tolerance: number): boolean {
+    return Math.abs(value) <= tolerance;
   }
 
-  private isInUnitInterval(parameter: number): boolean {
-    return parameter >= -this.epsilon && parameter <= 1 + this.epsilon;
+  private isInUnitInterval(parameter: number, tolerance: GeometryTolerance): boolean {
+    return parameter >= -tolerance.parameter && parameter <= 1 + tolerance.parameter;
   }
 
   private clampUnitParameter(parameter: number): number {
@@ -46,7 +47,9 @@ export class SegmentArcIntersectionService {
     arc: PathPrimitiveArcCenter,
     reversePrimitiveOrder = false,
   ): PathPrimitiveIntersection[] {
-    if (this.isZero(arc.radiusX) || this.isZero(arc.radiusY)) {
+    const tolerance = this.geometryToleranceService.fromPrimitives(segment, arc);
+
+    if (this.isZero(arc.radiusX, tolerance.distance) || this.isZero(arc.radiusY, tolerance.distance)) {
       return [];
     }
 
@@ -63,11 +66,11 @@ export class SegmentArcIntersectionService {
     const quadraticC = localSegmentStart.x ** 2 / radiusXSquared + localSegmentStart.y ** 2 / radiusYSquared - 1;
     const discriminant = quadraticB ** 2 - 4 * quadraticA * quadraticC;
 
-    if (this.isZero(quadraticA) || discriminant < -this.epsilon) {
+    if (this.isZero(quadraticA, tolerance.implicitEquation) || discriminant < -tolerance.implicitEquation) {
       return [];
     }
 
-    const segmentParameters = this.isZero(discriminant)
+    const segmentParameters = this.isZero(discriminant, tolerance.implicitEquation)
       ? [-quadraticB / (2 * quadraticA)]
       : [
           (-quadraticB - Math.sqrt(discriminant)) / (2 * quadraticA),
@@ -75,7 +78,7 @@ export class SegmentArcIntersectionService {
         ];
 
     return segmentParameters.flatMap((segmentParameter) => {
-      if (!this.isInUnitInterval(segmentParameter)) {
+      if (!this.isInUnitInterval(segmentParameter, tolerance)) {
         return [];
       }
 

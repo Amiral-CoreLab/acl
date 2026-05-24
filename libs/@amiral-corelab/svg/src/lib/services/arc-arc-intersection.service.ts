@@ -3,6 +3,7 @@ import type { PathPrimitiveArcCenter } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
+import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 
 /**
  * Computes intersections between center-parameterized arcs.
@@ -16,17 +17,16 @@ import { AngleService } from './angle.service';
  */
 @Singleton()
 export class ArcArcIntersectionService {
-  private readonly epsilon = 1e-9;
-  private readonly implicitEquationEpsilon = 1e-7;
   private readonly arcCenterGeometryService = getSingleton(ArcCenterService);
   private readonly angleService = getSingleton(AngleService);
+  private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
-  private isZero(value: number): boolean {
-    return Math.abs(value) <= this.epsilon;
+  private isZero(value: number, tolerance: number): boolean {
+    return Math.abs(value) <= tolerance;
   }
 
-  private isNearlySamePoint(pointA: Point, pointB: Point): boolean {
-    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
+  private isNearlySamePoint(pointA: Point, pointB: Point, tolerance: GeometryTolerance): boolean {
+    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= tolerance.distance;
   }
 
   private getPointInLocalCoordinates(point: Point, arc: PathPrimitiveArcCenter): Point {
@@ -40,26 +40,40 @@ export class ArcArcIntersectionService {
     return Math.min(difference, halfTurn - difference);
   }
 
-  private haveSameOrientation(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): boolean {
-    return this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon;
+  private haveSameOrientation(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): boolean {
+    return this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= tolerance.parameter;
   }
 
-  private havePerpendicularOrientation(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): boolean {
-    return this.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <= this.epsilon;
+  private havePerpendicularOrientation(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): boolean {
+    return (
+      this.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <= tolerance.parameter
+    );
   }
 
-  private areSameEllipse(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): boolean {
-    if (!this.isNearlySamePoint(arcA.center, arcB.center)) {
+  private areSameEllipse(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): boolean {
+    if (!this.isNearlySamePoint(arcA.center, arcB.center, tolerance)) {
       return false;
     }
 
     return (
-      (Math.abs(arcA.radiusX - arcB.radiusX) <= this.epsilon &&
-        Math.abs(arcA.radiusY - arcB.radiusY) <= this.epsilon &&
-        this.haveSameOrientation(arcA, arcB)) ||
-      (Math.abs(arcA.radiusX - arcB.radiusY) <= this.epsilon &&
-        Math.abs(arcA.radiusY - arcB.radiusX) <= this.epsilon &&
-        this.havePerpendicularOrientation(arcA, arcB))
+      (Math.abs(arcA.radiusX - arcB.radiusX) <= tolerance.distance &&
+        Math.abs(arcA.radiusY - arcB.radiusY) <= tolerance.distance &&
+        this.haveSameOrientation(arcA, arcB, tolerance)) ||
+      (Math.abs(arcA.radiusX - arcB.radiusY) <= tolerance.distance &&
+        Math.abs(arcA.radiusY - arcB.radiusX) <= tolerance.distance &&
+        this.havePerpendicularOrientation(arcA, arcB, tolerance))
     );
   }
 
@@ -67,23 +81,23 @@ export class ArcArcIntersectionService {
     return [...coefficients].reverse().reduce((result, coefficient) => result * value + coefficient, 0);
   }
 
-  private trimPolynomial(coefficients: number[]): number[] {
+  private trimPolynomial(coefficients: number[], tolerance: GeometryTolerance): number[] {
     const trimmed = [...coefficients];
 
-    while (trimmed.length > 1 && Math.abs(trimmed[trimmed.length - 1] ?? 0) <= this.epsilon) {
+    while (trimmed.length > 1 && Math.abs(trimmed[trimmed.length - 1] ?? 0) <= tolerance.implicitEquation) {
       trimmed.pop();
     }
 
     return trimmed;
   }
 
-  private normalizePolynomial(coefficients: number[]): number[] {
+  private normalizePolynomial(coefficients: number[], tolerance: GeometryTolerance): number[] {
     const largestCoefficient = coefficients.reduce(
       (maximum, coefficient) => Math.max(maximum, Math.abs(coefficient)),
       0,
     );
 
-    if (largestCoefficient <= this.epsilon) {
+    if (largestCoefficient <= tolerance.implicitEquation) {
       return coefficients;
     }
 
@@ -94,11 +108,11 @@ export class ArcArcIntersectionService {
     return coefficients.slice(1).map((coefficient, index) => coefficient * (index + 1));
   }
 
-  private getPolynomialRootBound(coefficients: number[]): number {
-    const trimmedCoefficients = this.trimPolynomial(coefficients);
+  private getPolynomialRootBound(coefficients: number[], tolerance: GeometryTolerance): number {
+    const trimmedCoefficients = this.trimPolynomial(coefficients, tolerance);
     const leadingCoefficient = Math.abs(trimmedCoefficients[trimmedCoefficients.length - 1] ?? 1);
 
-    if (leadingCoefficient <= this.epsilon) {
+    if (leadingCoefficient <= tolerance.implicitEquation) {
       return 1;
     }
 
@@ -109,15 +123,15 @@ export class ArcArcIntersectionService {
     return 1 + largestRatio;
   }
 
-  private deduplicateNumbers(values: number[], epsilon = this.epsilon): number[] {
+  private deduplicateNumbers(values: number[], tolerance: number): number[] {
     return [...values]
       .sort((valueA, valueB) => valueA - valueB)
       .filter(
-        (value, index, sortedValues) => index === 0 || Math.abs(value - (sortedValues[index - 1] ?? value)) > epsilon,
+        (value, index, sortedValues) => index === 0 || Math.abs(value - (sortedValues[index - 1] ?? value)) > tolerance,
       );
   }
 
-  private bisectRoot(coefficients: number[], start: number, end: number): number {
+  private bisectRoot(coefficients: number[], start: number, end: number, tolerance: GeometryTolerance): number {
     let bracketStart = start;
     let bracketEnd = end;
     let startValue = this.getPolynomialValue(coefficients, bracketStart);
@@ -126,7 +140,7 @@ export class ArcArcIntersectionService {
       const middle = (bracketStart + bracketEnd) / 2;
       const middleValue = this.getPolynomialValue(coefficients, middle);
 
-      if (Math.abs(middleValue) <= this.implicitEquationEpsilon) {
+      if (Math.abs(middleValue) <= tolerance.implicitEquation) {
         return middle;
       }
 
@@ -141,8 +155,8 @@ export class ArcArcIntersectionService {
     return (bracketStart + bracketEnd) / 2;
   }
 
-  private getRealPolynomialRoots(coefficients: number[]): number[] {
-    const trimmedCoefficients = this.trimPolynomial(this.normalizePolynomial(coefficients));
+  private getRealPolynomialRoots(coefficients: number[], tolerance: GeometryTolerance): number[] {
+    const trimmedCoefficients = this.trimPolynomial(this.normalizePolynomial(coefficients, tolerance), tolerance);
     const degree = trimmedCoefficients.length - 1;
 
     if (degree <= 0) {
@@ -152,18 +166,19 @@ export class ArcArcIntersectionService {
     if (degree === 1) {
       const [constant = 0, linear = 0] = trimmedCoefficients;
 
-      return Math.abs(linear) <= this.epsilon ? [] : [-constant / linear];
+      return Math.abs(linear) <= tolerance.implicitEquation ? [] : [-constant / linear];
     }
 
-    const bound = this.getPolynomialRootBound(trimmedCoefficients);
-    const derivativeRoots = this.getRealPolynomialRoots(this.getPolynomialDerivative(trimmedCoefficients)).filter(
-      (root) => root >= -bound - this.epsilon && root <= bound + this.epsilon,
-    );
-    const criticalPoints = this.deduplicateNumbers([-bound, ...derivativeRoots, bound]);
+    const bound = this.getPolynomialRootBound(trimmedCoefficients, tolerance);
+    const derivativeRoots = this.getRealPolynomialRoots(
+      this.getPolynomialDerivative(trimmedCoefficients),
+      tolerance,
+    ).filter((root) => root >= -bound - tolerance.parameter && root <= bound + tolerance.parameter);
+    const criticalPoints = this.deduplicateNumbers([-bound, ...derivativeRoots, bound], tolerance.parameter);
     const roots: number[] = [];
 
     for (const criticalPoint of criticalPoints) {
-      if (Math.abs(this.getPolynomialValue(trimmedCoefficients, criticalPoint)) <= this.implicitEquationEpsilon) {
+      if (Math.abs(this.getPolynomialValue(trimmedCoefficients, criticalPoint)) <= tolerance.implicitEquation) {
         roots.push(criticalPoint);
       }
     }
@@ -175,7 +190,7 @@ export class ArcArcIntersectionService {
       if (
         intervalStart === undefined ||
         intervalEnd === undefined ||
-        Math.abs(intervalEnd - intervalStart) <= this.epsilon
+        Math.abs(intervalEnd - intervalStart) <= tolerance.parameter
       ) {
         continue;
       }
@@ -184,25 +199,28 @@ export class ArcArcIntersectionService {
       const intervalEndValue = this.getPolynomialValue(trimmedCoefficients, intervalEnd);
 
       if (
-        Math.abs(intervalStartValue) <= this.implicitEquationEpsilon ||
-        Math.abs(intervalEndValue) <= this.implicitEquationEpsilon
+        Math.abs(intervalStartValue) <= tolerance.implicitEquation ||
+        Math.abs(intervalEndValue) <= tolerance.implicitEquation
       ) {
         continue;
       }
 
       if (intervalStartValue * intervalEndValue < 0) {
-        roots.push(this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd));
+        roots.push(this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd, tolerance));
       }
     }
 
-    return this.deduplicateNumbers(roots, Math.sqrt(this.epsilon));
+    return this.deduplicateNumbers(roots, Math.sqrt(tolerance.parameter));
   }
 
-  private deduplicateIntersections(intersections: PathPrimitiveIntersection[]): PathPrimitiveIntersection[] {
+  private deduplicateIntersections(
+    intersections: PathPrimitiveIntersection[],
+    tolerance: GeometryTolerance,
+  ): PathPrimitiveIntersection[] {
     return intersections.filter((intersection, index) =>
       intersections.every(
         (otherIntersection, otherIndex) =>
-          otherIndex >= index || !this.isNearlySamePoint(intersection.point, otherIntersection.point),
+          otherIndex >= index || !this.isNearlySamePoint(intersection.point, otherIntersection.point, tolerance),
       ),
     );
   }
@@ -210,6 +228,7 @@ export class ArcArcIntersectionService {
   private getSameEllipseArcIntersections(
     arcA: PathPrimitiveArcCenter,
     arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
   ): PathPrimitiveIntersection[] {
     const candidatePoints = [arcA.start, arcA.end, arcB.start, arcB.end];
 
@@ -235,6 +254,7 @@ export class ArcArcIntersectionService {
           }),
         ];
       }),
+      tolerance,
     );
   }
 
@@ -280,17 +300,21 @@ export class ArcArcIntersectionService {
     ];
   }
 
-  private getEllipseIntersectionAngles(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): number[] {
+  private getEllipseIntersectionAngles(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): number[] {
     const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
-    const angles = this.getRealPolynomialRoots(polynomial).map((root) => 2 * Math.atan(root));
+    const angles = this.getRealPolynomialRoots(polynomial, tolerance).map((root) => 2 * Math.atan(root));
 
-    if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= this.implicitEquationEpsilon) {
+    if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= tolerance.implicitEquation) {
       angles.push(Math.PI);
     }
 
     return this.deduplicateNumbers(
       angles.map((angle) => this.angleService.normalizeRadians(angle)),
-      Math.sqrt(this.epsilon),
+      Math.sqrt(tolerance.parameter),
     );
   }
 
@@ -332,27 +356,30 @@ export class ArcArcIntersectionService {
    * @returns Intersections between both arcs.
    */
   public getIntersections(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): PathPrimitiveIntersection[] {
+    const tolerance = this.geometryToleranceService.fromPrimitives(arcA, arcB);
+
     if (
-      this.isZero(arcA.radiusX) ||
-      this.isZero(arcA.radiusY) ||
-      this.isZero(arcB.radiusX) ||
-      this.isZero(arcB.radiusY)
+      this.isZero(arcA.radiusX, tolerance.distance) ||
+      this.isZero(arcA.radiusY, tolerance.distance) ||
+      this.isZero(arcB.radiusX, tolerance.distance) ||
+      this.isZero(arcB.radiusY, tolerance.distance)
     ) {
       return [];
     }
 
-    if (this.areSameEllipse(arcA, arcB)) {
-      return this.getSameEllipseArcIntersections(arcA, arcB);
+    if (this.areSameEllipse(arcA, arcB, tolerance)) {
+      return this.getSameEllipseArcIntersections(arcA, arcB, tolerance);
     }
 
     return this.deduplicateIntersections(
-      this.getEllipseIntersectionAngles(arcA, arcB).flatMap((angle) => {
-        if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > this.implicitEquationEpsilon) {
+      this.getEllipseIntersectionAngles(arcA, arcB, tolerance).flatMap((angle) => {
+        if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > tolerance.implicitEquation) {
           return [];
         }
 
         return this.createIntersections(arcA, arcB, angle);
       }),
+      tolerance,
     );
   }
 }

@@ -6,6 +6,7 @@ import { SegmentSegmentIntersectionService } from './segment-segment-intersectio
 import { SegmentArcIntersectionService } from './segment-arc-intersection.service';
 import { ArcArcIntersectionService } from './arc-arc-intersection.service';
 import type { PathPrimitive } from '../classes/path-primitive';
+import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 
 /**
  * Computes exact intersections between path primitives.
@@ -18,26 +19,25 @@ import type { PathPrimitive } from '../classes/path-primitive';
  */
 @Singleton()
 export class PathPrimitiveIntersectionService {
-  /**
-   * Numeric tolerance used only by comparison predicates.
-   *
-   * Intersection points and parameters are kept as computed. This value only decides whether
-   * a computed number is close enough to a boundary or to another computed point for a
-   * geometric predicate.
-   */
-  private readonly epsilon = 1e-9;
+  private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
   private readonly pathPrimitivePairService = getSingleton(PathPrimitivePairService);
   private readonly segmentSegmentIntersectionService = getSingleton(SegmentSegmentIntersectionService);
   private readonly segmentArcIntersectionService = getSingleton(SegmentArcIntersectionService);
   private readonly arcArcIntersectionService = getSingleton(ArcArcIntersectionService);
 
-  private isNearlySamePoint(pointA: Point, pointB: Point): boolean {
-    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
+  private getIntersectionTolerance(intersection: PathPrimitiveIntersection): GeometryTolerance {
+    return this.geometryToleranceService.fromPrimitives(intersection.primitiveA, intersection.primitiveB);
   }
 
-  private deduplicateNearlySamePoints(points: Point[]): Point[] {
+  private isNearlySamePoint(pointA: Point, pointB: Point, tolerance: GeometryTolerance): boolean {
+    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= tolerance.distance;
+  }
+
+  private deduplicateNearlySamePoints(points: Point[], tolerance: GeometryTolerance): Point[] {
     return points.filter((point, index) =>
-      points.every((otherPoint, otherIndex) => otherIndex >= index || !this.isNearlySamePoint(point, otherPoint)),
+      points.every(
+        (otherPoint, otherIndex) => otherIndex >= index || !this.isNearlySamePoint(point, otherPoint, tolerance),
+      ),
     );
   }
 
@@ -101,12 +101,17 @@ export class PathPrimitiveIntersectionService {
     );
   }
 
-  private isEndpointParameter(parameter: number): boolean {
-    return parameter <= this.epsilon || parameter >= 1 - this.epsilon;
+  private isEndpointParameter(parameter: number, tolerance: GeometryTolerance): boolean {
+    return parameter <= tolerance.parameter || parameter >= 1 - tolerance.parameter;
   }
 
   private isOnlySharedEndpoint(intersection: PathPrimitiveIntersection): boolean {
-    return this.isEndpointParameter(intersection.parameterA) && this.isEndpointParameter(intersection.parameterB);
+    const tolerance = this.getIntersectionTolerance(intersection);
+
+    return (
+      this.isEndpointParameter(intersection.parameterA, tolerance) &&
+      this.isEndpointParameter(intersection.parameterB, tolerance)
+    );
   }
 
   private areOriginsAdjacent(originA: PathPrimitiveOrigin, originB: PathPrimitiveOrigin): boolean {
@@ -159,8 +164,11 @@ export class PathPrimitiveIntersectionService {
    * @returns Unique points useful for visualizing or counting split locations.
    */
   public getSplitIntersectionPoints(inputs: PathPrimitiveWithOrigin[]): Point[] {
+    const tolerance = this.geometryToleranceService.fromPrimitives(...inputs.map((input) => input.primitive));
+
     return this.deduplicateNearlySamePoints(
       this.getSplitIntersections(inputs).map((intersection) => intersection.point),
+      tolerance,
     );
   }
 }

@@ -1,12 +1,16 @@
-import { Singleton } from '@amiral-corelab/core';
-import type { PathPrimitiveSegment, Point } from '../classes';
-import { BoundingBox } from '../classes';
+import { getSingleton, Singleton } from '@amiral-corelab/core';
+import type { Point } from '../classes';
+import { BoundingBox, PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
+import { ArcCenterService } from '../services';
+import type { PathPrimitive } from '../classes/path-primitive';
 
 /**
  * Creates axis-aligned bounding boxes from common geometry inputs.
  */
 @Singleton()
 export class BoundingBoxFactory {
+  private readonly arcCenterGeometryService = getSingleton(ArcCenterService);
+
   /**
    * Creates a bounding box from two corners.
    *
@@ -64,5 +68,47 @@ export class BoundingBoxFactory {
    */
   public fromSegment(segment: PathPrimitiveSegment): BoundingBox {
     return this.fromMinMax(segment.start.x, segment.start.y, segment.end.x, segment.end.y);
+  }
+
+  /**
+   * Computes a center-parameterized arc bounding box.
+   *
+   * The box contains the arc endpoints and any rotated ellipse extrema that are actually on
+   * the arc span. This keeps the box tight enough for broad-phase intersection filtering.
+   *
+   * @param arc Arc to enclose.
+   *
+   * @returns Axis-aligned arc bounding box.
+   */
+  public fromArcCenter(arc: PathPrimitiveArcCenter): BoundingBox {
+    const points = [arc.start, arc.end];
+    const candidateAngles = this.arcCenterGeometryService.getArcExtremumAngles(arc);
+
+    for (const angle of candidateAngles) {
+      if (this.arcCenterGeometryService.isAngleOnArc(angle, arc.startAngle, arc.deltaAngle)) {
+        points.push(arc.getPointAtAngle(angle));
+      }
+    }
+
+    return this.fromPoints(points);
+  }
+
+  /**
+   * Computes the axis-aligned bounding box of a path primitive.
+   *
+   * @param primitive Primitive to enclose.
+   *
+   * @returns Primitive bounding box.
+   */
+  public fromPrimitive(primitive: PathPrimitive): BoundingBox {
+    if (primitive instanceof PathPrimitiveSegment) {
+      return this.fromSegment(primitive);
+    }
+
+    if (primitive instanceof PathPrimitiveArcCenter) {
+      return this.fromArcCenter(primitive);
+    }
+
+    return new BoundingBox();
   }
 }

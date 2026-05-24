@@ -1,7 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import { PathPrimitiveBoundingBoxService } from './path-primitive-bounding-box.service';
 import type { PathPrimitiveWithOrigin } from '../classes';
 import { PathPrimitivePair } from '../classes';
+import { BoundingBoxFactory } from '../factories';
 
 /**
  * Builds candidate primitive pairs for exact geometry operations.
@@ -12,7 +12,7 @@ import { PathPrimitivePair } from '../classes';
  */
 @Singleton()
 export class PathPrimitivePairService {
-  private readonly pathPrimitiveBoundingBoxService = getSingleton(PathPrimitiveBoundingBoxService);
+  private readonly boundingBoxFactory = getSingleton(BoundingBoxFactory);
 
   /**
    * Gets unique primitive pairs whose bounding boxes overlap.
@@ -27,7 +27,7 @@ export class PathPrimitivePairService {
     const items = inputs.map((input) => ({
       primitive: input.primitive,
       origin: input.origin,
-      boundingBox: this.pathPrimitiveBoundingBoxService.getBoundingBox(input.primitive),
+      boundingBox: this.boundingBoxFactory.fromPrimitive(input.primitive),
     }));
 
     const pairs: PathPrimitivePair[] = [];

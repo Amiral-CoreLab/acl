@@ -152,7 +152,8 @@ Exact intersections for:
 
 Important details:
 
-- `epsilon = 1e-9` is used only in comparison predicates.
+- `GeometryToleranceService` derives distance, parameter, and implicit-equation tolerances
+  from primitive bounding-box scale, with conservative minimum tolerances for tiny geometry.
 - Results are not rounded or snapped.
 - `SegmentSegmentIntersectionService` uses the standard equation `p + t*r = q + u*s` and
   returns overlap boundary points for collinear overlapping segments.
@@ -196,51 +197,3 @@ contacts only when the origins show adjacent primitives in the same source path.
 ```bash
 npx tsc -p libs/@amiral-corelab/svg/tsconfig.lib.json --noEmit
 ```
-
-## Current Scope Improvements
-
-These items are limited to the current scope:
-
-```txt
-Path -> PathPrimitive[]
-PathPrimitiveWithOrigin[] -> segment/segment, segment/arc, arc/arc intersections
-```
-
-### Path -> Primitives
-
-- Radius-corner degeneracy checks should use epsilon comparisons, not exact angle equality.
-  This is implemented in `CornerDefinitionRadiusGeometry`: corner angles near `0` or `π` are
-  rejected with tolerance.
-- The current `Path.toPrimitives()` pipeline silently drops invalid corner geometries by
-  reading `Operation.result` as `undefined` when radius geometry cannot be resolved. This is
-  pragmatic for rendering, but if authoring feedback matters later, expose diagnostics without
-  changing the primitive output.
-- `PathPrimitive` should stay as a small abstract base for drawable primitive classes.
-  SVG endpoint command conversion is outside the geometry classes and belongs in
-  `PathCommandFactory`.
-
-### Primitive Intersections
-
-- `SegmentSegmentIntersectionService` now returns boundary points for collinear overlaps. This
-  is enough for split-point discovery, but it is not a complete mathematical representation of
-  an overlap interval.
-- `SegmentArcIntersectionService` uses explicit `local...` names for values transformed into
-  the arc coordinate system. Keep this naming convention because mixed coordinate spaces are a
-  common source of geometry bugs.
-- `ArcArcIntersectionService` uses the standard ellipse/ellipse quartic approach instead of
-  angular sampling. The remaining robustness risk is numerical conditioning around repeated
-  roots, nearly identical ellipses, very small radii, and very large SVG user coordinates.
-- Fixed tolerances (`epsilon = 1e-9`, `implicitEquationEpsilon = 1e-7`) are acceptable for the
-  current code, but the next correctness improvement inside this same scope would be a
-  scale-aware tolerance policy based on primitive bounding boxes.
-
-### References Checked
-
-- SVG path and arc command semantics:
-  https://www.w3.org/TR/SVG2/paths.html#PathDataEllipticalArcCommands
-- SVG arc implementation notes:
-  https://www.w3.org/TR/SVG/implnote.html#ArcImplementationNotes
-- SVG out-of-range arc radius correction:
-  https://www.w3.org/TR/SVG/implnote.html#ArcCorrectionOutOfRangeRadii
-- Robust ellipse/ellipse intersection background:
-  https://www.geometrictools.com/Documentation/RobustIntersectionOfEllipses.pdf

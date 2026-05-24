@@ -1,6 +1,7 @@
-import { Singleton } from '@amiral-corelab/core';
+import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitiveSegment } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
+import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 
 /**
  * Computes exact intersections between two finite straight segments.
@@ -13,22 +14,26 @@ import { PathPrimitiveIntersection, Point } from '../classes';
  */
 @Singleton()
 export class SegmentSegmentIntersectionService {
-  private readonly epsilon = 1e-9;
+  private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
-  private isZero(value: number): boolean {
-    return Math.abs(value) <= this.epsilon;
+  private isZero(value: number, tolerance: number): boolean {
+    return Math.abs(value) <= tolerance;
   }
 
-  private isInUnitInterval(parameter: number): boolean {
-    return parameter >= -this.epsilon && parameter <= 1 + this.epsilon;
+  private isInUnitInterval(parameter: number, tolerance: GeometryTolerance): boolean {
+    return parameter >= -tolerance.parameter && parameter <= 1 + tolerance.parameter;
   }
 
   private clampUnitParameter(parameter: number): number {
     return Math.max(0, Math.min(1, parameter));
   }
 
-  private isNearlySamePoint(pointA: Point, pointB: Point): boolean {
-    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
+  private isNearlySamePoint(pointA: Point, pointB: Point, tolerance: GeometryTolerance): boolean {
+    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= tolerance.distance;
+  }
+
+  private getAreaTolerance(tolerance: GeometryTolerance): number {
+    return tolerance.distance * tolerance.scale;
   }
 
   private getPointAtParameter(segment: PathPrimitiveSegment, parameter: number): Point {
@@ -53,11 +58,14 @@ export class SegmentSegmentIntersectionService {
     });
   }
 
-  private deduplicateIntersections(intersections: PathPrimitiveIntersection[]): PathPrimitiveIntersection[] {
+  private deduplicateIntersections(
+    intersections: PathPrimitiveIntersection[],
+    tolerance: GeometryTolerance,
+  ): PathPrimitiveIntersection[] {
     return intersections.filter((intersection, index) =>
       intersections.every(
         (otherIntersection, otherIndex) =>
-          otherIndex >= index || !this.isNearlySamePoint(intersection.point, otherIntersection.point),
+          otherIndex >= index || !this.isNearlySamePoint(intersection.point, otherIntersection.point, tolerance),
       ),
     );
   }
@@ -65,13 +73,16 @@ export class SegmentSegmentIntersectionService {
   private getCollinearIntersections(
     segmentA: PathPrimitiveSegment,
     segmentB: PathPrimitiveSegment,
+    tolerance: GeometryTolerance,
   ): PathPrimitiveIntersection[] {
     const vectorA = segmentA.start.getVectorTo(segmentA.end);
     const vectorB = segmentB.start.getVectorTo(segmentB.end);
     const lengthASquared = vectorA.x ** 2 + vectorA.y ** 2;
     const lengthBSquared = vectorB.x ** 2 + vectorB.y ** 2;
 
-    if (this.isZero(lengthASquared) || this.isZero(lengthBSquared)) {
+    const areaTolerance = this.getAreaTolerance(tolerance);
+
+    if (this.isZero(lengthASquared, areaTolerance) || this.isZero(lengthBSquared, areaTolerance)) {
       return [];
     }
 
@@ -80,7 +91,7 @@ export class SegmentSegmentIntersectionService {
     const overlapStartParameterA = Math.max(0, Math.min(segmentBStartParameter, segmentBEndParameter));
     const overlapEndParameterA = Math.min(1, Math.max(segmentBStartParameter, segmentBEndParameter));
 
-    if (overlapStartParameterA > overlapEndParameterA + this.epsilon) {
+    if (overlapStartParameterA > overlapEndParameterA + tolerance.parameter) {
       return [];
     }
 
@@ -96,6 +107,7 @@ export class SegmentSegmentIntersectionService {
           this.clampUnitParameter(parameterB),
         );
       }),
+      tolerance,
     );
   }
 
@@ -111,21 +123,25 @@ export class SegmentSegmentIntersectionService {
    * @returns Intersections between both segments.
    */
   public getIntersections(segmentA: PathPrimitiveSegment, segmentB: PathPrimitiveSegment): PathPrimitiveIntersection[] {
+    const tolerance = this.geometryToleranceService.fromPrimitives(segmentA, segmentB);
     const vectorA = segmentA.start.getVectorTo(segmentA.end);
     const vectorB = segmentB.start.getVectorTo(segmentB.end);
     const startOffset = segmentA.start.getVectorTo(segmentB.start);
     const denominator = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
+    const areaTolerance = this.getAreaTolerance(tolerance);
 
-    if (this.isZero(denominator)) {
+    if (this.isZero(denominator, areaTolerance)) {
       const collinearity = startOffset.x * vectorA.y - startOffset.y * vectorA.x;
 
-      return this.isZero(collinearity) ? this.getCollinearIntersections(segmentA, segmentB) : [];
+      return this.isZero(collinearity, areaTolerance)
+        ? this.getCollinearIntersections(segmentA, segmentB, tolerance)
+        : [];
     }
 
     const parameterA = (startOffset.x * vectorB.y - startOffset.y * vectorB.x) / denominator;
     const parameterB = (startOffset.x * vectorA.y - startOffset.y * vectorA.x) / denominator;
 
-    if (!this.isInUnitInterval(parameterA) || !this.isInUnitInterval(parameterB)) {
+    if (!this.isInUnitInterval(parameterA, tolerance) || !this.isInUnitInterval(parameterB, tolerance)) {
       return [];
     }
 
