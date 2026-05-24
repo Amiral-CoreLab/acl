@@ -6,13 +6,11 @@ import type { PathCommand } from './path-command';
 import { CornerVertices } from './corner-vertices';
 import type { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geometry';
 import { Segment } from './segment';
-import { PathCommandClose } from './path-command-close';
-import { PathCommandMove } from './path-command-move';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
 import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
-import { PathPrimitiveCommandService } from '../services';
 import { CornerDefinitionRadiusGeometryFactory } from '../factories/corner-definition-radius-geometry.factory';
 import { CornerDefinitionArcCenterFactory } from '../factories/corner-definition-arc-center.factory';
+import { PathCommandFactory } from '../factories';
 
 /**
  * Represents a logical SVG path model built from ordered vertices.
@@ -43,9 +41,9 @@ export class Path {
     this.closed = initArg?.closed ?? false;
   }
 
-  private readonly pathPrimitiveCommandService = getSingleton(PathPrimitiveCommandService);
   private readonly cornerDefinitionRadiusGeometryFactory = getSingleton(CornerDefinitionRadiusGeometryFactory);
   private readonly cornerDefinitionArcCenterFactory = getSingleton(CornerDefinitionArcCenterFactory);
+  private readonly pathCommandFactory = getSingleton(PathCommandFactory);
 
   /**
    * Gets the neighboring vertices around a vertex index.
@@ -297,12 +295,12 @@ export class Path {
     }
 
     const commands: PathCommand[] = [
-      new PathCommandMove({ point: this.pathPrimitiveCommandService.getStartPoint(firstPrimitive) }),
-      ...primitives.map((primitive) => this.pathPrimitiveCommandService.toCommand(primitive)),
+      this.pathCommandFactory.createMoveToPrimitiveStartCommand(firstPrimitive),
+      ...primitives.map((primitive) => this.pathCommandFactory.fromPrimitive(primitive)),
     ];
 
     if (this.closed) {
-      commands.push(new PathCommandClose());
+      commands.push(this.pathCommandFactory.createCloseCommand());
     }
 
     return commands;
