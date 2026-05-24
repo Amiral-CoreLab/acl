@@ -7,8 +7,6 @@ import { SegmentArcIntersectionService } from './segment-arc-intersection.servic
 import { ArcArcIntersectionService } from './arc-arc-intersection.service';
 import type { PathPrimitive } from '../classes/path-primitive';
 
-export type PathPrimitiveIntersectionInput = PathPrimitive | PathPrimitiveWithOrigin;
-
 /**
  * Computes exact intersections between path primitives.
  *
@@ -89,11 +87,11 @@ export class PathPrimitiveIntersectionService {
    * Candidate pairs are first filtered by bounding-box overlap, then passed through exact
    * primitive intersection tests.
    *
-   * @param inputs Primitives or primitive wrappers to inspect.
+   * @param inputs Primitive wrappers to inspect.
    *
    * @returns All primitive-pair intersections.
    */
-  public getAllIntersections(inputs: PathPrimitiveIntersectionInput[]): PathPrimitiveIntersection[] {
+  public getAllIntersections(inputs: PathPrimitiveWithOrigin[]): PathPrimitiveIntersection[] {
     const pairs = this.pathPrimitivePairService.getIntersectingBoundingBoxPairs(inputs);
 
     return pairs.flatMap((pair) =>
@@ -130,7 +128,7 @@ export class PathPrimitiveIntersectionService {
     }
 
     if (!intersection.originA || !intersection.originB) {
-      return true;
+      return false;
     }
 
     return this.areOriginsAdjacent(intersection.originA, intersection.originB);
@@ -139,15 +137,14 @@ export class PathPrimitiveIntersectionService {
   /**
    * Gets intersections that should create split points.
    *
-   * With primitive origin metadata, only endpoint-to-endpoint contacts between adjacent
-   * primitives in the same source path are filtered out. Without metadata, endpoint contacts
-   * keep the legacy behavior and are treated as existing primitive continuity.
+   * Endpoint-to-endpoint contacts between adjacent primitives in the same source path are
+   * filtered out because they represent existing path continuity, not split points.
    *
-   * @param inputs Primitives or primitive wrappers to inspect.
+   * @param inputs Primitive wrappers to inspect.
    *
    * @returns Intersections useful for splitting primitives.
    */
-  public getSplitIntersections(inputs: PathPrimitiveIntersectionInput[]): PathPrimitiveIntersection[] {
+  public getSplitIntersections(inputs: PathPrimitiveWithOrigin[]): PathPrimitiveIntersection[] {
     return this.getAllIntersections(inputs).filter((intersection) => !this.isExistingPrimitiveContinuity(intersection));
   }
 
@@ -157,11 +154,11 @@ export class PathPrimitiveIntersectionService {
    * This method keeps the computed point values, but groups nearly identical points for
    * display/counting purposes.
    *
-   * @param inputs Primitives or primitive wrappers to inspect.
+   * @param inputs Primitive wrappers to inspect.
    *
    * @returns Unique points useful for visualizing or counting split locations.
    */
-  public getSplitIntersectionPoints(inputs: PathPrimitiveIntersectionInput[]): Point[] {
+  public getSplitIntersectionPoints(inputs: PathPrimitiveWithOrigin[]): Point[] {
     return this.deduplicateNearlySamePoints(
       this.getSplitIntersections(inputs).map((intersection) => intersection.point),
     );

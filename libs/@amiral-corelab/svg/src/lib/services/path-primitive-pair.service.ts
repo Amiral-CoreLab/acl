@@ -1,9 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { PathPrimitiveBoundingBoxService } from './path-primitive-bounding-box.service';
-import { PathPrimitivePair, PathPrimitiveWithOrigin } from '../classes';
-import type { PathPrimitive } from '../classes/path-primitive';
-
-type PathPrimitivePairInput = PathPrimitive | PathPrimitiveWithOrigin;
+import type { PathPrimitiveWithOrigin } from '../classes';
+import { PathPrimitivePair } from '../classes';
 
 /**
  * Builds candidate primitive pairs for exact geometry operations.
@@ -16,33 +14,21 @@ type PathPrimitivePairInput = PathPrimitive | PathPrimitiveWithOrigin;
 export class PathPrimitivePairService {
   private readonly pathPrimitiveBoundingBoxService = getSingleton(PathPrimitiveBoundingBoxService);
 
-  private getPrimitiveInputItem(input: PathPrimitivePairInput): PathPrimitiveWithOrigin {
-    if (input instanceof PathPrimitiveWithOrigin) {
-      return input;
-    }
-
-    return new PathPrimitiveWithOrigin({ primitive: input });
-  }
-
   /**
    * Gets unique primitive pairs whose bounding boxes overlap.
    *
    * Each pair is returned once. A primitive is never paired with itself.
    *
-   * @param inputs Primitives or primitive wrappers to compare.
+   * @param inputs Primitive wrappers to compare.
    *
    * @returns Candidate pairs for exact intersection checks.
    */
-  public getIntersectingBoundingBoxPairs(inputs: PathPrimitivePairInput[]): PathPrimitivePair[] {
-    const items = inputs.map((input) => {
-      const item = this.getPrimitiveInputItem(input);
-
-      return {
-        primitive: item.primitive,
-        origin: input instanceof PathPrimitiveWithOrigin ? item.origin : undefined,
-        boundingBox: this.pathPrimitiveBoundingBoxService.getBoundingBox(item.primitive),
-      };
-    });
+  public getIntersectingBoundingBoxPairs(inputs: PathPrimitiveWithOrigin[]): PathPrimitivePair[] {
+    const items = inputs.map((input) => ({
+      primitive: input.primitive,
+      origin: input.origin,
+      boundingBox: this.pathPrimitiveBoundingBoxService.getBoundingBox(input.primitive),
+    }));
 
     const pairs: PathPrimitivePair[] = [];
 
