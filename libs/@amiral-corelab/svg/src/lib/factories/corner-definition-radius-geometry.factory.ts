@@ -1,14 +1,14 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { CornerVertices } from '../classes';
 import { CornerDefinitionRadius, CornerDefinitionRadiusGeometry, Vector } from '../classes';
+import { GeometryToleranceService } from '../services';
 import type { Operation } from '../stores';
 import { OperationStore } from '../stores';
 
 @Singleton()
 export class CornerDefinitionRadiusGeometryFactory {
   private readonly operationStore = getSingleton(OperationStore);
-
-  private readonly epsilon = 1e-9;
+  private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
   /**
    * Computes radius corner geometry from the previous, current, and next path vertices.
@@ -30,6 +30,7 @@ export class CornerDefinitionRadiusGeometryFactory {
   public fromCornerVertices(cornerVertices: CornerVertices): Operation<CornerDefinitionRadiusGeometry> {
     const { previous, current, next } = cornerVertices;
     const { cornerDefinition } = current;
+    const tolerance = this.geometryToleranceService.fromPoints(previous, current, next);
 
     if (!(cornerDefinition instanceof CornerDefinitionRadius)) {
       return this.operationStore.warn('Current vertex corner definition must be radius-based.');
@@ -43,11 +44,11 @@ export class CornerDefinitionRadiusGeometryFactory {
     const incomingVector = Vector.fromPoints(current, previous);
     const outgoingVector = Vector.fromPoints(current, next);
 
-    if (incomingVector.getLength() <= 0) {
+    if (incomingVector.getLength() <= tolerance.distance) {
       return this.operationStore.warn('Incoming edge must have a positive length.');
     }
 
-    if (outgoingVector.getLength() <= 0) {
+    if (outgoingVector.getLength() <= tolerance.distance) {
       return this.operationStore.warn('Outgoing edge must have a positive length.');
     }
 
@@ -58,11 +59,11 @@ export class CornerDefinitionRadiusGeometryFactory {
     // 3. Compute the corner angle. Clamp avoids NaN from floating point drift around [-1, 1].
     const cornerAngle = incomingVector.getUnsignedAngleTo(outgoingVector);
 
-    if (cornerAngle <= this.epsilon) {
+    if (cornerAngle <= tolerance.angle) {
       return this.operationStore.warn('Incoming and outgoing edges must not have the same direction.');
     }
 
-    if (Math.abs(Math.PI - cornerAngle) <= this.epsilon) {
+    if (Math.abs(Math.PI - cornerAngle) <= tolerance.angle) {
       return this.operationStore.warn('Incoming and outgoing edges must not be opposite directions.');
     }
 

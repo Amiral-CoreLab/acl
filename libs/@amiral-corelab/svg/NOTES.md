@@ -159,8 +159,11 @@ Degenerate radius cases are rejected through `OperationWarn`:
 - corner angle is near `π`
 - tangent offset is invalid or non-finite
 
-The angle degeneracy checks currently use fixed epsilon inside
-`CornerDefinitionRadiusGeometryFactory`.
+`CornerDefinitionRadiusGeometryFactory` uses `GeometryToleranceService` for these degeneracy
+checks:
+
+- distance tolerance rejects near-zero incoming/outgoing edges
+- angle tolerance rejects corner angles near `0` or `π`
 
 References:
 
@@ -326,11 +329,13 @@ References:
 
 ## Tolerance Policy
 
-`GeometryToleranceService` derives tolerances from primitive bounding-box scale.
+`GeometryToleranceService` derives tolerances from primitive or source-point bounding-box
+scale.
 
 It returns:
 
 - `distance`
+- `angle`
 - `parameter`
 - `implicitEquation`
 - `scale`
@@ -345,6 +350,7 @@ Current policy:
 
 ```txt
 distance = max(1e-9, scale * 1e-9)
+angle = 1e-9
 implicitEquation = max(1e-7, scale * 1e-12)
 parameter = max(1e-9, distance / scale)
 ```
@@ -353,6 +359,7 @@ Why:
 
 - fixed SVG-unit tolerances are too strict for large coordinates
 - fixed SVG-unit tolerances can be too loose for tiny geometry
+- corner degeneracy checks need a small angle tolerance
 - endpoint checks need normalized parameter tolerance
 - implicit ellipse checks need a residual tolerance
 
@@ -540,8 +547,6 @@ Current private primitive-resolution behavior:
 - There is no planar graph or face extraction yet.
 - Broad-phase pair generation is O(n²).
 - Arc/arc robustness is improved but not exact.
-- Radius-corner degeneracy checks still use a local fixed epsilon in
-  `CornerDefinitionRadiusGeometryFactory`.
 
 ## Improvements Possible In Current Scope
 
@@ -555,9 +560,6 @@ Path creation
 
 ### Path Creation And Primitive Generation
 
-- Add a public `toPrimitiveResolution()` result that returns both primitives and operation
-  diagnostics.
-- Replace the fixed radius-corner epsilon with `GeometryToleranceService`.
 - Rename `CornerDefinitionArcCenterFactory` to `PathPrimitiveArcCenterFactory` because it now
   creates primitives, not editable corner definitions.
 - Add explicit validation for too-small fitted tangent offsets.
