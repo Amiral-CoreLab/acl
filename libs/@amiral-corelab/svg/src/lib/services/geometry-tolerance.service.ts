@@ -1,6 +1,5 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { Point } from '../classes';
-import type { BoundingBox } from '../classes/bounding-box';
 import type { PathPrimitive } from '../classes/path-primitive';
 import { BoundingBoxFactory } from '../factories';
 
@@ -30,22 +29,6 @@ export class GeometryToleranceService {
   private readonly relativeImplicitEquationTolerance = 1e-12;
   private readonly boundingBoxFactory = getSingleton(BoundingBoxFactory);
 
-  private getBoundingBoxScale(boundingBox: BoundingBox): number {
-    return Math.max(
-      Math.abs(boundingBox.minX),
-      Math.abs(boundingBox.minY),
-      Math.abs(boundingBox.maxX),
-      Math.abs(boundingBox.maxY),
-      boundingBox.width,
-      boundingBox.height,
-      1,
-    );
-  }
-
-  private getPrimitiveScale(primitive: PathPrimitive): number {
-    return this.getBoundingBoxScale(this.boundingBoxFactory.fromPrimitive(primitive));
-  }
-
   private fromScale(scale: number): GeometryTolerance {
     const distance = Math.max(this.minimumDistanceTolerance, scale * this.relativeDistanceTolerance);
 
@@ -66,7 +49,7 @@ export class GeometryToleranceService {
    * @returns Scale-aware tolerances for the primitive set.
    */
   public fromPrimitives(...primitives: PathPrimitive[]): GeometryTolerance {
-    const scale = Math.max(...primitives.map((primitive) => this.getPrimitiveScale(primitive)), 1);
+    const scale = Math.max(...primitives.map((primitive) => this.boundingBoxFactory.fromPrimitive(primitive).scale), 1);
 
     return this.fromScale(scale);
   }
@@ -82,6 +65,6 @@ export class GeometryToleranceService {
    * @returns Scale-aware tolerances for the point set.
    */
   public fromPoints(...points: Point[]): GeometryTolerance {
-    return this.fromScale(this.getBoundingBoxScale(this.boundingBoxFactory.fromPoints(points)));
+    return this.fromScale(this.boundingBoxFactory.fromPoints(points).scale);
   }
 }

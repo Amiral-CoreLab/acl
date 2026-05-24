@@ -315,6 +315,8 @@ Current rule:
 - center-arc primitives
 - generic path primitives
 
+`BoundingBox.scale` derives the numeric tolerance scale from the box coordinates and size.
+
 Segment bounding boxes use the two endpoints.
 
 Arc bounding boxes use:
@@ -581,8 +583,6 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Move all primitive bounding-box logic fully into `BoundingBoxFactory` and remove any
-  duplicated bounding-box service if it becomes redundant.
 - Add bounding-box inflation by tolerance before broad-phase tests.
 - Add pair pruning using origin adjacency when the caller only wants split intersections.
 - Replace O(n²) candidate-pair generation with a sweep-line or spatial index when primitive

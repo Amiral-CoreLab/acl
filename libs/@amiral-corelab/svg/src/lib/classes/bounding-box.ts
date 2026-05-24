@@ -56,6 +56,26 @@ export class BoundingBox {
   }
 
   /**
+   * Computes a numeric scale from a bounding box.
+   *
+   * The scale includes absolute coordinates and box dimensions so tolerance policies can
+   * adapt both to large SVG user coordinates and to large local geometry.
+   *
+   * @returns Positive scale, with `1` as the minimum.
+   */
+  public get scale(): number {
+    return Math.max(
+      Math.abs(this.minX),
+      Math.abs(this.minY),
+      Math.abs(this.maxX),
+      Math.abs(this.maxY),
+      this.width,
+      this.height,
+      1,
+    );
+  }
+
+  /**
    * Creates a bounding box from optional bound values.
    *
    * Width and height are derived from the minimum and maximum coordinates.
