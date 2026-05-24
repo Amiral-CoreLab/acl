@@ -13,7 +13,8 @@ interface PathPrimitivePairItem {
 }
 
 interface SpatialGrid {
-  cellCount: number;
+  cellCountX: number;
+  cellCountY: number;
   cellHeight: number;
   cellWidth: number;
   minX: number;
@@ -36,6 +37,7 @@ interface SpatialGridRange {
  */
 @Singleton()
 export class PathPrimitivePairService {
+  private readonly maximumSpatialGridAxisCellCount = 128;
   private readonly boundingBoxFactory = getSingleton(BoundingBoxFactory);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
@@ -64,27 +66,51 @@ export class PathPrimitivePairService {
     const minY = Math.min(...items.map((item) => item.boundingBox.minY));
     const maxX = Math.max(...items.map((item) => item.boundingBox.maxX));
     const maxY = Math.max(...items.map((item) => item.boundingBox.maxY));
-    const cellCount = Math.max(1, Math.ceil(Math.sqrt(items.length)));
+    const width = Math.max(maxX - minX, 1);
+    const height = Math.max(maxY - minY, 1);
+    const averageBoxWidth = Math.max(
+      items.reduce((total, item) => total + item.boundingBox.width, 0) / items.length,
+      1,
+    );
+    const averageBoxHeight = Math.max(
+      items.reduce((total, item) => total + item.boundingBox.height, 0) / items.length,
+      1,
+    );
+    const maximumAxisCellCount = Math.min(
+      this.maximumSpatialGridAxisCellCount,
+      Math.max(1, Math.ceil(Math.sqrt(items.length) * 4)),
+    );
+    const cellCountX = this.clampCellCount(Math.ceil(width / averageBoxWidth), maximumAxisCellCount);
+    const cellCountY = this.clampCellCount(Math.ceil(height / averageBoxHeight), maximumAxisCellCount);
 
     return {
-      cellCount,
-      cellHeight: Math.max((maxY - minY) / cellCount, 1),
-      cellWidth: Math.max((maxX - minX) / cellCount, 1),
+      cellCountX,
+      cellCountY,
+      cellHeight: Math.max(height / cellCountY, 1),
+      cellWidth: Math.max(width / cellCountX, 1),
       minX,
       minY,
     };
   }
 
-  private clampCellIndex(cellIndex: number, grid: SpatialGrid): number {
-    return Math.max(0, Math.min(grid.cellCount - 1, cellIndex));
+  private clampCellCount(cellCount: number, maximumCellCount: number): number {
+    return Math.max(1, Math.min(maximumCellCount, cellCount));
+  }
+
+  private clampCellX(cellIndex: number, grid: SpatialGrid): number {
+    return Math.max(0, Math.min(grid.cellCountX - 1, cellIndex));
+  }
+
+  private clampCellY(cellIndex: number, grid: SpatialGrid): number {
+    return Math.max(0, Math.min(grid.cellCountY - 1, cellIndex));
   }
 
   private getGridRange(grid: SpatialGrid, item: PathPrimitivePairItem): SpatialGridRange {
     return {
-      maxCellX: this.clampCellIndex(Math.floor((item.boundingBox.maxX - grid.minX) / grid.cellWidth), grid),
-      maxCellY: this.clampCellIndex(Math.floor((item.boundingBox.maxY - grid.minY) / grid.cellHeight), grid),
-      minCellX: this.clampCellIndex(Math.floor((item.boundingBox.minX - grid.minX) / grid.cellWidth), grid),
-      minCellY: this.clampCellIndex(Math.floor((item.boundingBox.minY - grid.minY) / grid.cellHeight), grid),
+      maxCellX: this.clampCellX(Math.floor((item.boundingBox.maxX - grid.minX) / grid.cellWidth), grid),
+      maxCellY: this.clampCellY(Math.floor((item.boundingBox.maxY - grid.minY) / grid.cellHeight), grid),
+      minCellX: this.clampCellX(Math.floor((item.boundingBox.minX - grid.minX) / grid.cellWidth), grid),
+      minCellY: this.clampCellY(Math.floor((item.boundingBox.minY - grid.minY) / grid.cellHeight), grid),
     };
   }
 

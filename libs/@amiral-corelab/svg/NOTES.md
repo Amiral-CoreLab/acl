@@ -396,6 +396,12 @@ This spatial-index broad phase avoids the unconditional all-pairs scan. Dense ca
 many boxes occupy the same cells can still produce many candidates, but the exact
 bounding-box overlap check remains the final broad-phase guard.
 
+Grid sizing is tuned per axis:
+
+- `cellCountX` is based on global width divided by average box width
+- `cellCountY` is based on global height divided by average box height
+- each axis is capped to avoid excessive cell counts when boxes are tiny
+
 Adjacent primitives from the same source path are intentionally kept at this broad-phase
 stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
 intersection checks, so self-intersections inside the same path are not pruned too early.
@@ -595,8 +601,7 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Tune spatial-grid sizing or switch to an R-tree/quadtree if dense cell occupancy becomes too
-  expensive.
+- Switch to an R-tree/quadtree if tuned grid cells still become too dense.
 
 References:
 
