@@ -10,7 +10,7 @@ import { AngleService } from './angle.service';
 @Singleton()
 export class ArcArcIntersectionService {
   private readonly epsilon = 1e-9;
-  private readonly rootValueEpsilon = 1e-7;
+  private readonly implicitEquationEpsilon = 1e-7;
   private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
   private readonly angleService = getSingleton(AngleService);
 
@@ -33,12 +33,26 @@ export class ArcArcIntersectionService {
     return Math.min(difference, halfTurn - difference);
   }
 
+  private haveSameOrientation(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
+    return this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon;
+  }
+
+  private havePerpendicularOrientation(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
+    return this.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <= this.epsilon;
+  }
+
   private areSameEllipse(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
+    if (!this.isNearlySamePoint(arcA.center, arcB.center)) {
+      return false;
+    }
+
     return (
-      this.isNearlySamePoint(arcA.center, arcB.center) &&
-      Math.abs(arcA.radiusX - arcB.radiusX) <= this.epsilon &&
-      Math.abs(arcA.radiusY - arcB.radiusY) <= this.epsilon &&
-      this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon
+      (Math.abs(arcA.radiusX - arcB.radiusX) <= this.epsilon &&
+        Math.abs(arcA.radiusY - arcB.radiusY) <= this.epsilon &&
+        this.haveSameOrientation(arcA, arcB)) ||
+      (Math.abs(arcA.radiusX - arcB.radiusY) <= this.epsilon &&
+        Math.abs(arcA.radiusY - arcB.radiusX) <= this.epsilon &&
+        this.havePerpendicularOrientation(arcA, arcB))
     );
   }
 
@@ -105,7 +119,7 @@ export class ArcArcIntersectionService {
       const middle = (bracketStart + bracketEnd) / 2;
       const middleValue = this.getPolynomialValue(coefficients, middle);
 
-      if (Math.abs(middleValue) <= this.rootValueEpsilon) {
+      if (Math.abs(middleValue) <= this.implicitEquationEpsilon) {
         return middle;
       }
 
@@ -142,28 +156,35 @@ export class ArcArcIntersectionService {
     const roots: number[] = [];
 
     for (const criticalPoint of criticalPoints) {
-      if (Math.abs(this.getPolynomialValue(trimmedCoefficients, criticalPoint)) <= this.rootValueEpsilon) {
+      if (Math.abs(this.getPolynomialValue(trimmedCoefficients, criticalPoint)) <= this.implicitEquationEpsilon) {
         roots.push(criticalPoint);
       }
     }
 
     for (let index = 0; index < criticalPoints.length - 1; index += 1) {
-      const start = criticalPoints[index];
-      const end = criticalPoints[index + 1];
+      const intervalStart = criticalPoints[index];
+      const intervalEnd = criticalPoints[index + 1];
 
-      if (start === undefined || end === undefined || Math.abs(end - start) <= this.epsilon) {
+      if (
+        intervalStart === undefined ||
+        intervalEnd === undefined ||
+        Math.abs(intervalEnd - intervalStart) <= this.epsilon
+      ) {
         continue;
       }
 
-      const startValue = this.getPolynomialValue(trimmedCoefficients, start);
-      const endValue = this.getPolynomialValue(trimmedCoefficients, end);
+      const intervalStartValue = this.getPolynomialValue(trimmedCoefficients, intervalStart);
+      const intervalEndValue = this.getPolynomialValue(trimmedCoefficients, intervalEnd);
 
-      if (Math.abs(startValue) <= this.rootValueEpsilon || Math.abs(endValue) <= this.rootValueEpsilon) {
+      if (
+        Math.abs(intervalStartValue) <= this.implicitEquationEpsilon ||
+        Math.abs(intervalEndValue) <= this.implicitEquationEpsilon
+      ) {
         continue;
       }
 
-      if (startValue * endValue < 0) {
-        roots.push(this.bisectRoot(trimmedCoefficients, start, end));
+      if (intervalStartValue * intervalEndValue < 0) {
+        roots.push(this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd));
       }
     }
 
@@ -183,16 +204,11 @@ export class ArcArcIntersectionService {
     arcA: CornerDefinitionArcCenter,
     arcB: CornerDefinitionArcCenter,
   ): PathPrimitiveIntersection[] {
-    const candidateAngles = [
-      arcA.startAngle,
-      arcA.startAngle + arcA.deltaAngle,
-      arcB.startAngle,
-      arcB.startAngle + arcB.deltaAngle,
-    ];
+    const candidatePoints = [arcA.getStart(), arcA.getEnd(), arcB.getStart(), arcB.getEnd()];
 
     return this.deduplicateIntersections(
-      candidateAngles.flatMap((angleA) => {
-        const point = arcA.getPointAtAngle(angleA);
+      candidatePoints.flatMap((point) => {
+        const angleA = this.arcCenterGeometryService.getPointAngleOnArc(point, arcA);
         const angleB = this.arcCenterGeometryService.getPointAngleOnArc(point, arcB);
 
         if (
@@ -204,7 +220,7 @@ export class ArcArcIntersectionService {
 
         return [
           new PathPrimitiveIntersection({
-            point,
+            point: arcA.getPointAtAngle(angleA),
             primitiveA: arcA,
             primitiveB: arcB,
             parameterA: this.arcCenterGeometryService.getAngleParameterOnArc(angleA, arcA),
@@ -261,7 +277,7 @@ export class ArcArcIntersectionService {
     const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
     const angles = this.getRealPolynomialRoots(polynomial).map((root) => 2 * Math.atan(root));
 
-    if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= this.rootValueEpsilon) {
+    if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= this.implicitEquationEpsilon) {
       angles.push(Math.PI);
     }
 
@@ -327,7 +343,7 @@ export class ArcArcIntersectionService {
 
     return this.deduplicateIntersections(
       this.getEllipseIntersectionAngles(arcA, arcB).flatMap((angle) => {
-        if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > this.rootValueEpsilon) {
+        if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > this.implicitEquationEpsilon) {
           return [];
         }
 

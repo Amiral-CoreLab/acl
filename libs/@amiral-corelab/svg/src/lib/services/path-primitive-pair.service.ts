@@ -29,7 +29,7 @@ export class PathPrimitivePairService {
    *
    * Each pair is returned once. A primitive is never paired with itself.
    *
-   * @param primitives Primitives to compare.
+   * @param inputs Primitives or primitive wrappers to compare.
    *
    * @returns Candidate pairs for exact intersection checks.
    */

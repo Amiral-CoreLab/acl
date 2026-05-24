@@ -19,6 +19,10 @@ export class SegmentArcIntersectionService {
     return parameter >= -this.epsilon && parameter <= 1 + this.epsilon;
   }
 
+  private clampUnitParameter(parameter: number): number {
+    return Math.max(0, Math.min(1, parameter));
+  }
+
   /**
    * Computes intersections between a segment and a center-parameterized arc.
    *
@@ -41,14 +45,17 @@ export class SegmentArcIntersectionService {
       return [];
     }
 
-    const start = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.start, arc);
-    const end = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.end, arc);
-    const direction = start.getVectorTo(end);
+    const localSegmentStart = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.start, arc);
+    const localSegmentEnd = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.end, arc);
+    const localSegmentDirection = localSegmentStart.getVectorTo(localSegmentEnd);
     const radiusXSquared = arc.radiusX ** 2;
     const radiusYSquared = arc.radiusY ** 2;
-    const quadraticA = direction.x ** 2 / radiusXSquared + direction.y ** 2 / radiusYSquared;
-    const quadraticB = 2 * ((start.x * direction.x) / radiusXSquared + (start.y * direction.y) / radiusYSquared);
-    const quadraticC = start.x ** 2 / radiusXSquared + start.y ** 2 / radiusYSquared - 1;
+    const quadraticA = localSegmentDirection.x ** 2 / radiusXSquared + localSegmentDirection.y ** 2 / radiusYSquared;
+    const quadraticB =
+      2 *
+      ((localSegmentStart.x * localSegmentDirection.x) / radiusXSquared +
+        (localSegmentStart.y * localSegmentDirection.y) / radiusYSquared);
+    const quadraticC = localSegmentStart.x ** 2 / radiusXSquared + localSegmentStart.y ** 2 / radiusYSquared - 1;
     const discriminant = quadraticB ** 2 - 4 * quadraticA * quadraticC;
 
     if (this.isZero(quadraticA) || discriminant < -this.epsilon) {
@@ -67,10 +74,10 @@ export class SegmentArcIntersectionService {
         return [];
       }
 
-      const clampedSegmentParameter = Math.max(0, Math.min(1, segmentParameter));
+      const clampedSegmentParameter = this.clampUnitParameter(segmentParameter);
       const localPoint = new Point({
-        x: start.x + direction.x * clampedSegmentParameter,
-        y: start.y + direction.y * clampedSegmentParameter,
+        x: localSegmentStart.x + localSegmentDirection.x * clampedSegmentParameter,
+        y: localSegmentStart.y + localSegmentDirection.y * clampedSegmentParameter,
       });
       const angle = Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
 
