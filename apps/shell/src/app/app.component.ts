@@ -36,6 +36,15 @@ export class AppComponent implements AfterViewInit {
       ],
     });
 
+    const path3 = new Path({
+      closed: true,
+      vertices: [
+        new Vertex({ x: 0, y: 50, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 300, y: 200, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 200, y: 300, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+      ],
+    });
+
     const svg = document.getElementById('svg') as unknown as SVGSVGElement;
     const pathEL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     pathEL.style.fill = 'none';
@@ -49,9 +58,10 @@ export class AppComponent implements AfterViewInit {
       pathPrimitiveIntersectionService.getSplitIntersections([
         ...path.toPrimitivesWithOrigin('path'),
         ...path2.toPrimitivesWithOrigin('path2'),
+        ...path3.toPrimitivesWithOrigin('path3'),
       ]),
     );
 
-    pathEL.setAttribute('d', path.toD() + path2.toD());
+    pathEL.setAttribute('d', path.toD() + path2.toD() + path3.toD());
   }
 }

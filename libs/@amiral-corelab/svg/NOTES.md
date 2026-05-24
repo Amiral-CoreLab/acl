@@ -386,21 +386,17 @@ Reference for possible future robust predicates:
 1. receives `PathPrimitiveWithOrigin[]`
 2. computes each primitive bounding box
 3. inflates each box by the primitive's local distance tolerance
-4. builds an adaptive uniform spatial grid over all inflated boxes
-5. inserts each primitive into every grid cell touched by its box
-6. compares only primitives that share at least one grid cell
-7. deduplicates pairs that share several cells
-8. returns `PathPrimitivePair[]` for overlapping boxes
+4. builds a quadtree over all inflated boxes
+5. inserts primitives into child nodes only when their whole box fits inside the child
+6. keeps boundary-spanning boxes on their parent node
+7. queries intersecting tree nodes before exact bounding-box overlap checks
+8. deduplicates candidate pairs
+9. returns `PathPrimitivePair[]` for overlapping boxes
 
-This spatial-index broad phase avoids the unconditional all-pairs scan. Dense cases where
-many boxes occupy the same cells can still produce many candidates, but the exact
-bounding-box overlap check remains the final broad-phase guard.
-
-Grid sizing is tuned per axis:
-
-- `cellCountX` is based on global width divided by average box width
-- `cellCountY` is based on global height divided by average box height
-- each axis is capped to avoid excessive cell counts when boxes are tiny
+The quadtree avoids the unconditional all-pairs scan and adapts subdivision to dense
+regions. Boundary-spanning boxes intentionally stay on parent nodes so they are visible to
+queries that cross child boundaries. The exact bounding-box overlap check remains the final
+broad-phase guard.
 
 Adjacent primitives from the same source path are intentionally kept at this broad-phase
 stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
@@ -601,7 +597,8 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Switch to an R-tree/quadtree if tuned grid cells still become too dense.
+- Tune quadtree thresholds or replace it with an R-tree if rectangular-box workloads need
+  better broad-phase performance.
 
 References:
 

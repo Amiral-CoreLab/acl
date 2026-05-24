@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { BoundingBox, PathPrimitiveOrigin, PathPrimitiveWithOrigin } from '../classes';
-import { PathPrimitivePair } from '../classes';
+import type { PathPrimitiveOrigin, PathPrimitiveWithOrigin } from '../classes';
+import { BoundingBox, PathPrimitivePair } from '../classes';
 import { BoundingBoxFactory } from '../factories';
 import { GeometryToleranceService } from './geometry-tolerance.service';
 import type { PathPrimitive } from '../classes/path-primitive';
@@ -12,20 +12,11 @@ interface PathPrimitivePairItem {
   boundingBox: BoundingBox;
 }
 
-interface SpatialGrid {
-  cellCountX: number;
-  cellCountY: number;
-  cellHeight: number;
-  cellWidth: number;
-  minX: number;
-  minY: number;
-}
-
-interface SpatialGridRange {
-  maxCellX: number;
-  maxCellY: number;
-  minCellX: number;
-  minCellY: number;
+interface QuadTreeNode {
+  bounds: BoundingBox;
+  children: QuadTreeNode[];
+  depth: number;
+  items: PathPrimitivePairItem[];
 }
 
 /**
@@ -37,7 +28,8 @@ interface SpatialGridRange {
  */
 @Singleton()
 export class PathPrimitivePairService {
-  private readonly maximumSpatialGridAxisCellCount = 128;
+  private readonly maximumQuadTreeDepth = 8;
+  private readonly maximumQuadTreeNodeItems = 8;
   private readonly boundingBoxFactory = getSingleton(BoundingBoxFactory);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
@@ -61,61 +53,71 @@ export class PathPrimitivePairService {
     });
   }
 
-  private createSpatialGrid(items: PathPrimitivePairItem[]): SpatialGrid {
-    const minX = Math.min(...items.map((item) => item.boundingBox.minX));
-    const minY = Math.min(...items.map((item) => item.boundingBox.minY));
-    const maxX = Math.max(...items.map((item) => item.boundingBox.maxX));
-    const maxY = Math.max(...items.map((item) => item.boundingBox.maxY));
-    const width = Math.max(maxX - minX, 1);
-    const height = Math.max(maxY - minY, 1);
-    const averageBoxWidth = Math.max(
-      items.reduce((total, item) => total + item.boundingBox.width, 0) / items.length,
-      1,
-    );
-    const averageBoxHeight = Math.max(
-      items.reduce((total, item) => total + item.boundingBox.height, 0) / items.length,
-      1,
-    );
-    const maximumAxisCellCount = Math.min(
-      this.maximumSpatialGridAxisCellCount,
-      Math.max(1, Math.ceil(Math.sqrt(items.length) * 4)),
-    );
-    const cellCountX = this.clampCellCount(Math.ceil(width / averageBoxWidth), maximumAxisCellCount);
-    const cellCountY = this.clampCellCount(Math.ceil(height / averageBoxHeight), maximumAxisCellCount);
+  private createRootBounds(items: PathPrimitivePairItem[]): BoundingBox {
+    return new BoundingBox({
+      minX: Math.min(...items.map((item) => item.boundingBox.minX)),
+      minY: Math.min(...items.map((item) => item.boundingBox.minY)),
+      maxX: Math.max(...items.map((item) => item.boundingBox.maxX)),
+      maxY: Math.max(...items.map((item) => item.boundingBox.maxY)),
+    });
+  }
 
+  private createQuadTreeNode(bounds: BoundingBox, depth: number): QuadTreeNode {
     return {
-      cellCountX,
-      cellCountY,
-      cellHeight: Math.max(height / cellCountY, 1),
-      cellWidth: Math.max(width / cellCountX, 1),
-      minX,
-      minY,
+      bounds,
+      children: [],
+      depth,
+      items: [],
     };
   }
 
-  private clampCellCount(cellCount: number, maximumCellCount: number): number {
-    return Math.max(1, Math.min(maximumCellCount, cellCount));
+  private containsBoundingBox(container: BoundingBox, contained: BoundingBox): boolean {
+    return (
+      container.minX <= contained.minX &&
+      container.maxX >= contained.maxX &&
+      container.minY <= contained.minY &&
+      container.maxY >= contained.maxY
+    );
   }
 
-  private clampCellX(cellIndex: number, grid: SpatialGrid): number {
-    return Math.max(0, Math.min(grid.cellCountX - 1, cellIndex));
+  private createChildBounds(bounds: BoundingBox): BoundingBox[] {
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
+
+    return [
+      new BoundingBox({ minX: bounds.minX, minY: bounds.minY, maxX: centerX, maxY: centerY }),
+      new BoundingBox({ minX: centerX, minY: bounds.minY, maxX: bounds.maxX, maxY: centerY }),
+      new BoundingBox({ minX: bounds.minX, minY: centerY, maxX: centerX, maxY: bounds.maxY }),
+      new BoundingBox({ minX: centerX, minY: centerY, maxX: bounds.maxX, maxY: bounds.maxY }),
+    ];
   }
 
-  private clampCellY(cellIndex: number, grid: SpatialGrid): number {
-    return Math.max(0, Math.min(grid.cellCountY - 1, cellIndex));
+  private getContainingChild(node: QuadTreeNode, item: PathPrimitivePairItem): QuadTreeNode | undefined {
+    return node.children.find((child) => this.containsBoundingBox(child.bounds, item.boundingBox));
   }
 
-  private getGridRange(grid: SpatialGrid, item: PathPrimitivePairItem): SpatialGridRange {
-    return {
-      maxCellX: this.clampCellX(Math.floor((item.boundingBox.maxX - grid.minX) / grid.cellWidth), grid),
-      maxCellY: this.clampCellY(Math.floor((item.boundingBox.maxY - grid.minY) / grid.cellHeight), grid),
-      minCellX: this.clampCellX(Math.floor((item.boundingBox.minX - grid.minX) / grid.cellWidth), grid),
-      minCellY: this.clampCellY(Math.floor((item.boundingBox.minY - grid.minY) / grid.cellHeight), grid),
-    };
-  }
+  private splitNode(node: QuadTreeNode): void {
+    if (node.children.length > 0 || node.depth >= this.maximumQuadTreeDepth) {
+      return;
+    }
 
-  private getCellKey(cellX: number, cellY: number): string {
-    return `${cellX}:${cellY}`;
+    node.children = this.createChildBounds(node.bounds).map((bounds) =>
+      this.createQuadTreeNode(bounds, node.depth + 1),
+    );
+    const remainingItems: PathPrimitivePairItem[] = [];
+
+    for (const item of node.items) {
+      const child = this.getContainingChild(node, item);
+
+      if (!child) {
+        remainingItems.push(item);
+        continue;
+      }
+
+      this.insertIntoQuadTree(child, item);
+    }
+
+    node.items = remainingItems;
   }
 
   private getPairKey(itemA: PathPrimitivePairItem, itemB: PathPrimitivePairItem): string {
@@ -125,21 +127,30 @@ export class PathPrimitivePairService {
     return `${minIndex}:${maxIndex}`;
   }
 
-  private addItemToGridCells(
-    cells: Map<string, PathPrimitivePairItem[]>,
-    grid: SpatialGrid,
-    item: PathPrimitivePairItem,
-  ): void {
-    const range = this.getGridRange(grid, item);
+  private insertIntoQuadTree(node: QuadTreeNode, item: PathPrimitivePairItem): void {
+    const child = this.getContainingChild(node, item);
 
-    for (let cellX = range.minCellX; cellX <= range.maxCellX; cellX += 1) {
-      for (let cellY = range.minCellY; cellY <= range.maxCellY; cellY += 1) {
-        const cellKey = this.getCellKey(cellX, cellY);
-        const cellItems = cells.get(cellKey) ?? [];
+    if (child) {
+      this.insertIntoQuadTree(child, item);
+      return;
+    }
 
-        cellItems.push(item);
-        cells.set(cellKey, cellItems);
-      }
+    node.items.push(item);
+
+    if (node.items.length > this.maximumQuadTreeNodeItems) {
+      this.splitNode(node);
+    }
+  }
+
+  private queryQuadTree(node: QuadTreeNode, item: PathPrimitivePairItem, candidates: PathPrimitivePairItem[]): void {
+    if (!node.bounds.intersects(item.boundingBox)) {
+      return;
+    }
+
+    candidates.push(...node.items);
+
+    for (const child of node.children) {
+      this.queryQuadTree(child, item, candidates);
     }
   }
 
@@ -147,8 +158,8 @@ export class PathPrimitivePairService {
    * Gets unique primitive pairs whose bounding boxes overlap.
    *
    * Each pair is returned once. A primitive is never paired with itself. Items are inserted
-   * into a spatial grid, then only primitives sharing at least one cell are checked for exact
-   * box overlap.
+   * into a quadtree, then only primitives stored in intersecting tree nodes are checked for
+   * exact box overlap.
    *
    * @param inputs Primitive wrappers to compare.
    *
@@ -158,40 +169,35 @@ export class PathPrimitivePairService {
     const items = inputs.map((input, index) => this.getPairItem(input, index));
     const pairs: PathPrimitivePair[] = [];
     const pairKeys = new Set<string>();
-    const cells = new Map<string, PathPrimitivePairItem[]>();
 
     if (items.length <= 1) {
       return [];
     }
 
-    const grid = this.createSpatialGrid(items);
+    const root = this.createQuadTreeNode(this.createRootBounds(items), 0);
 
     for (const item of items) {
-      const range = this.getGridRange(grid, item);
+      const candidates: PathPrimitivePairItem[] = [];
 
-      for (let cellX = range.minCellX; cellX <= range.maxCellX; cellX += 1) {
-        for (let cellY = range.minCellY; cellY <= range.maxCellY; cellY += 1) {
-          const cellItems = cells.get(this.getCellKey(cellX, cellY)) ?? [];
+      this.queryQuadTree(root, item, candidates);
 
-          for (const cellItem of cellItems) {
-            const pairKey = this.getPairKey(cellItem, item);
+      for (const candidate of candidates) {
+        const pairKey = this.getPairKey(candidate, item);
 
-            if (pairKeys.has(pairKey)) {
-              continue;
-            }
-
-            pairKeys.add(pairKey);
-
-            if (!cellItem.boundingBox.intersects(item.boundingBox)) {
-              continue;
-            }
-
-            pairs.push(this.createPair(cellItem, item));
-          }
+        if (pairKeys.has(pairKey)) {
+          continue;
         }
+
+        pairKeys.add(pairKey);
+
+        if (!candidate.boundingBox.intersects(item.boundingBox)) {
+          continue;
+        }
+
+        pairs.push(this.createPair(candidate, item));
       }
 
-      this.addItemToGridCells(cells, grid, item);
+      this.insertIntoQuadTree(root, item);
     }
 
     return pairs;
