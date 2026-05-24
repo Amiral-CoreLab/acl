@@ -38,7 +38,6 @@ export class AppComponent implements AfterViewInit {
 
     const svg = document.getElementById('svg') as unknown as SVGSVGElement;
     const pathEL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathEL.setAttribute('d', path.toD() + path2.toD());
     pathEL.style.fill = 'none';
     pathEL.style.stroke = 'black';
     pathEL.style.strokeWidth = '2';
@@ -52,5 +51,7 @@ export class AppComponent implements AfterViewInit {
         ...path2.toPrimitivesWithOrigin('path2'),
       ]),
     );
+
+    pathEL.setAttribute('d', path.toD() + path2.toD());
   }
 }

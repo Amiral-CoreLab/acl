@@ -42,12 +42,43 @@ export class PathPrimitivePairService {
     });
   }
 
+  private insertByMinY(items: PathPrimitivePairItem[], item: PathPrimitivePairItem): PathPrimitivePairItem[] {
+    const insertIndex = items.findIndex((activeItem) => activeItem.boundingBox.minY > item.boundingBox.minY);
+
+    if (insertIndex === -1) {
+      return [...items, item];
+    }
+
+    return [...items.slice(0, insertIndex), item, ...items.slice(insertIndex)];
+  }
+
+  private getYOverlapCandidates(
+    activeItems: PathPrimitivePairItem[],
+    item: PathPrimitivePairItem,
+  ): PathPrimitivePairItem[] {
+    const candidates: PathPrimitivePairItem[] = [];
+
+    for (const activeItem of activeItems) {
+      if (activeItem.boundingBox.minY > item.boundingBox.maxY) {
+        break;
+      }
+
+      if (activeItem.boundingBox.maxY < item.boundingBox.minY) {
+        continue;
+      }
+
+      candidates.push(activeItem);
+    }
+
+    return candidates;
+  }
+
   /**
    * Gets unique primitive pairs whose bounding boxes overlap.
    *
    * Each pair is returned once. A primitive is never paired with itself. Items are processed
-   * with a sweep-line over bounding-box `minX`, so primitives whose boxes have already ended
-   * on the x-axis are removed before overlap checks.
+   * with a sweep-line over bounding-box `minX`, then active candidates are narrowed by their
+   * y-interval before exact box overlap checks.
    *
    * @param inputs Primitive wrappers to compare.
    *
@@ -63,7 +94,7 @@ export class PathPrimitivePairService {
     for (const item of items) {
       activeItems = activeItems.filter((activeItem) => activeItem.boundingBox.maxX >= item.boundingBox.minX);
 
-      for (const activeItem of activeItems) {
+      for (const activeItem of this.getYOverlapCandidates(activeItems, item)) {
         if (!activeItem.boundingBox.intersects(item.boundingBox)) {
           continue;
         }
@@ -71,7 +102,7 @@ export class PathPrimitivePairService {
         pairs.push(this.createPair(activeItem, item));
       }
 
-      activeItems.push(item);
+      activeItems = this.insertByMinY(activeItems, item);
     }
 
     return pairs;

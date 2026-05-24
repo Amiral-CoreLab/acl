@@ -388,11 +388,13 @@ Reference for possible future robust predicates:
 3. inflates each box by the primitive's local distance tolerance
 4. sorts boxes by `minX`
 5. keeps an active set of boxes whose `maxX` can still overlap the current box
-6. compares only active boxes against the current box
-7. returns `PathPrimitivePair[]` for overlapping boxes
+6. keeps that active set sorted by `minY`
+7. skips active boxes whose y-interval cannot overlap the current box
+8. returns `PathPrimitivePair[]` for overlapping boxes
 
-This is a sweep-line broad phase. It avoids the unconditional all-pairs scan, but dense cases
-where many boxes overlap on the sweep axis can still produce many candidates.
+This is a sweep-line broad phase with y-interval pruning. It avoids the unconditional
+all-pairs scan, but dense cases where many boxes overlap on both axes can still produce many
+candidates.
 
 Adjacent primitives from the same source path are intentionally kept at this broad-phase
 stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
@@ -593,7 +595,8 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Add a spatial index or y-interval active set if dense sweep-line cases become too expensive.
+- Add a spatial index if dense cases where many boxes overlap on both axes become too
+  expensive.
 
 References:
 
