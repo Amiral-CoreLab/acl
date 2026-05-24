@@ -386,10 +386,13 @@ Reference for possible future robust predicates:
 1. receives `PathPrimitiveWithOrigin[]`
 2. computes each primitive bounding box
 3. inflates each box by the primitive's local distance tolerance
-4. compares each pair once
-5. returns `PathPrimitivePair[]` for overlapping boxes
+4. sorts boxes by `minX`
+5. keeps an active set of boxes whose `maxX` can still overlap the current box
+6. compares only active boxes against the current box
+7. returns `PathPrimitivePair[]` for overlapping boxes
 
-This is currently O(n²). It is simple and fine for small primitive counts.
+This is a sweep-line broad phase. It avoids the unconditional all-pairs scan, but dense cases
+where many boxes overlap on the sweep axis can still produce many candidates.
 
 Adjacent primitives from the same source path are intentionally kept at this broad-phase
 stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
@@ -558,7 +561,6 @@ Current private primitive-resolution behavior:
 - There is no Bezier-to-segment or Bezier-to-arc approximation.
 - There is no split output model yet.
 - There is no planar graph or face extraction yet.
-- Broad-phase pair generation is O(n²).
 - Arc/arc robustness is improved but not exact.
 
 ## Improvements Possible In Current Scope
@@ -591,8 +593,7 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Replace O(n²) candidate-pair generation with a sweep-line or spatial index when primitive
-  counts become large.
+- Add a spatial index or y-interval active set if dense sweep-line cases become too expensive.
 
 References:
 
