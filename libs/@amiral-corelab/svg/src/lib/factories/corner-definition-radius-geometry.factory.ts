@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { CornerVertices } from '../classes';
-import { CornerDefinitionRadiusGeometry, Vector } from '../classes';
+import { CornerDefinitionRadius, CornerDefinitionRadiusGeometry, Vector } from '../classes';
 import type { Operation } from '../stores';
 import { OperationStore } from '../stores';
 
@@ -31,7 +31,7 @@ export class CornerDefinitionRadiusGeometryFactory {
     const { previous, current, next } = cornerVertices;
     const { cornerDefinition } = current;
 
-    if (!(cornerDefinition instanceof CornerDefinitionRadiusGeometry)) {
+    if (!(cornerDefinition instanceof CornerDefinitionRadius)) {
       return this.operationStore.warn('Current vertex corner definition must be radius-based.');
     }
 
@@ -48,7 +48,7 @@ export class CornerDefinitionRadiusGeometryFactory {
     }
 
     if (outgoingVector.getLength() <= 0) {
-      return this.operationStore.warn('Incoming edge must have a positive length.');
+      return this.operationStore.warn('Outgoing edge must have a positive length.');
     }
 
     // 2. Normalize directions so dot/cross products describe only angle and orientation.
