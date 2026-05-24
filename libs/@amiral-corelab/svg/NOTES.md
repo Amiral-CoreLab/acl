@@ -96,13 +96,13 @@ It does not store final drawable geometry. Drawable geometry is generated on dem
 
 Public outputs:
 
-- `toPrimitives()`: returns geometry only.
 - `toPrimitivesWithOrigin(pathId)`: returns primitives wrapped with path-origin metadata.
 - `toCommands()`: returns SVG command objects.
 - `toD()`: serializes commands to an SVG `d` value.
 
-For intersection/split workflows, prefer `toPrimitivesWithOrigin(pathId)` so adjacent
-primitives from the same path can be identified and filtered as existing continuity.
+Primitive generation without origin metadata is private to `Path`. Public intersection/split
+workflows use `toPrimitivesWithOrigin(pathId)` so adjacent primitives from the same path can be
+identified and filtered as existing continuity.
 
 ### `Vertex`
 
@@ -523,17 +523,16 @@ References:
 `CornerDefinitionRadiusGeometryFactory` uses this to return warnings instead of throwing when
 corner geometry cannot be resolved.
 
-Current `Path.toPrimitives()` behavior:
+Current private primitive-resolution behavior:
 
 - reads `operation.result`
 - invalid radius geometry becomes `undefined`
 - missing corner geometry falls back to straight segment behavior
-- diagnostics are recorded in `OperationStoreState.operations`, but `Path.toPrimitives()` does
+- diagnostics are recorded in `OperationStoreState.operations`, but public primitive output does
   not expose them directly
 
 ## Current Limitations
 
-- `Path.toPrimitives()` is still public and returns geometry without origin metadata.
 - `CornerDefinitionBezier` exists as authoring data only.
 - There is no `PathPrimitiveCubicBezier`.
 - There is no Bezier-to-segment or Bezier-to-arc approximation.
@@ -556,7 +555,6 @@ Path creation
 
 ### Path Creation And Primitive Generation
 
-- Make `Path.toPrimitives()` private or rename it to make origin-less usage explicit.
 - Add a public `toPrimitiveResolution()` result that returns both primitives and operation
   diagnostics.
 - Replace the fixed radius-corner epsilon with `GeometryToleranceService`.

@@ -247,19 +247,6 @@ export class Path {
   }
 
   /**
-   * Converts the logical path model into drawable geometry primitives.
-   *
-   * This returns geometry only. Split/intersection workflows should prefer
-   * `toPrimitivesWithOrigin()` so adjacent primitives from the same source path can be
-   * identified.
-   *
-   * @returns Path primitives resolved from vertices and corner definitions.
-   */
-  public toPrimitives(): PathPrimitive[] {
-    return this.getPrimitives();
-  }
-
-  /**
    * Converts the logical path model into drawable primitives with source metadata.
    *
    * The origin metadata records the primitive's drawing-order index and adjacent primitive
@@ -271,7 +258,7 @@ export class Path {
    * @returns Path primitives resolved from vertices and wrapped with origin metadata.
    */
   public toPrimitivesWithOrigin(pathId: string): PathPrimitiveWithOrigin[] {
-    const primitives = this.toPrimitives();
+    const primitives = this.getPrimitives();
     const lastPrimitiveIndex = primitives.length - 1;
 
     return primitives.map((primitive, primitiveIndex) => {
@@ -297,7 +284,7 @@ export class Path {
    * @returns SVG path commands.
    */
   public toCommands(): PathCommand[] {
-    const primitives = this.toPrimitives();
+    const primitives = this.getPrimitives();
     const [firstPrimitive] = primitives;
 
     if (!firstPrimitive) {
