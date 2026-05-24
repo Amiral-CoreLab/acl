@@ -8,6 +8,7 @@ import { PathPrimitiveSegment } from './path-primitive-segment';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
 import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
 import { CornerDefinitionRadiusGeometryFactory, PathCommandFactory, PathPrimitiveArcCenterFactory } from '../factories';
+import { GeometryToleranceService } from '../services';
 import type { PathPrimitive } from './path-primitive';
 
 /**
@@ -42,6 +43,7 @@ export class Path {
   private readonly cornerDefinitionRadiusGeometryFactory = getSingleton(CornerDefinitionRadiusGeometryFactory);
   private readonly pathPrimitiveArcCenterFactory = getSingleton(PathPrimitiveArcCenterFactory);
   private readonly pathCommandFactory = getSingleton(PathCommandFactory);
+  private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
   /**
    * Gets the neighboring vertices around a vertex index.
@@ -144,6 +146,16 @@ export class Path {
     return fromVertex?.getVectorTo(toVertex).getLength();
   }
 
+  private isFittedTangentOffsetUsable(cornerGeometry: CornerDefinitionRadiusGeometry, tangentOffset: number): boolean {
+    const tolerance = this.geometryToleranceService.fromPoints(
+      cornerGeometry.previousPoint,
+      cornerGeometry.currentPoint,
+      cornerGeometry.nextPoint,
+    );
+
+    return Number.isFinite(tangentOffset) && tangentOffset > tolerance.distance;
+  }
+
   /**
    * Fits radius corner geometries so adjacent rounded corners fit on each path edge.
    *
@@ -197,7 +209,13 @@ export class Path {
         return undefined;
       }
 
-      return cornerGeometry.withTangentOffset(Math.min(fittedTangentOffset.incoming, fittedTangentOffset.outgoing));
+      const resolvedTangentOffset = Math.min(fittedTangentOffset.incoming, fittedTangentOffset.outgoing);
+
+      if (!this.isFittedTangentOffsetUsable(cornerGeometry, resolvedTangentOffset)) {
+        return undefined;
+      }
+
+      return cornerGeometry.withTangentOffset(resolvedTangentOffset);
     });
   }
 

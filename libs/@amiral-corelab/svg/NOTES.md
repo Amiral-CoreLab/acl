@@ -165,6 +165,9 @@ checks:
 - distance tolerance rejects near-zero incoming/outgoing edges
 - angle tolerance rejects corner angles near `0` or `π`
 
+After adjacent radius corners are fitted to an edge, `Path` also rejects fitted tangent
+offsets that are non-finite or too small for the local distance tolerance.
+
 References:
 
 - SVG rounded rectangle radii use the same radius concept: https://www.w3.org/TR/SVG/shapes.html#RectElement
@@ -560,7 +563,6 @@ Path creation
 
 ### Path Creation And Primitive Generation
 
-- Add explicit validation for too-small fitted tangent offsets.
 - Add tests for open-path endpoints, closed-path wrapping, radius fitting, and invalid radius
   definitions.
 
