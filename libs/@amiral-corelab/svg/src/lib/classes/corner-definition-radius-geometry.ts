@@ -21,6 +21,8 @@ import { CornerDefinitionArcCenter } from './corner-definition-arc-center';
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
 export class CornerDefinitionRadiusGeometry {
+  private static readonly epsilon = 1e-9;
+
   /**
    * Point before the corner point in the path.
    */
@@ -216,8 +218,14 @@ export class CornerDefinitionRadiusGeometry {
     // 3. Compute the corner angle. Clamp avoids NaN from floating point drift around [-1, 1].
     const cornerAngle = incomingVector.getUnsignedAngleTo(outgoingVector);
 
-    assert(cornerAngle !== 0, 'Incoming and outgoing edges must not have the same direction.');
-    assert(cornerAngle !== Math.PI, 'Incoming and outgoing edges must not be opposite directions.');
+    assert(
+      cornerAngle > CornerDefinitionRadiusGeometry.epsilon,
+      'Incoming and outgoing edges must not have the same direction.',
+    );
+    assert(
+      Math.abs(Math.PI - cornerAngle) > CornerDefinitionRadiusGeometry.epsilon,
+      'Incoming and outgoing edges must not be opposite directions.',
+    );
 
     // 4. Convert the requested radius to the tangent offset along both adjacent edges.
     const halfAngleTangent = Math.tan(cornerAngle / 2);
