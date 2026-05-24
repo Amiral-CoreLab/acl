@@ -391,6 +391,12 @@ Reference for possible future robust predicates:
 
 This is currently O(n²). It is simple and fine for small primitive counts.
 
+Adjacent primitives from the same source path are intentionally kept at this broad-phase
+stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
+intersection checks, so self-intersections inside the same path are not pruned too early.
+This is required so an authoring workflow can split a self-intersecting shape into multiple
+resulting shapes.
+
 ## Exact Intersection Dispatch
 
 `PathPrimitiveIntersectionService.getIntersections(a, b)` dispatches by runtime class:
@@ -408,8 +414,8 @@ This is currently O(n²). It is simple and fine for small primitive counts.
 
 `getSplitIntersections(inputs)`:
 
-1. gets all intersections
-2. filters existing path continuity
+1. gets all exact intersections
+2. filters only existing endpoint-to-endpoint path continuity
 
 `getSplitIntersectionPoints(inputs)`:
 
@@ -585,7 +591,6 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Add pair pruning using origin adjacency when the caller only wants split intersections.
 - Replace O(n²) candidate-pair generation with a sweep-line or spatial index when primitive
   counts become large.
 
