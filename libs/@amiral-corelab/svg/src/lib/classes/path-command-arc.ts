@@ -47,6 +47,15 @@ export class PathCommandArc extends PathCommand {
   public readonly point: Point;
 
   /**
+   * Serializes this command as an SVG `A` path data fragment.
+   *
+   * @returns SVG arc command data.
+   */
+  public get d(): string {
+    return `A${this.radiusX} ${this.radiusY} ${this.axisRotation} ${this.largeArcFlag} ${this.sweepFlag} ${this.point.x} ${this.point.y}`;
+  }
+
+  /**
    * Creates an elliptical arc command.
    *
    * @param initArg Source arc command values.
@@ -60,14 +69,5 @@ export class PathCommandArc extends PathCommand {
     this.largeArcFlag = initArg?.largeArcFlag ?? 0;
     this.sweepFlag = initArg?.sweepFlag ?? 0;
     this.point = initArg?.point ?? new Point();
-  }
-
-  /**
-   * Serializes this command as an SVG `A` path data fragment.
-   *
-   * @returns SVG arc command data.
-   */
-  public getD(): string {
-    return `A${this.radiusX} ${this.radiusY} ${this.axisRotation} ${this.largeArcFlag} ${this.sweepFlag} ${this.point.x} ${this.point.y}`;
   }
 }

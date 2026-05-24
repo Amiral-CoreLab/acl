@@ -317,7 +317,7 @@ export class Path {
    */
   public toD(): string {
     return this.toCommands()
-      .map((command) => command.getD())
+      .map((command) => command.d)
       .join(' ');
   }
 }

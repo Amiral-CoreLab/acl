@@ -1,12 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import {
-  PathCommand,
-  PathCommandArc,
-  PathCommandClose,
-  PathCommandLine,
-  PathCommandMove,
-  PathPrimitiveArcCenter,
-} from '../classes';
+import type { PathCommand } from '../classes';
+import { PathCommandArc, PathCommandClose, PathCommandLine, PathCommandMove, PathPrimitiveArcCenter } from '../classes';
 
 import { AngleService } from '../services';
 import type { PathPrimitive } from '../classes/path-primitive';

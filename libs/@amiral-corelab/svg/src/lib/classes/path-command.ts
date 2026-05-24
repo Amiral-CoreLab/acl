@@ -9,5 +9,5 @@ export abstract class PathCommand {
   /**
    * SVG path data fragment for this command.
    */
-  public abstract getD(): string;
+  public abstract d: string;
 }

@@ -16,6 +16,15 @@ export class PathCommandMove extends PathCommand {
   public readonly point: Point;
 
   /**
+   * Serializes this command as an SVG `M` path data fragment.
+   *
+   * @returns SVG move command data.
+   */
+  public get d(): string {
+    return `M${this.point.x} ${this.point.y}`;
+  }
+
+  /**
    * Creates a moveto command.
    *
    * @param initArg Source move command values.
@@ -24,14 +33,5 @@ export class PathCommandMove extends PathCommand {
     super();
 
     this.point = initArg?.point ?? new Point();
-  }
-
-  /**
-   * Serializes this command as an SVG `M` path data fragment.
-   *
-   * @returns SVG move command data.
-   */
-  public getD(): string {
-    return `M${this.point.x} ${this.point.y}`;
   }
 }

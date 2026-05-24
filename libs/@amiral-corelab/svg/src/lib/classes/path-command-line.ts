@@ -16,6 +16,15 @@ export class PathCommandLine extends PathCommand {
   public readonly point: Point;
 
   /**
+   * Serializes this command as an SVG `L` path data fragment.
+   *
+   * @returns SVG line command data.
+   */
+  public get d(): string {
+    return `L${this.point.x} ${this.point.y}`;
+  }
+
+  /**
    * Creates a lineto command.
    *
    * @param initArg Source line command values.
@@ -24,14 +33,5 @@ export class PathCommandLine extends PathCommand {
     super();
 
     this.point = initArg?.point ?? new Point();
-  }
-
-  /**
-   * Serializes this command as an SVG `L` path data fragment.
-   *
-   * @returns SVG line command data.
-   */
-  public getD(): string {
-    return `L${this.point.x} ${this.point.y}`;
   }
 }

@@ -13,7 +13,7 @@ export class PathCommandClose extends PathCommand {
    *
    * @returns SVG close command data.
    */
-  public getD(): string {
+  public get d(): string {
     return 'Z';
   }
 }
