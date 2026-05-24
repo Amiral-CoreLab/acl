@@ -1,5 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import { CornerDefinitionArcCenter, PathPrimitiveIntersection, Point } from '../classes';
+import type { CornerDefinitionArcCenter } from '../classes';
+import { PathPrimitiveIntersection, Point } from '../classes';
 import { ArcCenterGeometryService } from './arc-center-geometry.service';
 import { AngleService } from './angle.service';
 

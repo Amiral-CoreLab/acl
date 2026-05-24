@@ -1,7 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
-import { CornerDefinitionArcCenter, PathPrimitiveIntersection, Point, Segment } from '../classes';
-import type { PathPrimitiveOrigin, PathPrimitivePair, PathPrimitiveWithOrigin } from '../classes';
+import type { PathPrimitiveOrigin, PathPrimitivePair, PathPrimitiveWithOrigin, Point } from '../classes';
+import { CornerDefinitionArcCenter, PathPrimitiveIntersection, Segment } from '../classes';
 import { PathPrimitivePairService } from './path-primitive-pair.service';
 import { SegmentSegmentIntersectionService } from './segment-segment-intersection.service';
 import { SegmentArcIntersectionService } from './segment-arc-intersection.service';

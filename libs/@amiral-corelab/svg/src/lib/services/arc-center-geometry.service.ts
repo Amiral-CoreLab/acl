@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { AngleService } from './angle.service';
-import { Point, type CornerDefinitionArcCenter } from '../classes';
+import { type CornerDefinitionArcCenter, Point } from '../classes';
 
 /**
  * Provides geometry helpers for center-parameterized arcs.

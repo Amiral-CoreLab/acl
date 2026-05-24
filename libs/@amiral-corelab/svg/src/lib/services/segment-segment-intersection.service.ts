@@ -1,5 +1,6 @@
 import { Singleton } from '@amiral-corelab/core';
-import { PathPrimitiveIntersection, Point, Segment } from '../classes';
+import type { Segment } from '../classes';
+import { PathPrimitiveIntersection, Point } from '../classes';
 
 /**
  * Computes exact intersections between two finite straight segments.

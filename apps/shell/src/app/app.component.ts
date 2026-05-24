@@ -47,7 +47,7 @@ export class AppComponent implements AfterViewInit {
     const pathPrimitiveIntersectionService = getSingleton(PathPrimitiveIntersectionService);
 
     console.log(
-      pathPrimitiveIntersectionService.getSplitIntersectionPoints([...path.toPrimitives(), ...path2.toPrimitives()]),
+      pathPrimitiveIntersectionService.getSplitIntersections([...path.toPrimitives(), ...path2.toPrimitives()]),
     );
   }
 }
