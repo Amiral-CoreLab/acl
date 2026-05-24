@@ -25,8 +25,8 @@ export interface CornerDefinitionRadiusGeometryInit {
  * and outgoing edges. These tangent points become the entry and exit points of the rounded
  * corner arc.
  *
- * The same geometric data can later be converted to a center-parameterized arc for
- * calculations, or to SVG endpoint parameters for an `A` path command.
+ * The same geometric data can later be converted to a `PathPrimitiveArcCenter` for
+ * calculations and SVG `A` command serialization.
  *
  * @see https://www.w3.org/TR/SVG/shapes.html#RectElement
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter

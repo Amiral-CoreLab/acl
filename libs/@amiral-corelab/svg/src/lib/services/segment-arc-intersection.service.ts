@@ -5,6 +5,11 @@ import { ArcCenterService } from './arc-center.service';
 
 /**
  * Computes exact intersections between a finite straight segment and a center arc.
+ *
+ * The segment is transformed into the arc's local ellipse coordinate system, where the
+ * intersection problem becomes a quadratic line/ellipse equation.
+ *
+ * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
 @Singleton()
 export class SegmentArcIntersectionService {
@@ -30,8 +35,8 @@ export class SegmentArcIntersectionService {
    * into the ellipse equation. Candidate solutions are filtered against both the segment
    * interval and the arc sweep.
    *
-   * @param segment Segment to intersect.
-   * @param arc Arc to intersect.
+   * @param segment Segment primitive to intersect.
+   * @param arc Center-parameterized arc primitive to intersect.
    * @param reversePrimitiveOrder Whether returned primitive/parameter order should be arc then segment.
    *
    * @returns Intersections between the segment and arc.

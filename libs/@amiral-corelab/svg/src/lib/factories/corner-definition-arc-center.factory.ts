@@ -2,19 +2,25 @@ import { Singleton } from '@amiral-corelab/core';
 import type { CornerDefinitionRadiusGeometry } from '../classes';
 import { PathPrimitiveArcCenter, Vector } from '../classes';
 
+/**
+ * Creates center-parameterized arc primitives from resolved corner geometry.
+ */
 @Singleton()
 export class CornerDefinitionArcCenterFactory {
   /**
-   * Converts this fitted radius geometry to a center-parameterized circular arc.
+   * Converts fitted radius geometry to a center-parameterized circular arc primitive.
    *
    * The arc center lies on the corner angle bisector. Its distance from the corner point is
    * derived from the radius and half-angle sine. The signed delta angle preserves the drawing
    * direction from entry to exit.
    *
-   * @returns Center-parameterized arc for this rounded corner.
+   * @param radiusGeometry Resolved radius corner geometry.
+   *
+   * @returns Center-parameterized arc primitive for this rounded corner.
    *
    * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
    */
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
   public fromRadiusGeometry(radiusGeometry: CornerDefinitionRadiusGeometry): PathPrimitiveArcCenter {
     const bisectorVector = new Vector({
       x: radiusGeometry.incomingUnitVector.x + radiusGeometry.outgoingUnitVector.x,

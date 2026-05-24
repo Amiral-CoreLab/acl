@@ -22,12 +22,12 @@ export class PathPrimitivePair {
   public readonly primitiveB: PathPrimitive;
 
   /**
-   * Source metadata for the first primitive, when available.
+   * Source metadata for the first primitive, when supplied by the pair builder.
    */
   public readonly originA: PathPrimitiveOrigin | undefined;
 
   /**
-   * Source metadata for the second primitive, when available.
+   * Source metadata for the second primitive, when supplied by the pair builder.
    */
   public readonly originB: PathPrimitiveOrigin | undefined;
 

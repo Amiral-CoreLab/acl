@@ -1,5 +1,5 @@
 1. Convertir chaque Path en primitives
-   Segment | ArcCenter
+   PathPrimitiveSegment | PathPrimitiveArcCenter
 
 2. Trouver toutes les intersections entre primitives
    segment/segment

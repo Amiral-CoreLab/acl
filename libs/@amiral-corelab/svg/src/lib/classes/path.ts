@@ -209,8 +209,8 @@ export class Path {
    * Builds drawable path primitives from fitted corner geometries.
    *
    * Each logical path edge becomes a straight segment between the current corner exit and
-   * the next corner entry. When the next vertex has a fitted radius corner, its centered arc
-   * is appended after that segment.
+   * the next corner entry. When the next vertex has a fitted radius corner, its
+   * center-parameterized arc primitive is appended after that segment.
    *
    * @returns Path primitives in drawing order.
    */
@@ -249,6 +249,10 @@ export class Path {
   /**
    * Converts the logical path model into drawable geometry primitives.
    *
+   * This returns geometry only. Split/intersection workflows should prefer
+   * `toPrimitivesWithOrigin()` so adjacent primitives from the same source path can be
+   * identified.
+   *
    * @returns Path primitives resolved from vertices and corner definitions.
    */
   public toPrimitives(): PathPrimitive[] {
@@ -257,6 +261,10 @@ export class Path {
 
   /**
    * Converts the logical path model into drawable primitives with source metadata.
+   *
+   * The origin metadata records the primitive's drawing-order index and adjacent primitive
+   * indexes. Intersection and split services use this to ignore normal endpoint contacts
+   * between neighboring primitives in the same path.
    *
    * @param pathId Stable identifier for this path.
    *

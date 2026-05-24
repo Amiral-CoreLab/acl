@@ -4,6 +4,12 @@ import { PathPrimitiveIntersection, Point } from '../classes';
 
 /**
  * Computes exact intersections between two finite straight segments.
+ *
+ * Non-parallel segments are solved with the standard parametric line equation
+ * `p + t*r = q + u*s`. Collinear overlaps return their boundary points so later split
+ * logic has concrete primitive parameters.
+ *
+ * @see https://www.w3.org/TR/SVG2/paths.html#PathDataLinetoCommands
  */
 @Singleton()
 export class SegmentSegmentIntersectionService {

@@ -23,7 +23,7 @@ libs/@amiral-corelab/svg/src/lib
   - Direction/offset, not a position.
   - Has length, dot product, signed/unsigned angle, normalize, `fromPoints()`.
 
-- `Segment`
+- `PathPrimitiveSegment`
   - Finite straight line between two `Point`s.
   - Represents drawable straight geometry, not a logical vertex connection.
 
@@ -41,12 +41,12 @@ libs/@amiral-corelab/svg/src/lib
 - `Path`
   - Stores ordered `vertices` and `closed`.
   - Converts vertices to `PathPrimitive[]`.
-  - Converts primitives to commands via `PathPrimitiveCommandService`.
+  - Converts primitives to commands via `PathCommandFactory`.
   - Can serialize to SVG path data with `toD()`.
 
 - `PathEdge`
   - Logical directed edge between vertices.
-  - Not the final drawable `Segment`, because rounded corners may shorten edges.
+  - Not the final drawable `PathPrimitiveSegment`, because rounded corners may shorten edges.
 
 ### Corner Definitions
 
@@ -61,23 +61,27 @@ libs/@amiral-corelab/svg/src/lib
   - Computed radius corner geometry.
   - Stores previous/current/next points, vectors, unit vectors, corner angle, tangent offset,
     entry/exit points.
-  - Converts to `CornerDefinitionArcCenter`.
+  - Converts to `PathPrimitiveArcCenter`.
 
-- `CornerDefinitionArc`
-  - Base for explicit arc definitions.
+- `CornerDefinitionBezier`
+  - Editable relative Bezier handles attached to a vertex.
+  - Handle vectors can later be resolved into Bezier path primitives.
 
-- `CornerDefinitionArcCenter`
-  - Center-parameterized arc.
+- `PathPrimitiveArcCenter`
+  - Drawable center-parameterized arc primitive.
   - Stores `center`, `radiusX`, `radiusY`, `axisRotation`, `startAngle`, `deltaAngle`.
   - Angles are in radians.
-  - Has `getPointAtAngle()`, `getStart()`, `getEnd()`.
+  - Has `getPointAtAngle()`, `start`, and `end`.
 
 ## Path Primitives And Commands
 
 `PathPrimitive` is currently:
 
 ```ts
-Segment | CornerDefinitionArcCenter;
+abstract class PathPrimitive {
+  readonly start: Point;
+  readonly end: Point;
+}
 ```
 
 Decision: `Point` is not a `PathPrimitive`. `Move` is generated from the start point of the
@@ -90,7 +94,7 @@ SVG commands:
 - `PathCommandArc`
 - `PathCommandClose`
 
-`PathPrimitiveCommandService` handles:
+`PathCommandFactory` handles:
 
 - primitive -> SVG command
 - start/end point of a primitive
@@ -108,7 +112,7 @@ Helpers:
 - `normalizeRadians()`
 - `normalizeDegrees()`
 
-### ArcCenterGeometryService
+### ArcCenterService
 
 Arc-centered geometry helpers:
 
@@ -123,8 +127,8 @@ Arc-centered geometry helpers:
 
 Computes bounding boxes for:
 
-- `Segment`
-- `CornerDefinitionArcCenter`
+- `PathPrimitiveSegment`
+- `PathPrimitiveArcCenter`
 
 Arc boxes use endpoints plus x/y ellipse extrema that lie on the arc sweep.
 
@@ -161,24 +165,20 @@ Important details:
 Public methods:
 
 - `getIntersections(primitiveA, primitiveB)`
-- `getAllIntersections(primitives)`
-- `getSplitIntersections(primitives)`
-- `getSplitIntersectionPoints(primitives)`
+- `getAllIntersections(primitivesWithOrigin)`
+- `getSplitIntersections(primitivesWithOrigin)`
+- `getSplitIntersectionPoints(primitivesWithOrigin)`
 
-`getSplitIntersections()` filters endpoint/endpoint contacts, because those are usually
-existing primitive continuity rather than a new split point.
-
-With `PathPrimitiveWithOrigin` metadata, only adjacent primitives in the same source path are
-treated as existing continuity. Without metadata, endpoint/endpoint contacts keep the legacy
-filtering behavior.
+`getSplitIntersections()` requires `PathPrimitiveWithOrigin[]`. It filters endpoint/endpoint
+contacts only when the origins show adjacent primitives in the same source path.
 
 ## Known Design Decisions
 
 - Keep classes instead of interfaces when runtime checks are useful (`instanceof`).
 - Keep geometry objects separate from SVG command objects.
-- Keep SVG-specific command conversion in services, not geometry classes.
-- Keep `largeArcFlag` / `sweepFlag` outside `CornerDefinitionArcCenter`; they are SVG endpoint command concepts.
-- Use `CornerDefinitionArcCenter` as the main calculated arc representation.
+- Keep SVG-specific command conversion in factories, not geometry classes.
+- Keep `largeArcFlag` / `sweepFlag` outside `PathPrimitiveArcCenter`; they are SVG endpoint command concepts.
+- Use `PathPrimitiveArcCenter` as the calculated arc primitive representation.
 - Use bounding boxes before exact intersections.
 - Use floating point math with explicit comparison tolerance where needed. Do not round/snap returned values silently.
 
@@ -203,7 +203,7 @@ These items are limited to the current scope:
 
 ```txt
 Path -> PathPrimitive[]
-PathPrimitive[] -> segment/segment, segment/arc, arc/arc intersections
+PathPrimitiveWithOrigin[] -> segment/segment, segment/arc, arc/arc intersections
 ```
 
 ### Path -> Primitives
@@ -212,12 +212,12 @@ PathPrimitive[] -> segment/segment, segment/arc, arc/arc intersections
   This is implemented in `CornerDefinitionRadiusGeometry`: corner angles near `0` or `π` are
   rejected with tolerance.
 - The current `Path.toPrimitives()` pipeline silently drops invalid corner geometries by
-  returning `undefined` when `CornerDefinitionRadiusGeometry.fromCornerVertices()` throws. This
-  is pragmatic for rendering, but if authoring feedback matters later, expose diagnostics
-  without changing the primitive output.
-- `PathPrimitive` should remain exactly `Segment | CornerDefinitionArcCenter` at this layer.
-  SVG endpoint command conversion is outside the current scope unless/when SVG path parsing is
-  added.
+  reading `Operation.result` as `undefined` when radius geometry cannot be resolved. This is
+  pragmatic for rendering, but if authoring feedback matters later, expose diagnostics without
+  changing the primitive output.
+- `PathPrimitive` should stay as a small abstract base for drawable primitive classes.
+  SVG endpoint command conversion is outside the geometry classes and belongs in
+  `PathCommandFactory`.
 
 ### Primitive Intersections
 

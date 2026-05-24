@@ -6,6 +6,13 @@ import { AngleService } from './angle.service';
 
 /**
  * Computes intersections between center-parameterized arcs.
+ *
+ * Distinct ellipse intersections are found by substituting one arc's parametric ellipse into
+ * the other arc's implicit ellipse equation. Same-ellipse arcs are handled separately by
+ * checking endpoint overlap candidates.
+ *
+ * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+ * @see https://www.geometrictools.com/Documentation/RobustIntersectionOfEllipses.pdf
  */
 @Singleton()
 export class ArcArcIntersectionService {

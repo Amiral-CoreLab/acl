@@ -33,12 +33,12 @@ export class PathPrimitiveIntersection {
   public readonly primitiveB: PathPrimitive;
 
   /**
-   * Source metadata for `primitiveA`, when available.
+   * Source metadata for `primitiveA`, when the intersection came from an origin-aware pair.
    */
   public readonly originA: PathPrimitiveOrigin | undefined;
 
   /**
-   * Source metadata for `primitiveB`, when available.
+   * Source metadata for `primitiveB`, when the intersection came from an origin-aware pair.
    */
   public readonly originB: PathPrimitiveOrigin | undefined;
 

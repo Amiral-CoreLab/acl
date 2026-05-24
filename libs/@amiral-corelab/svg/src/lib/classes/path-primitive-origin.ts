@@ -3,8 +3,9 @@ import type { InitArg } from '@amiral-corelab/core';
 /**
  * Describes where a drawable path primitive came from in a logical path.
  *
- * This metadata is intentionally separate from `PathPrimitive` so geometry classes stay
- * reusable and `PathPrimitive` remains only `Segment | CornerDefinitionArcCenter`.
+ * This metadata is intentionally separate from `PathPrimitive` so drawable geometry remains
+ * reusable while split/intersection code can still identify adjacent primitives from the
+ * same source path.
  */
 export class PathPrimitiveOrigin {
   /**

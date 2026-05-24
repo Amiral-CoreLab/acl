@@ -8,8 +8,9 @@ import type { PathPrimitive } from '../classes/path-primitive';
  * Computes axis-aligned bounding boxes for path primitives.
  *
  * Bounding boxes are used as a broad-phase geometry check before doing more expensive exact
- * intersection calculations. Segment boxes come from their two endpoints. Center arcs use
- * their endpoints plus every x/y extremum of the rotated ellipse that lies on the arc span.
+ * intersection calculations. Segment primitive boxes come from their two endpoints. Arc
+ * primitive boxes use their endpoints plus every x/y extremum of the rotated ellipse that
+ * lies on the arc span.
  *
  * @see https://www.w3.org/TR/SVG2/coords.html
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter

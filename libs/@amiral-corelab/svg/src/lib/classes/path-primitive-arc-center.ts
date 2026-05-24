@@ -12,7 +12,7 @@ export interface PathPrimitiveArcCenterInit {
 }
 
 /**
- * Defines a vertex corner with center-parameterized elliptical arc values.
+ * Drawable path primitive represented as a center-parameterized elliptical arc.
  *
  * This format stores the ellipse center, radii, rotation, start angle, and angular extent.
  * The entry and exit points are derived from `startAngle` and `startAngle + deltaAngle`.
@@ -67,7 +67,7 @@ export class PathPrimitiveArcCenter extends PathPrimitive {
   }
 
   /**
-   * Creates a center-parameterized arc corner definition.
+   * Creates a center-parameterized arc primitive.
    *
    * @param initArg Source center arc values.
    */
