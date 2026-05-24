@@ -3,6 +3,7 @@ import ts from 'typescript-eslint';
 import angular from 'angular-eslint';
 import prettier from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
+import importX from 'eslint-plugin-import-x';
 import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
@@ -26,6 +27,9 @@ export default defineConfig([
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+    plugins: {
+      'import-x': importX,
     },
     extends: [js.configs.all, ...ts.configs.all, ...angular.configs.tsAll],
     processor: angular.processInlineTemplates,

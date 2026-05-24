@@ -2,6 +2,7 @@ import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
 import { BoundingBox, CornerDefinitionArcCenter, Segment } from '../classes';
 import { ArcCenterGeometryService } from './arc-center-geometry.service';
+import { BoundingBoxFactory } from '../factories';
 
 /**
  * Computes axis-aligned bounding boxes for path primitives.
@@ -15,23 +16,8 @@ import { ArcCenterGeometryService } from './arc-center-geometry.service';
  */
 @Singleton()
 export class PathPrimitiveBoundingBoxService {
+  private readonly boundingBoxFactory = getSingleton(BoundingBoxFactory);
   private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
-
-  /**
-   * Computes a segment bounding box from its endpoints.
-   *
-   * @param segment Segment to enclose.
-   *
-   * @returns Axis-aligned segment bounding box.
-   */
-  private getSegmentBoundingBox(segment: Segment): BoundingBox {
-    const minX = Math.min(segment.start.x, segment.end.x);
-    const minY = Math.min(segment.start.y, segment.end.y);
-    const maxX = Math.max(segment.start.x, segment.end.x);
-    const maxY = Math.max(segment.start.y, segment.end.y);
-
-    return BoundingBox.fromMinMax(minX, minY, maxX, maxY);
-  }
 
   /**
    * Computes a center-parameterized arc bounding box.
@@ -44,7 +30,7 @@ export class PathPrimitiveBoundingBoxService {
    * @returns Axis-aligned arc bounding box.
    */
   private getArcCenterBoundingBox(arc: CornerDefinitionArcCenter): BoundingBox {
-    const points = [arc.getStart(), arc.getEnd()];
+    const points = [arc.start, arc.end];
     const candidateAngles = this.arcCenterGeometryService.getArcExtremumAngles(arc);
 
     for (const angle of candidateAngles) {
@@ -53,7 +39,7 @@ export class PathPrimitiveBoundingBoxService {
       }
     }
 
-    return BoundingBox.fromPoints(points);
+    return this.boundingBoxFactory.fromPoints(points);
   }
 
   /**
@@ -65,7 +51,7 @@ export class PathPrimitiveBoundingBoxService {
    */
   public getBoundingBox(primitive: PathPrimitive): BoundingBox {
     if (primitive instanceof Segment) {
-      return this.getSegmentBoundingBox(primitive);
+      return this.boundingBoxFactory.fromSegment(primitive);
     }
 
     if (primitive instanceof CornerDefinitionArcCenter) {

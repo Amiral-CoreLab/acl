@@ -204,7 +204,7 @@ export class ArcArcIntersectionService {
     arcA: CornerDefinitionArcCenter,
     arcB: CornerDefinitionArcCenter,
   ): PathPrimitiveIntersection[] {
-    const candidatePoints = [arcA.getStart(), arcA.getEnd(), arcB.getStart(), arcB.getEnd()];
+    const candidatePoints = [arcA.start, arcA.end, arcB.start, arcB.end];
 
     return this.deduplicateIntersections(
       candidatePoints.flatMap((point) => {

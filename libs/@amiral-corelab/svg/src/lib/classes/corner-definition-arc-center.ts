@@ -2,6 +2,15 @@ import type { InitArg } from '@amiral-corelab/core';
 import { CornerDefinitionArc } from './corner-definition-arc';
 import { Point } from './point';
 
+export interface CornerDefinitionArcCenterInit {
+  center: Point;
+  radiusX: number;
+  radiusY: number;
+  axisRotation: number;
+  startAngle: number;
+  deltaAngle: number;
+}
+
 /**
  * Defines a vertex corner with center-parameterized elliptical arc values.
  *
@@ -44,11 +53,25 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
   public readonly deltaAngle: number;
 
   /**
+   * Start point of the arc in the SVG user coordinate system.
+   */
+  public get start(): Point {
+    return this.getPointAtAngle(this.startAngle);
+  }
+
+  /**
+   * End point of the arc in the SVG user coordinate system.
+   */
+  public get end(): Point {
+    return this.getPointAtAngle(this.startAngle + this.deltaAngle);
+  }
+
+  /**
    * Creates a center-parameterized arc corner definition.
    *
    * @param initArg Source center arc values.
    */
-  public constructor(initArg?: InitArg<CornerDefinitionArcCenter>) {
+  public constructor(initArg?: InitArg<CornerDefinitionArcCenterInit>) {
     super();
 
     this.center = initArg?.center ?? new Point();
@@ -82,19 +105,5 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
       x: this.center.x + cosRotation * x - sinRotation * y,
       y: this.center.y + sinRotation * x + cosRotation * y,
     });
-  }
-
-  /**
-   * Start point of the arc in the SVG user coordinate system.
-   */
-  public getStart(): Point {
-    return this.getPointAtAngle(this.startAngle);
-  }
-
-  /**
-   * End point of the arc in the SVG user coordinate system.
-   */
-  public getEnd(): Point {
-    return this.getPointAtAngle(this.startAngle + this.deltaAngle);
   }
 }

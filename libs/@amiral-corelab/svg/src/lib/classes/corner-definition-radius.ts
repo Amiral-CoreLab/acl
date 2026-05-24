@@ -1,6 +1,10 @@
 import type { InitArg } from '@amiral-corelab/core';
 import { CornerDefinition } from './corner-definition';
 
+export interface CornerDefinitionRadiusInit {
+  radius: number;
+}
+
 /**
  * Defines a vertex corner by a circular radius.
  *
@@ -23,7 +27,7 @@ export class CornerDefinitionRadius extends CornerDefinition {
    *
    * @param initArg Source radius values.
    */
-  public constructor(initArg?: InitArg<CornerDefinitionRadius>) {
+  public constructor(initArg?: InitArg<CornerDefinitionRadiusInit>) {
     super();
 
     this.radius = initArg?.radius ?? 0;

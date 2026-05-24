@@ -4,13 +4,15 @@ import type { PathPrimitive } from '../types';
 import type { Vertex } from './vertex';
 import type { PathCommand } from './path-command';
 import { CornerVertices } from './corner-vertices';
-import { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geometry';
+import type { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geometry';
 import { Segment } from './segment';
 import { PathCommandClose } from './path-command-close';
 import { PathCommandMove } from './path-command-move';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
 import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
 import { PathPrimitiveCommandService } from '../services';
+import { CornerDefinitionRadiusGeometryFactory } from '../factories/corner-definition-radius-geometry.factory';
+import { CornerDefinitionArcCenterFactory } from '../factories/corner-definition-arc-center.factory';
 
 /**
  * Represents a logical SVG path model built from ordered vertices.
@@ -42,6 +44,8 @@ export class Path {
   }
 
   private readonly pathPrimitiveCommandService = getSingleton(PathPrimitiveCommandService);
+  private readonly cornerDefinitionRadiusGeometryFactory = getSingleton(CornerDefinitionRadiusGeometryFactory);
+  private readonly cornerDefinitionArcCenterFactory = getSingleton(CornerDefinitionArcCenterFactory);
 
   /**
    * Gets the neighboring vertices around a vertex index.
@@ -120,11 +124,9 @@ export class Path {
         return undefined;
       }
 
-      try {
-        return CornerDefinitionRadiusGeometry.fromCornerVertices(cornerVertices);
-      } catch {
-        return undefined;
-      }
+      const result = this.cornerDefinitionRadiusGeometryFactory.fromCornerVertices(cornerVertices);
+
+      return result.result;
     });
   }
 
@@ -237,7 +239,7 @@ export class Path {
       }
 
       if (nextCornerGeometry) {
-        primitives.push(nextCornerGeometry.toArcCenter());
+        primitives.push(this.cornerDefinitionArcCenterFactory.fromRadiusGeometry(nextCornerGeometry));
       }
     }
 

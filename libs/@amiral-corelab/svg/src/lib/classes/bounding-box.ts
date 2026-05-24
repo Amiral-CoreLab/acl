@@ -1,12 +1,18 @@
 import type { InitArg } from '@amiral-corelab/core';
-import type { Point } from './point';
+
+export interface BoundingBoxInit {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
 
 /**
  * Represents an axis-aligned bounding box in the SVG user coordinate system.
  *
  * SVG exposes element bounding boxes with an origin and a size. In this class the origin is
  * stored as `minX` and `minY`, and the opposite corner is stored as `maxX` and `maxY`.
- * `width` and `height` describe the size between those two corners.
+ * `width` and `height` are derived from those two corners.
  *
  * These bounds are useful for broad-phase geometry checks, such as quickly rejecting path
  * primitives whose boxes do not overlap.
@@ -38,28 +44,29 @@ export class BoundingBox {
   /**
    * Horizontal size of the bounding box.
    */
-  public readonly width: number;
+  public get width(): number {
+    return this.maxX - this.minX;
+  }
 
   /**
    * Vertical size of the bounding box.
    */
-  public readonly height: number;
+  public get height(): number {
+    return this.maxY - this.minY;
+  }
 
   /**
-   * Creates a bounding box from optional bound and size values.
+   * Creates a bounding box from optional bound values.
    *
-   * Prefer `BoundingBox.fromMinMax()` when creating a box from two corners so `width` and
-   * `height` are derived consistently.
+   * Width and height are derived from the minimum and maximum coordinates.
    *
    * @param initArg Source bounding box values.
    */
-  public constructor(initArg?: InitArg<BoundingBox>) {
+  public constructor(initArg?: InitArg<BoundingBoxInit>) {
     this.minX = initArg?.minX ?? 0;
     this.minY = initArg?.minY ?? 0;
     this.maxX = initArg?.maxX ?? 0;
     this.maxY = initArg?.maxY ?? 0;
-    this.width = initArg?.width ?? 0;
-    this.height = initArg?.height ?? 0;
   }
 
   /**
@@ -79,42 +86,5 @@ export class BoundingBox {
       this.minY <= boundingBox.maxY &&
       this.maxY >= boundingBox.minY
     );
-  }
-
-  /**
-   * Creates a bounding box from its minimum and maximum coordinates.
-   *
-   * This factory derives `width` and `height` from the provided bounds, keeping the box
-   * values consistent in one place.
-   *
-   * @param minX Minimum horizontal coordinate.
-   * @param minY Minimum vertical coordinate.
-   * @param maxX Maximum horizontal coordinate.
-   * @param maxY Maximum vertical coordinate.
-   *
-   * @returns Bounding box spanning the provided bounds.
-   */
-  public static fromMinMax(minX: number, minY: number, maxX: number, maxY: number): BoundingBox {
-    return new BoundingBox({ minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
-  }
-
-  /**
-   * Creates a bounding box containing all provided points.
-   *
-   * @param points Points to enclose.
-   *
-   * @returns Bounding box spanning the point set.
-   */
-  public static fromPoints(points: Point[]): BoundingBox {
-    if (points.length === 0) {
-      return new BoundingBox();
-    }
-
-    const minX = Math.min(...points.map((point) => point.x));
-    const minY = Math.min(...points.map((point) => point.y));
-    const maxX = Math.max(...points.map((point) => point.x));
-    const maxY = Math.max(...points.map((point) => point.y));
-
-    return BoundingBox.fromMinMax(minX, minY, maxX, maxY);
   }
 }

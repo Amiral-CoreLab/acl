@@ -56,7 +56,7 @@ export class PathPrimitiveCommandService {
       axisRotation: this.angleService.radiansToDegrees(primitive.axisRotation),
       largeArcFlag: this.getLargeArcFlag(primitive),
       sweepFlag: this.getSweepFlag(primitive),
-      point: primitive.getEnd(),
+      point: primitive.end,
     });
   }
 
@@ -68,11 +68,7 @@ export class PathPrimitiveCommandService {
    * @returns Primitive start point.
    */
   public getStartPoint(primitive: PathPrimitive): Point {
-    if (primitive instanceof Segment) {
-      return primitive.start;
-    }
-
-    return primitive.getStart();
+    return primitive.start;
   }
 
   /**
@@ -83,10 +79,6 @@ export class PathPrimitiveCommandService {
    * @returns Primitive end point.
    */
   public getEndPoint(primitive: PathPrimitive): Point {
-    if (primitive instanceof Segment) {
-      return primitive.end;
-    }
-
-    return primitive.getEnd();
+    return primitive.end;
   }
 }
