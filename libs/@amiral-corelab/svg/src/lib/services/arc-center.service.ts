@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { AngleService } from './angle.service';
-import { type CornerDefinitionArcCenter, Point } from '../classes';
+import { type ArcCenter, Point } from '../classes';
 
 /**
  * Provides geometry helpers for center-parameterized arcs.
@@ -12,7 +12,7 @@ import { type CornerDefinitionArcCenter, Point } from '../classes';
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
 @Singleton()
-export class ArcCenterGeometryService {
+export class ArcCenterService {
   private readonly angleService = getSingleton(AngleService);
 
   /**
@@ -26,7 +26,7 @@ export class ArcCenterGeometryService {
    *
    * @returns Point in the arc local coordinate system.
    */
-  public getPointInLocalCoordinates(point: Point, arc: CornerDefinitionArcCenter): Point {
+  public getPointInLocalCoordinates(point: Point, arc: ArcCenter): Point {
     const cosRotation = Math.cos(arc.axisRotation);
     const sinRotation = Math.sin(arc.axisRotation);
     const x = point.x - arc.center.x;
@@ -49,7 +49,7 @@ export class ArcCenterGeometryService {
    *
    * @returns Implicit ellipse equation value.
    */
-  public getPointEllipseValue(point: Point, arc: CornerDefinitionArcCenter): number {
+  public getPointEllipseValue(point: Point, arc: ArcCenter): number {
     const localPoint = this.getPointInLocalCoordinates(point, arc);
 
     return localPoint.x ** 2 / arc.radiusX ** 2 + localPoint.y ** 2 / arc.radiusY ** 2 - 1;
@@ -63,7 +63,7 @@ export class ArcCenterGeometryService {
    *
    * @returns Ellipse parameter angle in radians.
    */
-  public getPointAngleOnArc(point: Point, arc: CornerDefinitionArcCenter): number {
+  public getPointAngleOnArc(point: Point, arc: ArcCenter): number {
     const localPoint = this.getPointInLocalCoordinates(point, arc);
 
     return Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
@@ -113,7 +113,7 @@ export class ArcCenterGeometryService {
    *
    * @returns Parameter on the arc sweep.
    */
-  public getAngleParameterOnArc(angle: number, arc: CornerDefinitionArcCenter): number {
+  public getAngleParameterOnArc(angle: number, arc: ArcCenter): number {
     if (arc.deltaAngle === 0) {
       return 0;
     }
@@ -135,7 +135,7 @@ export class ArcCenterGeometryService {
    *
    * @returns Candidate parameter angles for horizontal and vertical extrema.
    */
-  public getArcExtremumAngles(arc: CornerDefinitionArcCenter): number[] {
+  public getArcExtremumAngles(arc: ArcCenter): number[] {
     const cosRotation = Math.cos(arc.axisRotation);
     const sinRotation = Math.sin(arc.axisRotation);
     const xExtremumAngle = Math.atan2(-arc.radiusY * sinRotation, arc.radiusX * cosRotation);

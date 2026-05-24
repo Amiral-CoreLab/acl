@@ -1,4 +1,4 @@
-import type { CornerDefinitionArcCenter, Segment } from '../classes';
+import type { ArcCenter, Segment } from '../classes';
 
 /**
  * Drawable geometry generated from a logical path.
@@ -8,4 +8,4 @@ import type { CornerDefinitionArcCenter, Segment } from '../classes';
  *
  * @see https://www.w3.org/TR/SVG2/paths.html#PathDataGeneralInformation
  */
-export type PathPrimitive = Segment | CornerDefinitionArcCenter;
+export type PathPrimitive = Segment | ArcCenter;

@@ -1,13 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import {
-  CornerDefinitionArcCenter,
-  PathCommand,
-  PathCommandArc,
-  PathCommandClose,
-  PathCommandLine,
-  PathCommandMove,
-  Segment,
-} from '../classes';
+import type { ArcCenter, PathCommand } from '../classes';
+import { PathCommandArc, PathCommandClose, PathCommandLine, PathCommandMove, Segment } from '../classes';
 import { AngleService } from '../services';
 import type { PathPrimitive } from '../types';
 
@@ -16,12 +9,12 @@ export class PathCommandFactory {
   private readonly angleService = getSingleton(AngleService);
 
   // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  private getLargeArcFlag(primitive: CornerDefinitionArcCenter): number {
+  private getLargeArcFlag(primitive: ArcCenter): number {
     return Math.abs(primitive.deltaAngle) > Math.PI ? 1 : 0;
   }
 
   // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  private getSweepFlag(primitive: CornerDefinitionArcCenter): number {
+  private getSweepFlag(primitive: ArcCenter): number {
     return primitive.deltaAngle >= 0 ? 1 : 0;
   }
 

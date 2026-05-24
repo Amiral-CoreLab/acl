@@ -1,7 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { CornerDefinitionArcCenter } from '../classes';
+import type { ArcCenter } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
-import { ArcCenterGeometryService } from './arc-center-geometry.service';
+import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
 
 /**
@@ -11,7 +11,7 @@ import { AngleService } from './angle.service';
 export class ArcArcIntersectionService {
   private readonly epsilon = 1e-9;
   private readonly implicitEquationEpsilon = 1e-7;
-  private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
+  private readonly arcCenterGeometryService = getSingleton(ArcCenterService);
   private readonly angleService = getSingleton(AngleService);
 
   private isZero(value: number): boolean {
@@ -22,7 +22,7 @@ export class ArcArcIntersectionService {
     return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
   }
 
-  private getPointInLocalCoordinates(point: Point, arc: CornerDefinitionArcCenter): Point {
+  private getPointInLocalCoordinates(point: Point, arc: ArcCenter): Point {
     return this.arcCenterGeometryService.getPointInLocalCoordinates(point, arc);
   }
 
@@ -33,15 +33,15 @@ export class ArcArcIntersectionService {
     return Math.min(difference, halfTurn - difference);
   }
 
-  private haveSameOrientation(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
+  private haveSameOrientation(arcA: ArcCenter, arcB: ArcCenter): boolean {
     return this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon;
   }
 
-  private havePerpendicularOrientation(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
+  private havePerpendicularOrientation(arcA: ArcCenter, arcB: ArcCenter): boolean {
     return this.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <= this.epsilon;
   }
 
-  private areSameEllipse(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): boolean {
+  private areSameEllipse(arcA: ArcCenter, arcB: ArcCenter): boolean {
     if (!this.isNearlySamePoint(arcA.center, arcB.center)) {
       return false;
     }
@@ -200,10 +200,7 @@ export class ArcArcIntersectionService {
     );
   }
 
-  private getSameEllipseArcIntersections(
-    arcA: CornerDefinitionArcCenter,
-    arcB: CornerDefinitionArcCenter,
-  ): PathPrimitiveIntersection[] {
+  private getSameEllipseArcIntersections(arcA: ArcCenter, arcB: ArcCenter): PathPrimitiveIntersection[] {
     const candidatePoints = [arcA.start, arcA.end, arcB.start, arcB.end];
 
     return this.deduplicateIntersections(
@@ -231,11 +228,11 @@ export class ArcArcIntersectionService {
     );
   }
 
-  private getEllipseValue(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter, angleA: number): number {
+  private getEllipseValue(arcA: ArcCenter, arcB: ArcCenter, angleA: number): number {
     return this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(angleA), arcB);
   }
 
-  private getEllipseIntersectionPolynomial(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): number[] {
+  private getEllipseIntersectionPolynomial(arcA: ArcCenter, arcB: ArcCenter): number[] {
     const cosA = Math.cos(arcA.axisRotation);
     const sinA = Math.sin(arcA.axisRotation);
     const center = this.getPointInLocalCoordinates(arcA.center, arcB);
@@ -273,7 +270,7 @@ export class ArcArcIntersectionService {
     ];
   }
 
-  private getEllipseIntersectionAngles(arcA: CornerDefinitionArcCenter, arcB: CornerDefinitionArcCenter): number[] {
+  private getEllipseIntersectionAngles(arcA: ArcCenter, arcB: ArcCenter): number[] {
     const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
     const angles = this.getRealPolynomialRoots(polynomial).map((root) => 2 * Math.atan(root));
 
@@ -287,11 +284,7 @@ export class ArcArcIntersectionService {
     );
   }
 
-  private createIntersections(
-    arcA: CornerDefinitionArcCenter,
-    arcB: CornerDefinitionArcCenter,
-    angleA: number,
-  ): PathPrimitiveIntersection[] {
+  private createIntersections(arcA: ArcCenter, arcB: ArcCenter, angleA: number): PathPrimitiveIntersection[] {
     const point = arcA.getPointAtAngle(angleA);
     const angleB = this.arcCenterGeometryService.getPointAngleOnArc(point, arcB);
 
@@ -324,10 +317,7 @@ export class ArcArcIntersectionService {
    *
    * @returns Intersections between both arcs.
    */
-  public getIntersections(
-    arcA: CornerDefinitionArcCenter,
-    arcB: CornerDefinitionArcCenter,
-  ): PathPrimitiveIntersection[] {
+  public getIntersections(arcA: ArcCenter, arcB: ArcCenter): PathPrimitiveIntersection[] {
     if (
       this.isZero(arcA.radiusX) ||
       this.isZero(arcA.radiusY) ||

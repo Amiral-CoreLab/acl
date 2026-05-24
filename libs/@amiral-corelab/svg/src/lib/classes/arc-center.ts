@@ -1,8 +1,7 @@
 import type { InitArg } from '@amiral-corelab/core';
-import { CornerDefinitionArc } from './corner-definition-arc';
 import { Point } from './point';
 
-export interface CornerDefinitionArcCenterInit {
+export interface ArcCenterInit {
   center: Point;
   radiusX: number;
   radiusY: number;
@@ -21,7 +20,7 @@ export interface CornerDefinitionArcCenterInit {
  *
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
-export class CornerDefinitionArcCenter extends CornerDefinitionArc {
+export class ArcCenter {
   /**
    * Center point of the arc ellipse.
    */
@@ -71,9 +70,7 @@ export class CornerDefinitionArcCenter extends CornerDefinitionArc {
    *
    * @param initArg Source center arc values.
    */
-  public constructor(initArg?: InitArg<CornerDefinitionArcCenterInit>) {
-    super();
-
+  public constructor(initArg?: InitArg<ArcCenterInit>) {
     this.center = initArg?.center ?? new Point();
     this.radiusX = initArg?.radiusX ?? 0;
     this.radiusY = initArg?.radiusY ?? 0;

@@ -1,7 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { CornerDefinitionArcCenter, Segment } from '../classes';
+import type { ArcCenter, Segment } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
-import { ArcCenterGeometryService } from './arc-center-geometry.service';
+import { ArcCenterService } from './arc-center.service';
 
 /**
  * Computes exact intersections between a finite straight segment and a center arc.
@@ -9,7 +9,7 @@ import { ArcCenterGeometryService } from './arc-center-geometry.service';
 @Singleton()
 export class SegmentArcIntersectionService {
   private readonly epsilon = 1e-9;
-  private readonly arcCenterGeometryService = getSingleton(ArcCenterGeometryService);
+  private readonly arcCenterService = getSingleton(ArcCenterService);
 
   private isZero(value: number): boolean {
     return Math.abs(value) <= this.epsilon;
@@ -38,15 +38,15 @@ export class SegmentArcIntersectionService {
    */
   public getIntersections(
     segment: Segment,
-    arc: CornerDefinitionArcCenter,
+    arc: ArcCenter,
     reversePrimitiveOrder = false,
   ): PathPrimitiveIntersection[] {
     if (this.isZero(arc.radiusX) || this.isZero(arc.radiusY)) {
       return [];
     }
 
-    const localSegmentStart = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.start, arc);
-    const localSegmentEnd = this.arcCenterGeometryService.getPointInLocalCoordinates(segment.end, arc);
+    const localSegmentStart = this.arcCenterService.getPointInLocalCoordinates(segment.start, arc);
+    const localSegmentEnd = this.arcCenterService.getPointInLocalCoordinates(segment.end, arc);
     const localSegmentDirection = localSegmentStart.getVectorTo(localSegmentEnd);
     const radiusXSquared = arc.radiusX ** 2;
     const radiusYSquared = arc.radiusY ** 2;
@@ -81,11 +81,11 @@ export class SegmentArcIntersectionService {
       });
       const angle = Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
 
-      if (!this.arcCenterGeometryService.isAngleOnArc(angle, arc.startAngle, arc.deltaAngle)) {
+      if (!this.arcCenterService.isAngleOnArc(angle, arc.startAngle, arc.deltaAngle)) {
         return [];
       }
 
-      const arcParameter = this.arcCenterGeometryService.getAngleParameterOnArc(angle, arc);
+      const arcParameter = this.arcCenterService.getAngleParameterOnArc(angle, arc);
       const point = new Point({
         x: segment.start.x + (segment.end.x - segment.start.x) * clampedSegmentParameter,
         y: segment.start.y + (segment.end.y - segment.start.y) * clampedSegmentParameter,

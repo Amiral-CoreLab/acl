@@ -1,7 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitive } from '../types';
 import type { PathPrimitiveOrigin, PathPrimitivePair, PathPrimitiveWithOrigin, Point } from '../classes';
-import { CornerDefinitionArcCenter, PathPrimitiveIntersection, Segment } from '../classes';
+import { ArcCenter, PathPrimitiveIntersection, Segment } from '../classes';
 import { PathPrimitivePairService } from './path-primitive-pair.service';
 import { SegmentSegmentIntersectionService } from './segment-segment-intersection.service';
 import { SegmentArcIntersectionService } from './segment-arc-intersection.service';
@@ -68,15 +68,15 @@ export class PathPrimitiveIntersectionService {
       return this.segmentSegmentIntersectionService.getIntersections(primitiveA, primitiveB);
     }
 
-    if (primitiveA instanceof Segment && primitiveB instanceof CornerDefinitionArcCenter) {
+    if (primitiveA instanceof Segment && primitiveB instanceof ArcCenter) {
       return this.segmentArcIntersectionService.getIntersections(primitiveA, primitiveB);
     }
 
-    if (primitiveA instanceof CornerDefinitionArcCenter && primitiveB instanceof Segment) {
+    if (primitiveA instanceof ArcCenter && primitiveB instanceof Segment) {
       return this.segmentArcIntersectionService.getIntersections(primitiveB, primitiveA, true);
     }
 
-    if (primitiveA instanceof CornerDefinitionArcCenter && primitiveB instanceof CornerDefinitionArcCenter) {
+    if (primitiveA instanceof ArcCenter && primitiveB instanceof ArcCenter) {
       return this.arcArcIntersectionService.getIntersections(primitiveA, primitiveB);
     }
 
