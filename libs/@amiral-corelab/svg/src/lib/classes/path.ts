@@ -7,11 +7,7 @@ import type { CornerDefinitionRadiusGeometry } from './corner-definition-radius-
 import { PathPrimitiveSegment } from './path-primitive-segment';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
 import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
-import {
-  CornerDefinitionArcCenterFactory,
-  CornerDefinitionRadiusGeometryFactory,
-  PathCommandFactory,
-} from '../factories';
+import { CornerDefinitionRadiusGeometryFactory, PathCommandFactory, PathPrimitiveArcCenterFactory } from '../factories';
 import type { PathPrimitive } from './path-primitive';
 
 /**
@@ -44,7 +40,7 @@ export class Path {
   }
 
   private readonly cornerDefinitionRadiusGeometryFactory = getSingleton(CornerDefinitionRadiusGeometryFactory);
-  private readonly cornerDefinitionArcCenterFactory = getSingleton(CornerDefinitionArcCenterFactory);
+  private readonly pathPrimitiveArcCenterFactory = getSingleton(PathPrimitiveArcCenterFactory);
   private readonly pathCommandFactory = getSingleton(PathCommandFactory);
 
   /**
@@ -239,7 +235,7 @@ export class Path {
       }
 
       if (nextCornerGeometry) {
-        primitives.push(this.cornerDefinitionArcCenterFactory.fromRadiusGeometry(nextCornerGeometry));
+        primitives.push(this.pathPrimitiveArcCenterFactory.fromRadiusGeometry(nextCornerGeometry));
       }
     }
 

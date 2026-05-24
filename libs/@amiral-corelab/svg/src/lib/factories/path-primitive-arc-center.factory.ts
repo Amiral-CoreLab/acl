@@ -6,7 +6,7 @@ import { PathPrimitiveArcCenter, Vector } from '../classes';
  * Creates center-parameterized arc primitives from resolved corner geometry.
  */
 @Singleton()
-export class CornerDefinitionArcCenterFactory {
+export class PathPrimitiveArcCenterFactory {
   /**
    * Converts fitted radius geometry to a center-parameterized circular arc primitive.
    *

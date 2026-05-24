@@ -195,7 +195,7 @@ cross over each other.
 
 ### Arc Primitive Creation
 
-`CornerDefinitionArcCenterFactory.fromRadiusGeometry()` converts fitted radius geometry into
+`PathPrimitiveArcCenterFactory.fromRadiusGeometry()` converts fitted radius geometry into
 `PathPrimitiveArcCenter`.
 
 Math used:
@@ -560,8 +560,6 @@ Path creation
 
 ### Path Creation And Primitive Generation
 
-- Rename `CornerDefinitionArcCenterFactory` to `PathPrimitiveArcCenterFactory` because it now
-  creates primitives, not editable corner definitions.
 - Add explicit validation for too-small fitted tangent offsets.
 - Add tests for open-path endpoints, closed-path wrapping, radius fitting, and invalid radius
   definitions.
