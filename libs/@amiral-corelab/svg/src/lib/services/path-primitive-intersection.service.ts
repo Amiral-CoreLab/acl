@@ -1,11 +1,11 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
 import type { PathPrimitiveOrigin, PathPrimitivePair, PathPrimitiveWithOrigin, Point } from '../classes';
-import { ArcCenter, PathPrimitiveIntersection, Segment } from '../classes';
+import { PathPrimitiveArcCenter, PathPrimitiveIntersection, PathPrimitiveSegment } from '../classes';
 import { PathPrimitivePairService } from './path-primitive-pair.service';
 import { SegmentSegmentIntersectionService } from './segment-segment-intersection.service';
 import { SegmentArcIntersectionService } from './segment-arc-intersection.service';
 import { ArcArcIntersectionService } from './arc-arc-intersection.service';
+import type { PathPrimitive } from '../classes/path-primitive';
 
 export type PathPrimitiveIntersectionInput = PathPrimitive | PathPrimitiveWithOrigin;
 
@@ -64,19 +64,19 @@ export class PathPrimitiveIntersectionService {
    * @returns Exact intersections for the primitive pair.
    */
   public getIntersections(primitiveA: PathPrimitive, primitiveB: PathPrimitive): PathPrimitiveIntersection[] {
-    if (primitiveA instanceof Segment && primitiveB instanceof Segment) {
+    if (primitiveA instanceof PathPrimitiveSegment && primitiveB instanceof PathPrimitiveSegment) {
       return this.segmentSegmentIntersectionService.getIntersections(primitiveA, primitiveB);
     }
 
-    if (primitiveA instanceof Segment && primitiveB instanceof ArcCenter) {
+    if (primitiveA instanceof PathPrimitiveSegment && primitiveB instanceof PathPrimitiveArcCenter) {
       return this.segmentArcIntersectionService.getIntersections(primitiveA, primitiveB);
     }
 
-    if (primitiveA instanceof ArcCenter && primitiveB instanceof Segment) {
+    if (primitiveA instanceof PathPrimitiveArcCenter && primitiveB instanceof PathPrimitiveSegment) {
       return this.segmentArcIntersectionService.getIntersections(primitiveB, primitiveA, true);
     }
 
-    if (primitiveA instanceof ArcCenter && primitiveB instanceof ArcCenter) {
+    if (primitiveA instanceof PathPrimitiveArcCenter && primitiveB instanceof PathPrimitiveArcCenter) {
       return this.arcArcIntersectionService.getIntersections(primitiveA, primitiveB);
     }
 

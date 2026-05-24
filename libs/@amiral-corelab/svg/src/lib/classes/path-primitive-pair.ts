@@ -1,7 +1,7 @@
 import type { InitArg } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
 import type { PathPrimitiveOrigin } from './path-primitive-origin';
-import { Segment } from './segment';
+import { PathPrimitiveSegment } from './path-primitive-segment';
+import type { PathPrimitive } from './path-primitive';
 
 /**
  * Groups two path primitives that should be tested together.
@@ -37,8 +37,8 @@ export class PathPrimitivePair {
    * @param initArg Source pair values.
    */
   public constructor(initArg?: InitArg<PathPrimitivePair>) {
-    this.primitiveA = initArg?.primitiveA ?? new Segment();
-    this.primitiveB = initArg?.primitiveB ?? new Segment();
+    this.primitiveA = initArg?.primitiveA ?? new PathPrimitiveSegment();
+    this.primitiveB = initArg?.primitiveB ?? new PathPrimitiveSegment();
     this.originA = initArg?.originA ?? undefined;
     this.originB = initArg?.originB ?? undefined;
   }

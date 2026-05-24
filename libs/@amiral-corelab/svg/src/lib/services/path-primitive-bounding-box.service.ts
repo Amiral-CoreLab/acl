@@ -1,8 +1,8 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
-import { ArcCenter, BoundingBox, Segment } from '../classes';
+import { BoundingBox, PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { BoundingBoxFactory } from '../factories';
+import type { PathPrimitive } from '../classes/path-primitive';
 
 /**
  * Computes axis-aligned bounding boxes for path primitives.
@@ -29,7 +29,7 @@ export class PathPrimitiveBoundingBoxService {
    *
    * @returns Axis-aligned arc bounding box.
    */
-  private getArcCenterBoundingBox(arc: ArcCenter): BoundingBox {
+  private getArcCenterBoundingBox(arc: PathPrimitiveArcCenter): BoundingBox {
     const points = [arc.start, arc.end];
     const candidateAngles = this.arcCenterGeometryService.getArcExtremumAngles(arc);
 
@@ -50,11 +50,11 @@ export class PathPrimitiveBoundingBoxService {
    * @returns Primitive bounding box.
    */
   public getBoundingBox(primitive: PathPrimitive): BoundingBox {
-    if (primitive instanceof Segment) {
+    if (primitive instanceof PathPrimitiveSegment) {
       return this.boundingBoxFactory.fromSegment(primitive);
     }
 
-    if (primitive instanceof ArcCenter) {
+    if (primitive instanceof PathPrimitiveArcCenter) {
       return this.getArcCenterBoundingBox(primitive);
     }
 

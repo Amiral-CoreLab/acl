@@ -1,7 +1,8 @@
 import type { InitArg } from '@amiral-corelab/core';
 import { Point } from './point';
+import { PathPrimitive } from './path-primitive';
 
-export interface ArcCenterInit {
+export interface PathPrimitiveArcCenterInit {
   center: Point;
   radiusX: number;
   radiusY: number;
@@ -20,7 +21,7 @@ export interface ArcCenterInit {
  *
  * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
  */
-export class ArcCenter {
+export class PathPrimitiveArcCenter extends PathPrimitive {
   /**
    * Center point of the arc ellipse.
    */
@@ -70,7 +71,9 @@ export class ArcCenter {
    *
    * @param initArg Source center arc values.
    */
-  public constructor(initArg?: InitArg<ArcCenterInit>) {
+  public constructor(initArg?: InitArg<PathPrimitiveArcCenterInit>) {
+    super();
+
     this.center = initArg?.center ?? new Point();
     this.radiusX = initArg?.radiusX ?? 0;
     this.radiusY = initArg?.radiusY ?? 0;

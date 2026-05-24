@@ -1,6 +1,6 @@
 export * from './bounding-box';
 export * from './corner-definition';
-export * from './arc-center';
+export * from './path-primitive-arc-center';
 export * from './corner-definition-radius';
 export * from './corner-definition-radius-geometry';
 export * from './corner-vertices';
@@ -15,6 +15,6 @@ export * from './path-primitive-origin';
 export * from './path-primitive-pair';
 export * from './path-primitive-with-origin';
 export * from './point';
-export * from './segment';
+export * from './path-primitive-segment';
 export * from './vector';
 export * from './vertex';

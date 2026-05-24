@@ -1,5 +1,5 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { ArcCenter } from '../classes';
+import type { PathPrimitiveArcCenter } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
@@ -22,7 +22,7 @@ export class ArcArcIntersectionService {
     return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
   }
 
-  private getPointInLocalCoordinates(point: Point, arc: ArcCenter): Point {
+  private getPointInLocalCoordinates(point: Point, arc: PathPrimitiveArcCenter): Point {
     return this.arcCenterGeometryService.getPointInLocalCoordinates(point, arc);
   }
 
@@ -33,15 +33,15 @@ export class ArcArcIntersectionService {
     return Math.min(difference, halfTurn - difference);
   }
 
-  private haveSameOrientation(arcA: ArcCenter, arcB: ArcCenter): boolean {
+  private haveSameOrientation(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): boolean {
     return this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= this.epsilon;
   }
 
-  private havePerpendicularOrientation(arcA: ArcCenter, arcB: ArcCenter): boolean {
+  private havePerpendicularOrientation(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): boolean {
     return this.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <= this.epsilon;
   }
 
-  private areSameEllipse(arcA: ArcCenter, arcB: ArcCenter): boolean {
+  private areSameEllipse(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): boolean {
     if (!this.isNearlySamePoint(arcA.center, arcB.center)) {
       return false;
     }
@@ -200,7 +200,10 @@ export class ArcArcIntersectionService {
     );
   }
 
-  private getSameEllipseArcIntersections(arcA: ArcCenter, arcB: ArcCenter): PathPrimitiveIntersection[] {
+  private getSameEllipseArcIntersections(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+  ): PathPrimitiveIntersection[] {
     const candidatePoints = [arcA.start, arcA.end, arcB.start, arcB.end];
 
     return this.deduplicateIntersections(
@@ -228,11 +231,11 @@ export class ArcArcIntersectionService {
     );
   }
 
-  private getEllipseValue(arcA: ArcCenter, arcB: ArcCenter, angleA: number): number {
+  private getEllipseValue(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter, angleA: number): number {
     return this.arcCenterGeometryService.getPointEllipseValue(arcA.getPointAtAngle(angleA), arcB);
   }
 
-  private getEllipseIntersectionPolynomial(arcA: ArcCenter, arcB: ArcCenter): number[] {
+  private getEllipseIntersectionPolynomial(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): number[] {
     const cosA = Math.cos(arcA.axisRotation);
     const sinA = Math.sin(arcA.axisRotation);
     const center = this.getPointInLocalCoordinates(arcA.center, arcB);
@@ -270,7 +273,7 @@ export class ArcArcIntersectionService {
     ];
   }
 
-  private getEllipseIntersectionAngles(arcA: ArcCenter, arcB: ArcCenter): number[] {
+  private getEllipseIntersectionAngles(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): number[] {
     const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
     const angles = this.getRealPolynomialRoots(polynomial).map((root) => 2 * Math.atan(root));
 
@@ -284,7 +287,11 @@ export class ArcArcIntersectionService {
     );
   }
 
-  private createIntersections(arcA: ArcCenter, arcB: ArcCenter, angleA: number): PathPrimitiveIntersection[] {
+  private createIntersections(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    angleA: number,
+  ): PathPrimitiveIntersection[] {
     const point = arcA.getPointAtAngle(angleA);
     const angleB = this.arcCenterGeometryService.getPointAngleOnArc(point, arcB);
 
@@ -317,7 +324,7 @@ export class ArcArcIntersectionService {
    *
    * @returns Intersections between both arcs.
    */
-  public getIntersections(arcA: ArcCenter, arcB: ArcCenter): PathPrimitiveIntersection[] {
+  public getIntersections(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): PathPrimitiveIntersection[] {
     if (
       this.isZero(arcA.radiusX) ||
       this.isZero(arcA.radiusY) ||

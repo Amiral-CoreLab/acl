@@ -1,6 +1,6 @@
 import { Singleton } from '@amiral-corelab/core';
 import type { CornerDefinitionRadiusGeometry } from '../classes';
-import { ArcCenter, Vector } from '../classes';
+import { PathPrimitiveArcCenter, Vector } from '../classes';
 
 @Singleton()
 export class CornerDefinitionArcCenterFactory {
@@ -15,7 +15,7 @@ export class CornerDefinitionArcCenterFactory {
    *
    * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
    */
-  public fromRadiusGeometry(radiusGeometry: CornerDefinitionRadiusGeometry): ArcCenter {
+  public fromRadiusGeometry(radiusGeometry: CornerDefinitionRadiusGeometry): PathPrimitiveArcCenter {
     const bisectorVector = new Vector({
       x: radiusGeometry.incomingUnitVector.x + radiusGeometry.outgoingUnitVector.x,
       y: radiusGeometry.incomingUnitVector.y + radiusGeometry.outgoingUnitVector.y,
@@ -27,7 +27,7 @@ export class CornerDefinitionArcCenterFactory {
     const startAngle = Math.atan2(startVector.y, startVector.x);
     const deltaAngle = startVector.getSignedAngleTo(endVector);
 
-    return new ArcCenter({
+    return new PathPrimitiveArcCenter({
       center,
       radiusX: radiusGeometry.radius,
       radiusY: radiusGeometry.radius,

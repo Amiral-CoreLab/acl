@@ -1,5 +1,6 @@
 import type { InitArg } from '@amiral-corelab/core';
 import { Point } from './point';
+import { PathPrimitive } from './path-primitive';
 
 /**
  * Represents a finite straight line between two points in the SVG user coordinate system.
@@ -9,7 +10,7 @@ import { Point } from './point';
  *
  * @see https://www.w3.org/TR/SVG2/paths.html#PathDataLinetoCommands
  */
-export class Segment {
+export class PathPrimitiveSegment extends PathPrimitive {
   /**
    * First point of the finite straight line.
    */
@@ -25,7 +26,9 @@ export class Segment {
    *
    * @param initArg Source segment values.
    */
-  public constructor(initArg?: InitArg<Segment>) {
+  public constructor(initArg?: InitArg<PathPrimitiveSegment>) {
+    super();
+
     this.start = initArg?.start ?? new Point();
     this.end = initArg?.end ?? new Point();
   }

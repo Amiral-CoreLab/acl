@@ -1,5 +1,5 @@
 import { Singleton } from '@amiral-corelab/core';
-import type { Segment } from '../classes';
+import type { PathPrimitiveSegment } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
 
 /**
@@ -25,7 +25,7 @@ export class SegmentSegmentIntersectionService {
     return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= this.epsilon;
   }
 
-  private getPointAtParameter(segment: Segment, parameter: number): Point {
+  private getPointAtParameter(segment: PathPrimitiveSegment, parameter: number): Point {
     return new Point({
       x: segment.start.x + (segment.end.x - segment.start.x) * parameter,
       y: segment.start.y + (segment.end.y - segment.start.y) * parameter,
@@ -33,8 +33,8 @@ export class SegmentSegmentIntersectionService {
   }
 
   private createIntersection(
-    segmentA: Segment,
-    segmentB: Segment,
+    segmentA: PathPrimitiveSegment,
+    segmentB: PathPrimitiveSegment,
     parameterA: number,
     parameterB: number,
   ): PathPrimitiveIntersection {
@@ -56,7 +56,10 @@ export class SegmentSegmentIntersectionService {
     );
   }
 
-  private getCollinearIntersections(segmentA: Segment, segmentB: Segment): PathPrimitiveIntersection[] {
+  private getCollinearIntersections(
+    segmentA: PathPrimitiveSegment,
+    segmentB: PathPrimitiveSegment,
+  ): PathPrimitiveIntersection[] {
     const vectorA = segmentA.start.getVectorTo(segmentA.end);
     const vectorB = segmentB.start.getVectorTo(segmentB.end);
     const lengthASquared = vectorA.x ** 2 + vectorA.y ** 2;
@@ -101,7 +104,7 @@ export class SegmentSegmentIntersectionService {
    *
    * @returns Intersections between both segments.
    */
-  public getIntersections(segmentA: Segment, segmentB: Segment): PathPrimitiveIntersection[] {
+  public getIntersections(segmentA: PathPrimitiveSegment, segmentB: PathPrimitiveSegment): PathPrimitiveIntersection[] {
     const vectorA = segmentA.start.getVectorTo(segmentA.end);
     const vectorB = segmentB.start.getVectorTo(segmentB.end);
     const startOffset = segmentA.start.getVectorTo(segmentB.start);

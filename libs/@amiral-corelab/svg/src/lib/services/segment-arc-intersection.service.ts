@@ -1,5 +1,5 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { ArcCenter, Segment } from '../classes';
+import type { PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
 import { PathPrimitiveIntersection, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 
@@ -37,8 +37,8 @@ export class SegmentArcIntersectionService {
    * @returns Intersections between the segment and arc.
    */
   public getIntersections(
-    segment: Segment,
-    arc: ArcCenter,
+    segment: PathPrimitiveSegment,
+    arc: PathPrimitiveArcCenter,
     reversePrimitiveOrder = false,
   ): PathPrimitiveIntersection[] {
     if (this.isZero(arc.radiusX) || this.isZero(arc.radiusY)) {

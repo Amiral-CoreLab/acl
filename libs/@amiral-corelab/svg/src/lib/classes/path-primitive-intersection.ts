@@ -1,8 +1,8 @@
 import type { InitArg } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
 import type { PathPrimitiveOrigin } from './path-primitive-origin';
 import { Point } from './point';
-import { Segment } from './segment';
+import { PathPrimitiveSegment } from './path-primitive-segment';
+import type { PathPrimitive } from './path-primitive';
 
 /**
  * Represents an exact intersection result between two path primitives.
@@ -59,8 +59,8 @@ export class PathPrimitiveIntersection {
    */
   public constructor(initArg?: InitArg<PathPrimitiveIntersection>) {
     this.point = initArg?.point ?? new Point();
-    this.primitiveA = initArg?.primitiveA ?? new Segment();
-    this.primitiveB = initArg?.primitiveB ?? new Segment();
+    this.primitiveA = initArg?.primitiveA ?? new PathPrimitiveSegment();
+    this.primitiveB = initArg?.primitiveB ?? new PathPrimitiveSegment();
     this.originA = initArg?.originA ?? undefined;
     this.originB = initArg?.originB ?? undefined;
     this.parameterA = initArg?.parameterA ?? 0;

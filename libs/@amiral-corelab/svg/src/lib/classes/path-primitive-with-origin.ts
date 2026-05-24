@@ -1,7 +1,7 @@
 import type { InitArg } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
-import { Segment } from './segment';
+import { PathPrimitiveSegment } from './path-primitive-segment';
+import type { PathPrimitive } from './path-primitive';
 
 /**
  * Wraps a drawable primitive with source-path metadata.
@@ -27,7 +27,7 @@ export class PathPrimitiveWithOrigin {
    * @param initArg Source wrapper values.
    */
   public constructor(initArg?: InitArg<PathPrimitiveWithOrigin>) {
-    this.primitive = initArg?.primitive ?? new Segment();
+    this.primitive = initArg?.primitive ?? new PathPrimitiveSegment();
     this.origin = initArg?.origin ?? new PathPrimitiveOrigin();
   }
 }

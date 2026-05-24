@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { AngleService } from './angle.service';
-import { type ArcCenter, Point } from '../classes';
+import { type PathPrimitiveArcCenter, Point } from '../classes';
 
 /**
  * Provides geometry helpers for center-parameterized arcs.
@@ -26,7 +26,7 @@ export class ArcCenterService {
    *
    * @returns Point in the arc local coordinate system.
    */
-  public getPointInLocalCoordinates(point: Point, arc: ArcCenter): Point {
+  public getPointInLocalCoordinates(point: Point, arc: PathPrimitiveArcCenter): Point {
     const cosRotation = Math.cos(arc.axisRotation);
     const sinRotation = Math.sin(arc.axisRotation);
     const x = point.x - arc.center.x;
@@ -49,7 +49,7 @@ export class ArcCenterService {
    *
    * @returns Implicit ellipse equation value.
    */
-  public getPointEllipseValue(point: Point, arc: ArcCenter): number {
+  public getPointEllipseValue(point: Point, arc: PathPrimitiveArcCenter): number {
     const localPoint = this.getPointInLocalCoordinates(point, arc);
 
     return localPoint.x ** 2 / arc.radiusX ** 2 + localPoint.y ** 2 / arc.radiusY ** 2 - 1;
@@ -63,7 +63,7 @@ export class ArcCenterService {
    *
    * @returns Ellipse parameter angle in radians.
    */
-  public getPointAngleOnArc(point: Point, arc: ArcCenter): number {
+  public getPointAngleOnArc(point: Point, arc: PathPrimitiveArcCenter): number {
     const localPoint = this.getPointInLocalCoordinates(point, arc);
 
     return Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
@@ -113,7 +113,7 @@ export class ArcCenterService {
    *
    * @returns Parameter on the arc sweep.
    */
-  public getAngleParameterOnArc(angle: number, arc: ArcCenter): number {
+  public getAngleParameterOnArc(angle: number, arc: PathPrimitiveArcCenter): number {
     if (arc.deltaAngle === 0) {
       return 0;
     }
@@ -135,7 +135,7 @@ export class ArcCenterService {
    *
    * @returns Candidate parameter angles for horizontal and vertical extrema.
    */
-  public getArcExtremumAngles(arc: ArcCenter): number[] {
+  public getArcExtremumAngles(arc: PathPrimitiveArcCenter): number[] {
     const cosRotation = Math.cos(arc.axisRotation);
     const sinRotation = Math.sin(arc.axisRotation);
     const xExtremumAngle = Math.atan2(-arc.radiusY * sinRotation, arc.radiusX * cosRotation);

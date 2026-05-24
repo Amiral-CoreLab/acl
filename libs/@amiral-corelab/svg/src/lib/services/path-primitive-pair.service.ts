@@ -1,7 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
 import { PathPrimitiveBoundingBoxService } from './path-primitive-bounding-box.service';
 import { PathPrimitivePair, PathPrimitiveWithOrigin } from '../classes';
+import type { PathPrimitive } from '../classes/path-primitive';
 
 type PathPrimitivePairInput = PathPrimitive | PathPrimitiveWithOrigin;
 

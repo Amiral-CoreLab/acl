@@ -1,5 +1,5 @@
 import { Singleton } from '@amiral-corelab/core';
-import type { Point, Segment } from '../classes';
+import type { PathPrimitiveSegment, Point } from '../classes';
 import { BoundingBox } from '../classes';
 
 /**
@@ -62,7 +62,7 @@ export class BoundingBoxFactory {
    *
    * @returns Bounding box spanning the segment endpoints.
    */
-  public fromSegment(segment: Segment): BoundingBox {
+  public fromSegment(segment: PathPrimitiveSegment): BoundingBox {
     return this.fromMinMax(segment.start.x, segment.start.y, segment.end.x, segment.end.y);
   }
 }

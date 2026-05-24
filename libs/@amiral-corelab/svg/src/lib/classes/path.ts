@@ -1,16 +1,18 @@
 import type { InitArg } from '@amiral-corelab/core';
 import { getNeighborIndexes, getSingleton, isFirstIndex, isLastIndex } from '@amiral-corelab/core';
-import type { PathPrimitive } from '../types';
 import type { Vertex } from './vertex';
 import type { PathCommand } from './path-command';
 import { CornerVertices } from './corner-vertices';
 import type { CornerDefinitionRadiusGeometry } from './corner-definition-radius-geometry';
-import { Segment } from './segment';
+import { PathPrimitiveSegment } from './path-primitive-segment';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
 import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
-import { CornerDefinitionRadiusGeometryFactory } from '../factories/corner-definition-radius-geometry.factory';
-import { CornerDefinitionArcCenterFactory } from '../factories/corner-definition-arc-center.factory';
-import { PathCommandFactory } from '../factories';
+import {
+  CornerDefinitionArcCenterFactory,
+  CornerDefinitionRadiusGeometryFactory,
+  PathCommandFactory,
+} from '../factories';
+import type { PathPrimitive } from './path-primitive';
 
 /**
  * Represents a logical SVG path model built from ordered vertices.
@@ -233,7 +235,7 @@ export class Path {
       const segmentEnd = nextCornerGeometry?.entry ?? nextVertex;
 
       if (segmentStart.getVectorTo(segmentEnd).getLength() > 0) {
-        primitives.push(new Segment({ start: segmentStart, end: segmentEnd }));
+        primitives.push(new PathPrimitiveSegment({ start: segmentStart, end: segmentEnd }));
       }
 
       if (nextCornerGeometry) {
