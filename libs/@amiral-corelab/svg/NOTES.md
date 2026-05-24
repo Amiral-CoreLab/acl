@@ -386,15 +386,15 @@ Reference for possible future robust predicates:
 1. receives `PathPrimitiveWithOrigin[]`
 2. computes each primitive bounding box
 3. inflates each box by the primitive's local distance tolerance
-4. sorts boxes by `minX`
-5. keeps an active set of boxes whose `maxX` can still overlap the current box
-6. keeps that active set sorted by `minY`
-7. skips active boxes whose y-interval cannot overlap the current box
+4. builds an adaptive uniform spatial grid over all inflated boxes
+5. inserts each primitive into every grid cell touched by its box
+6. compares only primitives that share at least one grid cell
+7. deduplicates pairs that share several cells
 8. returns `PathPrimitivePair[]` for overlapping boxes
 
-This is a sweep-line broad phase with y-interval pruning. It avoids the unconditional
-all-pairs scan, but dense cases where many boxes overlap on both axes can still produce many
-candidates.
+This spatial-index broad phase avoids the unconditional all-pairs scan. Dense cases where
+many boxes occupy the same cells can still produce many candidates, but the exact
+bounding-box overlap check remains the final broad-phase guard.
 
 Adjacent primitives from the same source path are intentionally kept at this broad-phase
 stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
@@ -595,7 +595,7 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Add a spatial index if dense cases where many boxes overlap on both axes become too
+- Tune spatial-grid sizing or switch to an R-tree/quadtree if dense cell occupancy becomes too
   expensive.
 
 References:

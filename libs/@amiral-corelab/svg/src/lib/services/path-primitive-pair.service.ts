@@ -6,9 +6,25 @@ import { GeometryToleranceService } from './geometry-tolerance.service';
 import type { PathPrimitive } from '../classes/path-primitive';
 
 interface PathPrimitivePairItem {
+  index: number;
   primitive: PathPrimitive;
   origin: PathPrimitiveOrigin;
   boundingBox: BoundingBox;
+}
+
+interface SpatialGrid {
+  cellCount: number;
+  cellHeight: number;
+  cellWidth: number;
+  minX: number;
+  minY: number;
+}
+
+interface SpatialGridRange {
+  maxCellX: number;
+  maxCellY: number;
+  minCellX: number;
+  minCellY: number;
 }
 
 /**
@@ -23,8 +39,9 @@ export class PathPrimitivePairService {
   private readonly boundingBoxFactory = getSingleton(BoundingBoxFactory);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
-  private getPairItem(input: PathPrimitiveWithOrigin): PathPrimitivePairItem {
+  private getPairItem(input: PathPrimitiveWithOrigin, index: number): PathPrimitivePairItem {
     return {
+      index,
       primitive: input.primitive,
       origin: input.origin,
       boundingBox: this.boundingBoxFactory
@@ -42,67 +59,113 @@ export class PathPrimitivePairService {
     });
   }
 
-  private insertByMinY(items: PathPrimitivePairItem[], item: PathPrimitivePairItem): PathPrimitivePairItem[] {
-    const insertIndex = items.findIndex((activeItem) => activeItem.boundingBox.minY > item.boundingBox.minY);
+  private createSpatialGrid(items: PathPrimitivePairItem[]): SpatialGrid {
+    const minX = Math.min(...items.map((item) => item.boundingBox.minX));
+    const minY = Math.min(...items.map((item) => item.boundingBox.minY));
+    const maxX = Math.max(...items.map((item) => item.boundingBox.maxX));
+    const maxY = Math.max(...items.map((item) => item.boundingBox.maxY));
+    const cellCount = Math.max(1, Math.ceil(Math.sqrt(items.length)));
 
-    if (insertIndex === -1) {
-      return [...items, item];
-    }
-
-    return [...items.slice(0, insertIndex), item, ...items.slice(insertIndex)];
+    return {
+      cellCount,
+      cellHeight: Math.max((maxY - minY) / cellCount, 1),
+      cellWidth: Math.max((maxX - minX) / cellCount, 1),
+      minX,
+      minY,
+    };
   }
 
-  private getYOverlapCandidates(
-    activeItems: PathPrimitivePairItem[],
+  private clampCellIndex(cellIndex: number, grid: SpatialGrid): number {
+    return Math.max(0, Math.min(grid.cellCount - 1, cellIndex));
+  }
+
+  private getGridRange(grid: SpatialGrid, item: PathPrimitivePairItem): SpatialGridRange {
+    return {
+      maxCellX: this.clampCellIndex(Math.floor((item.boundingBox.maxX - grid.minX) / grid.cellWidth), grid),
+      maxCellY: this.clampCellIndex(Math.floor((item.boundingBox.maxY - grid.minY) / grid.cellHeight), grid),
+      minCellX: this.clampCellIndex(Math.floor((item.boundingBox.minX - grid.minX) / grid.cellWidth), grid),
+      minCellY: this.clampCellIndex(Math.floor((item.boundingBox.minY - grid.minY) / grid.cellHeight), grid),
+    };
+  }
+
+  private getCellKey(cellX: number, cellY: number): string {
+    return `${cellX}:${cellY}`;
+  }
+
+  private getPairKey(itemA: PathPrimitivePairItem, itemB: PathPrimitivePairItem): string {
+    const minIndex = Math.min(itemA.index, itemB.index);
+    const maxIndex = Math.max(itemA.index, itemB.index);
+
+    return `${minIndex}:${maxIndex}`;
+  }
+
+  private addItemToGridCells(
+    cells: Map<string, PathPrimitivePairItem[]>,
+    grid: SpatialGrid,
     item: PathPrimitivePairItem,
-  ): PathPrimitivePairItem[] {
-    const candidates: PathPrimitivePairItem[] = [];
+  ): void {
+    const range = this.getGridRange(grid, item);
 
-    for (const activeItem of activeItems) {
-      if (activeItem.boundingBox.minY > item.boundingBox.maxY) {
-        break;
+    for (let cellX = range.minCellX; cellX <= range.maxCellX; cellX += 1) {
+      for (let cellY = range.minCellY; cellY <= range.maxCellY; cellY += 1) {
+        const cellKey = this.getCellKey(cellX, cellY);
+        const cellItems = cells.get(cellKey) ?? [];
+
+        cellItems.push(item);
+        cells.set(cellKey, cellItems);
       }
-
-      if (activeItem.boundingBox.maxY < item.boundingBox.minY) {
-        continue;
-      }
-
-      candidates.push(activeItem);
     }
-
-    return candidates;
   }
 
   /**
    * Gets unique primitive pairs whose bounding boxes overlap.
    *
-   * Each pair is returned once. A primitive is never paired with itself. Items are processed
-   * with a sweep-line over bounding-box `minX`, then active candidates are narrowed by their
-   * y-interval before exact box overlap checks.
+   * Each pair is returned once. A primitive is never paired with itself. Items are inserted
+   * into a spatial grid, then only primitives sharing at least one cell are checked for exact
+   * box overlap.
    *
    * @param inputs Primitive wrappers to compare.
    *
    * @returns Candidate pairs for exact intersection checks.
    */
   public getIntersectingBoundingBoxPairs(inputs: PathPrimitiveWithOrigin[]): PathPrimitivePair[] {
-    const items = inputs
-      .map((input) => this.getPairItem(input))
-      .sort((itemA, itemB) => itemA.boundingBox.minX - itemB.boundingBox.minX);
-    let activeItems: PathPrimitivePairItem[] = [];
+    const items = inputs.map((input, index) => this.getPairItem(input, index));
     const pairs: PathPrimitivePair[] = [];
+    const pairKeys = new Set<string>();
+    const cells = new Map<string, PathPrimitivePairItem[]>();
+
+    if (items.length <= 1) {
+      return [];
+    }
+
+    const grid = this.createSpatialGrid(items);
 
     for (const item of items) {
-      activeItems = activeItems.filter((activeItem) => activeItem.boundingBox.maxX >= item.boundingBox.minX);
+      const range = this.getGridRange(grid, item);
 
-      for (const activeItem of this.getYOverlapCandidates(activeItems, item)) {
-        if (!activeItem.boundingBox.intersects(item.boundingBox)) {
-          continue;
+      for (let cellX = range.minCellX; cellX <= range.maxCellX; cellX += 1) {
+        for (let cellY = range.minCellY; cellY <= range.maxCellY; cellY += 1) {
+          const cellItems = cells.get(this.getCellKey(cellX, cellY)) ?? [];
+
+          for (const cellItem of cellItems) {
+            const pairKey = this.getPairKey(cellItem, item);
+
+            if (pairKeys.has(pairKey)) {
+              continue;
+            }
+
+            pairKeys.add(pairKey);
+
+            if (!cellItem.boundingBox.intersects(item.boundingBox)) {
+              continue;
+            }
+
+            pairs.push(this.createPair(cellItem, item));
+          }
         }
-
-        pairs.push(this.createPair(activeItem, item));
       }
 
-      activeItems = this.insertByMinY(activeItems, item);
+      this.addItemToGridCells(cells, grid, item);
     }
 
     return pairs;
