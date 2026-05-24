@@ -107,4 +107,27 @@ export class BoundingBox {
       this.maxY >= boundingBox.minY
     );
   }
+
+  /**
+   * Creates a box expanded by the same distance on every side.
+   *
+   * Inflation is useful before broad-phase comparisons so tiny floating point drift around
+   * primitive bounds does not reject pairs that exact geometry checks should still inspect.
+   *
+   * @param distance Distance to add around the box.
+   *
+   * @returns Inflated bounding box.
+   */
+  public inflate(distance: number): BoundingBox {
+    if (!Number.isFinite(distance) || distance <= 0) {
+      return new BoundingBox(this);
+    }
+
+    return new BoundingBox({
+      minX: this.minX - distance,
+      minY: this.minY - distance,
+      maxX: this.maxX + distance,
+      maxY: this.maxY + distance,
+    });
+  }
 }

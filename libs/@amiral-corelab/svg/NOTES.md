@@ -316,6 +316,7 @@ Current rule:
 - generic path primitives
 
 `BoundingBox.scale` derives the numeric tolerance scale from the box coordinates and size.
+`BoundingBox.inflate(distance)` returns a copy expanded on every side.
 
 Segment bounding boxes use the two endpoints.
 
@@ -384,8 +385,9 @@ Reference for possible future robust predicates:
 
 1. receives `PathPrimitiveWithOrigin[]`
 2. computes each primitive bounding box
-3. compares each pair once
-4. returns `PathPrimitivePair[]` for overlapping boxes
+3. inflates each box by the primitive's local distance tolerance
+4. compares each pair once
+5. returns `PathPrimitivePair[]` for overlapping boxes
 
 This is currently O(n²). It is simple and fine for small primitive counts.
 
@@ -583,7 +585,6 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Add bounding-box inflation by tolerance before broad-phase tests.
 - Add pair pruning using origin adjacency when the caller only wants split intersections.
 - Replace O(n²) candidate-pair generation with a sweep-line or spatial index when primitive
   counts become large.
