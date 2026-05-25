@@ -1,6 +1,11 @@
 import { Singleton } from '@amiral-corelab/core';
 import type { GeometryTolerance } from './geometry-tolerance.service';
 
+export interface PolynomialRoot {
+  isRepeated: boolean;
+  value: number;
+}
+
 /**
  * Provides tolerance-aware helpers for real polynomial equations.
  *
@@ -87,6 +92,10 @@ export class PolynomialEquationService {
   }
 
   public getRealRoots(coefficients: number[], tolerance: GeometryTolerance): number[] {
+    return this.getRealRootResults(coefficients, tolerance).map((root) => root.value);
+  }
+
+  public getRealRootResults(coefficients: number[], tolerance: GeometryTolerance): PolynomialRoot[] {
     const trimmedCoefficients = this.trim(this.normalize(coefficients, tolerance), tolerance);
     const degree = trimmedCoefficients.length - 1;
 
@@ -97,7 +106,14 @@ export class PolynomialEquationService {
     if (degree === 1) {
       const [constant = 0, linear = 0] = trimmedCoefficients;
 
-      return Math.abs(linear) <= tolerance.implicitEquation ? [] : [-constant / linear];
+      return Math.abs(linear) <= tolerance.implicitEquation
+        ? []
+        : [
+            {
+              isRepeated: false,
+              value: -constant / linear,
+            },
+          ];
     }
 
     const bound = this.getRootBound(trimmedCoefficients, tolerance);
@@ -105,11 +121,14 @@ export class PolynomialEquationService {
       (root) => root >= -bound - tolerance.parameter && root <= bound + tolerance.parameter,
     );
     const criticalPoints = this.deduplicateNumbers([-bound, ...derivativeRoots, bound], tolerance.parameter);
-    const roots: number[] = [];
+    const roots: PolynomialRoot[] = [];
 
     for (const criticalPoint of criticalPoints) {
       if (Math.abs(this.getValue(trimmedCoefficients, criticalPoint)) <= tolerance.implicitEquation) {
-        roots.push(criticalPoint);
+        roots.push({
+          isRepeated: true,
+          value: criticalPoint,
+        });
       }
     }
 
@@ -136,10 +155,30 @@ export class PolynomialEquationService {
       }
 
       if (intervalStartValue * intervalEndValue < 0) {
-        roots.push(this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd, tolerance));
+        roots.push({
+          isRepeated: false,
+          value: this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd, tolerance),
+        });
       }
     }
 
-    return this.deduplicateNumbers(roots, Math.sqrt(tolerance.parameter));
+    return this.deduplicateRootResults(roots, Math.sqrt(tolerance.parameter));
+  }
+
+  private deduplicateRootResults(roots: PolynomialRoot[], tolerance: number): PolynomialRoot[] {
+    return [...roots]
+      .sort((rootA, rootB) => rootA.value - rootB.value)
+      .reduce<PolynomialRoot[]>((deduplicatedRoots, root) => {
+        const previousRoot = deduplicatedRoots[deduplicatedRoots.length - 1];
+
+        if (!previousRoot || Math.abs(root.value - previousRoot.value) > tolerance) {
+          deduplicatedRoots.push(root);
+          return deduplicatedRoots;
+        }
+
+        previousRoot.isRepeated = previousRoot.isRepeated || root.isRepeated;
+
+        return deduplicatedRoots;
+      }, []);
   }
 }

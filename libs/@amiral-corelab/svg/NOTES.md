@@ -544,7 +544,10 @@ Distinct-ellipse case:
 - normalizes coefficients
 - uses derivative roots to split the real line into intervals
 - adds roots at critical points when residual is near zero
+- marks critical-point roots as repeated roots
 - bisects intervals with sign changes
+
+Repeated roots are used to classify distinct-ellipse arc intersections as tangent contacts.
 
 Remaining risks:
 
@@ -644,7 +647,6 @@ Reference:
 
 ### Arc/Arc
 
-- Add explicit repeated-root handling for tangent ellipses.
 - Add tighter classification for nearly identical ellipses.
 - Add tests for tangent arcs, overlapping same-ellipse arcs, perpendicular equivalent ellipses,
   tiny radii, and large coordinates.

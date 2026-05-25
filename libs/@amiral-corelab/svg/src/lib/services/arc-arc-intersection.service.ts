@@ -11,6 +11,11 @@ import { AngleService } from './angle.service';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 import { PolynomialEquationService } from './polynomial-equation.service';
 
+interface ArcIntersectionAngle {
+  angle: number;
+  isTangent: boolean;
+}
+
 /**
  * Computes intersections between center-parameterized arcs.
  *
@@ -233,26 +238,51 @@ export class ArcArcIntersectionService {
     arcA: PathPrimitiveArcCenter,
     arcB: PathPrimitiveArcCenter,
     tolerance: GeometryTolerance,
-  ): number[] {
+  ): ArcIntersectionAngle[] {
     const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
-    const angles = this.polynomialEquationService
-      .getRealRoots(polynomial, tolerance)
-      .map((root) => 2 * Math.atan(root));
+    const angles = this.polynomialEquationService.getRealRootResults(polynomial, tolerance).map((root) => ({
+      angle: 2 * Math.atan(root.value),
+      isTangent: root.isRepeated,
+    }));
 
     if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= tolerance.implicitEquation) {
-      angles.push(Math.PI);
+      angles.push({
+        angle: Math.PI,
+        isTangent: false,
+      });
     }
 
-    return this.polynomialEquationService.deduplicateNumbers(
-      angles.map((angle) => this.angleService.normalizeRadians(angle)),
+    return this.deduplicateAngleCandidates(
+      angles.map((angle) => ({
+        angle: this.angleService.normalizeRadians(angle.angle),
+        isTangent: angle.isTangent,
+      })),
       Math.sqrt(tolerance.parameter),
     );
+  }
+
+  private deduplicateAngleCandidates(angles: ArcIntersectionAngle[], tolerance: number): ArcIntersectionAngle[] {
+    return [...angles]
+      .sort((angleA, angleB) => angleA.angle - angleB.angle)
+      .reduce<ArcIntersectionAngle[]>((deduplicatedAngles, angle) => {
+        const previousAngle = deduplicatedAngles[deduplicatedAngles.length - 1];
+
+        if (!previousAngle || Math.abs(angle.angle - previousAngle.angle) > tolerance) {
+          deduplicatedAngles.push(angle);
+          return deduplicatedAngles;
+        }
+
+        previousAngle.isTangent = previousAngle.isTangent || angle.isTangent;
+
+        return deduplicatedAngles;
+      }, []);
   }
 
   private createIntersections(
     arcA: PathPrimitiveArcCenter,
     arcB: PathPrimitiveArcCenter,
     angleA: number,
+    isTangent = false,
   ): PathPrimitiveIntersection[] {
     const point = arcA.getPointAtAngle(angleA);
     const angleB = this.arcCenterGeometryService.getPointAngleOnArc(point, arcB);
@@ -263,6 +293,7 @@ export class ArcArcIntersectionService {
 
     return [
       new PathPrimitiveIntersection({
+        kind: isTangent ? PathPrimitiveIntersectionKind.Tangent : PathPrimitiveIntersectionKind.Crossing,
         point,
         primitiveA: arcA,
         primitiveB: arcB,
@@ -303,12 +334,12 @@ export class ArcArcIntersectionService {
     }
 
     return this.deduplicateIntersections(
-      this.getEllipseIntersectionAngles(arcA, arcB, tolerance).flatMap((angle) => {
+      this.getEllipseIntersectionAngles(arcA, arcB, tolerance).flatMap(({ angle, isTangent }) => {
         if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > tolerance.implicitEquation) {
           return [];
         }
 
-        return this.createIntersections(arcA, arcB, angle);
+        return this.createIntersections(arcA, arcB, angle, isTangent);
       }),
       tolerance,
     );
