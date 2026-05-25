@@ -29,6 +29,10 @@ export class SegmentArcIntersectionService {
     return Math.max(0, Math.min(1, parameter));
   }
 
+  private getImplicitEllipseResidual(localPoint: Point, radiusXSquared: number, radiusYSquared: number): number {
+    return localPoint.x ** 2 / radiusXSquared + localPoint.y ** 2 / radiusYSquared - 1;
+  }
+
   /**
    * Computes intersections between a segment and a center-parameterized arc.
    *
@@ -88,6 +92,12 @@ export class SegmentArcIntersectionService {
         x: localSegmentStart.x + localSegmentDirection.x * clampedSegmentParameter,
         y: localSegmentStart.y + localSegmentDirection.y * clampedSegmentParameter,
       });
+      const residual = this.getImplicitEllipseResidual(localPoint, radiusXSquared, radiusYSquared);
+
+      if (Math.abs(residual) > tolerance.implicitEquation) {
+        return [];
+      }
+
       const angle = Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
 
       if (!this.arcCenterService.isAngleOnArc(angle, arc.startAngle, arc.deltaAngle)) {

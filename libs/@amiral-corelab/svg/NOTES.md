@@ -486,10 +486,11 @@ Algorithm:
 3. substitute the line segment equation into the implicit ellipse equation
 4. solve the resulting quadratic
 5. keep segment parameters in `[0, 1]`
-6. compute the candidate ellipse angle
-7. keep candidates whose angle lies on the arc sweep
-8. classify near-zero discriminant intersections as tangent contacts
-9. return intersections in requested primitive order
+6. verify each candidate against the implicit ellipse equation residual
+7. compute the candidate ellipse angle
+8. keep candidates whose angle lies on the arc sweep
+9. classify near-zero discriminant intersections as tangent contacts
+10. return intersections in requested primitive order
 
 Ellipse equation in local arc coordinates:
 
@@ -631,7 +632,6 @@ Reference:
 
 ### Segment/Arc
 
-- Add residual verification after computing candidate points.
 - Add tests for line tangent to arc, line crossing full ellipse but outside arc sweep, endpoint
   hits, tiny radii, and large coordinates.
 - Consider sharing quadratic solving through a small polynomial helper.
