@@ -49,6 +49,7 @@ export class PathPrimitiveIntersectionService {
       primitiveB: intersection.primitiveB,
       originA: pair.originA,
       originB: pair.originB,
+      overlap: intersection.overlap,
       parameterA: intersection.parameterA,
       parameterB: intersection.parameterB,
     });

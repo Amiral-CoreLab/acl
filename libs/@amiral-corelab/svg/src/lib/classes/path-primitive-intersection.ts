@@ -6,7 +6,17 @@ import type { PathPrimitive } from './path-primitive';
 
 export enum PathPrimitiveIntersectionKind {
   Crossing = 'crossing',
+  OverlapBoundary = 'overlap-boundary',
   Tangent = 'tangent',
+}
+
+export interface PathPrimitiveIntersectionOverlap {
+  end: Point;
+  endParameterA: number;
+  endParameterB: number;
+  start: Point;
+  startParameterA: number;
+  startParameterB: number;
 }
 
 /**
@@ -16,7 +26,8 @@ export enum PathPrimitiveIntersectionKind {
  * `parameterA` and `parameterB` store the normalized position on each primitive: `0` is the
  * primitive start, `1` is the primitive end, and values between them are interior points.
  * `kind` distinguishes ordinary crossings from tangent contacts when the intersection
- * service can classify that case explicitly.
+ * service can classify that case explicitly. `overlap` describes a shared primitive interval
+ * when a boundary point belongs to an overlap.
  *
  * These parameters are kept because the next operation after intersection detection is
  * usually splitting primitives at the intersection point.
@@ -55,6 +66,11 @@ export class PathPrimitiveIntersection {
   public readonly originB: PathPrimitiveOrigin | undefined;
 
   /**
+   * Shared primitive interval when this intersection is an overlap boundary.
+   */
+  public readonly overlap: PathPrimitiveIntersectionOverlap | undefined;
+
+  /**
    * Normalized intersection position on `primitiveA`.
    */
   public readonly parameterA: number;
@@ -76,6 +92,7 @@ export class PathPrimitiveIntersection {
     this.primitiveB = initArg?.primitiveB ?? new PathPrimitiveSegment();
     this.originA = initArg?.originA ?? undefined;
     this.originB = initArg?.originB ?? undefined;
+    this.overlap = initArg?.overlap ?? undefined;
     this.parameterA = initArg?.parameterA ?? 0;
     this.parameterB = initArg?.parameterB ?? 0;
   }

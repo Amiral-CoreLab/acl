@@ -1,6 +1,11 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitiveArcCenter } from '../classes';
-import { PathPrimitiveIntersection, Point } from '../classes';
+import {
+  PathPrimitiveIntersection,
+  PathPrimitiveIntersectionKind,
+  type PathPrimitiveIntersectionOverlap,
+  Point,
+} from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
@@ -22,6 +27,8 @@ export class ArcArcIntersectionService {
   private readonly angleService = getSingleton(AngleService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
   private readonly polynomialEquationService = getSingleton(PolynomialEquationService);
+
+  private readonly minimumOverlapParameterSpan = 1e-9;
 
   private isZero(value: number, tolerance: number): boolean {
     return Math.abs(value) <= tolerance;
@@ -96,6 +103,20 @@ export class ArcArcIntersectionService {
     arcB: PathPrimitiveArcCenter,
     tolerance: GeometryTolerance,
   ): PathPrimitiveIntersection[] {
+    const boundaryIntersections = this.getSameEllipseOverlapBoundaries(arcA, arcB, tolerance);
+
+    if (boundaryIntersections.length < 2) {
+      return boundaryIntersections;
+    }
+
+    return this.getSameEllipseOverlapIntersections(arcA, arcB, boundaryIntersections);
+  }
+
+  private getSameEllipseOverlapBoundaries(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): PathPrimitiveIntersection[] {
     const candidatePoints = [arcA.start, arcA.end, arcB.start, arcB.end];
 
     return this.deduplicateIntersections(
@@ -121,6 +142,48 @@ export class ArcArcIntersectionService {
         ];
       }),
       tolerance,
+    );
+  }
+
+  private getSameEllipseOverlapIntersections(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    boundaryIntersections: PathPrimitiveIntersection[],
+  ): PathPrimitiveIntersection[] {
+    const sortedIntersections = [...boundaryIntersections].sort(
+      (intersectionA, intersectionB) => intersectionA.parameterA - intersectionB.parameterA,
+    );
+    const overlapStart = sortedIntersections[0];
+    const overlapEnd = sortedIntersections[sortedIntersections.length - 1];
+
+    if (
+      !overlapStart ||
+      !overlapEnd ||
+      Math.abs(overlapEnd.parameterA - overlapStart.parameterA) <= this.minimumOverlapParameterSpan
+    ) {
+      return boundaryIntersections;
+    }
+
+    const overlap: PathPrimitiveIntersectionOverlap = {
+      end: overlapEnd.point,
+      endParameterA: overlapEnd.parameterA,
+      endParameterB: overlapEnd.parameterB,
+      start: overlapStart.point,
+      startParameterA: overlapStart.parameterA,
+      startParameterB: overlapStart.parameterB,
+    };
+
+    return [overlapStart, overlapEnd].map(
+      (intersection) =>
+        new PathPrimitiveIntersection({
+          kind: PathPrimitiveIntersectionKind.OverlapBoundary,
+          overlap,
+          point: intersection.point,
+          primitiveA: arcA,
+          primitiveB: arcB,
+          parameterA: intersection.parameterA,
+          parameterB: intersection.parameterB,
+        }),
     );
   }
 

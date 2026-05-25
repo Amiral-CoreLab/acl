@@ -522,7 +522,8 @@ Same-ellipse case:
 - compare centers, radii, and axis orientations with scale-aware tolerance
 - collect endpoint candidates
 - keep candidates lying on both arc sweeps
-- return boundary points
+- return overlap boundary points
+- attach the shared overlap interval to those boundary intersections
 
 Distinct-ellipse case:
 
@@ -643,7 +644,6 @@ Reference:
 
 ### Arc/Arc
 
-- Improve same-ellipse arc overlap representation beyond endpoint boundary points.
 - Add explicit repeated-root handling for tangent ellipses.
 - Add tighter classification for nearly identical ellipses.
 - Add tests for tangent arcs, overlapping same-ellipse arcs, perpendicular equivalent ellipses,
