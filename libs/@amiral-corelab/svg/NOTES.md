@@ -536,7 +536,7 @@ Distinct-ellipse case:
 8. verify the candidate lies on arc B's sweep
 9. deduplicate nearly identical intersections
 
-The root finder:
+`PolynomialEquationService` provides the root finder:
 
 - trims near-zero high coefficients
 - normalizes coefficients
@@ -643,7 +643,6 @@ Reference:
 
 ### Arc/Arc
 
-- Extract polynomial utilities into a dedicated service if reused later.
 - Improve same-ellipse arc overlap representation beyond endpoint boundary points.
 - Add explicit repeated-root handling for tangent ellipses.
 - Add tighter classification for nearly identical ellipses.

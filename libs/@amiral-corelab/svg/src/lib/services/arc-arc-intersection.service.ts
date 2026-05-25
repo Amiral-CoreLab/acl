@@ -4,6 +4,7 @@ import { PathPrimitiveIntersection, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
+import { PolynomialEquationService } from './polynomial-equation.service';
 
 /**
  * Computes intersections between center-parameterized arcs.
@@ -20,6 +21,7 @@ export class ArcArcIntersectionService {
   private readonly arcCenterGeometryService = getSingleton(ArcCenterService);
   private readonly angleService = getSingleton(AngleService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
+  private readonly polynomialEquationService = getSingleton(PolynomialEquationService);
 
   private isZero(value: number, tolerance: number): boolean {
     return Math.abs(value) <= tolerance;
@@ -75,142 +77,6 @@ export class ArcArcIntersectionService {
         Math.abs(arcA.radiusY - arcB.radiusX) <= tolerance.distance &&
         this.havePerpendicularOrientation(arcA, arcB, tolerance))
     );
-  }
-
-  private getPolynomialValue(coefficients: number[], value: number): number {
-    return [...coefficients].reverse().reduce((result, coefficient) => result * value + coefficient, 0);
-  }
-
-  private trimPolynomial(coefficients: number[], tolerance: GeometryTolerance): number[] {
-    const trimmed = [...coefficients];
-
-    while (trimmed.length > 1 && Math.abs(trimmed[trimmed.length - 1] ?? 0) <= tolerance.implicitEquation) {
-      trimmed.pop();
-    }
-
-    return trimmed;
-  }
-
-  private normalizePolynomial(coefficients: number[], tolerance: GeometryTolerance): number[] {
-    const largestCoefficient = coefficients.reduce(
-      (maximum, coefficient) => Math.max(maximum, Math.abs(coefficient)),
-      0,
-    );
-
-    if (largestCoefficient <= tolerance.implicitEquation) {
-      return coefficients;
-    }
-
-    return coefficients.map((coefficient) => coefficient / largestCoefficient);
-  }
-
-  private getPolynomialDerivative(coefficients: number[]): number[] {
-    return coefficients.slice(1).map((coefficient, index) => coefficient * (index + 1));
-  }
-
-  private getPolynomialRootBound(coefficients: number[], tolerance: GeometryTolerance): number {
-    const trimmedCoefficients = this.trimPolynomial(coefficients, tolerance);
-    const leadingCoefficient = Math.abs(trimmedCoefficients[trimmedCoefficients.length - 1] ?? 1);
-
-    if (leadingCoefficient <= tolerance.implicitEquation) {
-      return 1;
-    }
-
-    const largestRatio = trimmedCoefficients
-      .slice(0, -1)
-      .reduce((maximum, coefficient) => Math.max(maximum, Math.abs(coefficient) / leadingCoefficient), 0);
-
-    return 1 + largestRatio;
-  }
-
-  private deduplicateNumbers(values: number[], tolerance: number): number[] {
-    return [...values]
-      .sort((valueA, valueB) => valueA - valueB)
-      .filter(
-        (value, index, sortedValues) => index === 0 || Math.abs(value - (sortedValues[index - 1] ?? value)) > tolerance,
-      );
-  }
-
-  private bisectRoot(coefficients: number[], start: number, end: number, tolerance: GeometryTolerance): number {
-    let bracketStart = start;
-    let bracketEnd = end;
-    let startValue = this.getPolynomialValue(coefficients, bracketStart);
-
-    for (let iteration = 0; iteration < 96; iteration += 1) {
-      const middle = (bracketStart + bracketEnd) / 2;
-      const middleValue = this.getPolynomialValue(coefficients, middle);
-
-      if (Math.abs(middleValue) <= tolerance.implicitEquation) {
-        return middle;
-      }
-
-      if (startValue * middleValue <= 0) {
-        bracketEnd = middle;
-      } else {
-        bracketStart = middle;
-        startValue = middleValue;
-      }
-    }
-
-    return (bracketStart + bracketEnd) / 2;
-  }
-
-  private getRealPolynomialRoots(coefficients: number[], tolerance: GeometryTolerance): number[] {
-    const trimmedCoefficients = this.trimPolynomial(this.normalizePolynomial(coefficients, tolerance), tolerance);
-    const degree = trimmedCoefficients.length - 1;
-
-    if (degree <= 0) {
-      return [];
-    }
-
-    if (degree === 1) {
-      const [constant = 0, linear = 0] = trimmedCoefficients;
-
-      return Math.abs(linear) <= tolerance.implicitEquation ? [] : [-constant / linear];
-    }
-
-    const bound = this.getPolynomialRootBound(trimmedCoefficients, tolerance);
-    const derivativeRoots = this.getRealPolynomialRoots(
-      this.getPolynomialDerivative(trimmedCoefficients),
-      tolerance,
-    ).filter((root) => root >= -bound - tolerance.parameter && root <= bound + tolerance.parameter);
-    const criticalPoints = this.deduplicateNumbers([-bound, ...derivativeRoots, bound], tolerance.parameter);
-    const roots: number[] = [];
-
-    for (const criticalPoint of criticalPoints) {
-      if (Math.abs(this.getPolynomialValue(trimmedCoefficients, criticalPoint)) <= tolerance.implicitEquation) {
-        roots.push(criticalPoint);
-      }
-    }
-
-    for (let index = 0; index < criticalPoints.length - 1; index += 1) {
-      const intervalStart = criticalPoints[index];
-      const intervalEnd = criticalPoints[index + 1];
-
-      if (
-        intervalStart === undefined ||
-        intervalEnd === undefined ||
-        Math.abs(intervalEnd - intervalStart) <= tolerance.parameter
-      ) {
-        continue;
-      }
-
-      const intervalStartValue = this.getPolynomialValue(trimmedCoefficients, intervalStart);
-      const intervalEndValue = this.getPolynomialValue(trimmedCoefficients, intervalEnd);
-
-      if (
-        Math.abs(intervalStartValue) <= tolerance.implicitEquation ||
-        Math.abs(intervalEndValue) <= tolerance.implicitEquation
-      ) {
-        continue;
-      }
-
-      if (intervalStartValue * intervalEndValue < 0) {
-        roots.push(this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd, tolerance));
-      }
-    }
-
-    return this.deduplicateNumbers(roots, Math.sqrt(tolerance.parameter));
   }
 
   private deduplicateIntersections(
@@ -306,13 +172,15 @@ export class ArcArcIntersectionService {
     tolerance: GeometryTolerance,
   ): number[] {
     const polynomial = this.getEllipseIntersectionPolynomial(arcA, arcB);
-    const angles = this.getRealPolynomialRoots(polynomial, tolerance).map((root) => 2 * Math.atan(root));
+    const angles = this.polynomialEquationService
+      .getRealRoots(polynomial, tolerance)
+      .map((root) => 2 * Math.atan(root));
 
     if (Math.abs(this.getEllipseValue(arcA, arcB, Math.PI)) <= tolerance.implicitEquation) {
       angles.push(Math.PI);
     }
 
-    return this.deduplicateNumbers(
+    return this.polynomialEquationService.deduplicateNumbers(
       angles.map((angle) => this.angleService.normalizeRadians(angle)),
       Math.sqrt(tolerance.parameter),
     );
