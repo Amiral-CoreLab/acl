@@ -521,6 +521,7 @@ Zero-radius arcs are rejected.
 Same-ellipse case:
 
 - compare centers, radii, and axis orientations with scale-aware tolerance
+- verify sampled cardinal points from each ellipse against the other ellipse's implicit equation
 - collect endpoint candidates
 - keep candidates lying on both arc sweeps
 - return overlap boundary points
@@ -552,7 +553,6 @@ Repeated roots are used to classify distinct-ellipse arc intersections as tangen
 Remaining risks:
 
 - repeated roots can still be numerically delicate
-- nearly identical ellipses depend on same-ellipse classification
 - very small radii are rejected as zero
 - very large coordinate ranges depend on tolerance tuning
 
@@ -647,7 +647,6 @@ Reference:
 
 ### Arc/Arc
 
-- Add tighter classification for nearly identical ellipses.
 - Add tests for tangent arcs, overlapping same-ellipse arcs, perpendicular equivalent ellipses,
   tiny radii, and large coordinates.
 - Consider robust ellipse-intersection techniques if quartic conditioning becomes a real issue.

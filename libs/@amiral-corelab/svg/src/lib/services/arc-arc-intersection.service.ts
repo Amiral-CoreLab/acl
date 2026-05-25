@@ -72,6 +72,27 @@ export class ArcArcIntersectionService {
     );
   }
 
+  private getEllipseSamplePoints(arc: PathPrimitiveArcCenter): Point[] {
+    return [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2].map((angle) => arc.getPointAtAngle(angle));
+  }
+
+  private areEllipseSamplesMutuallyConsistent(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): boolean {
+    return (
+      this.getEllipseSamplePoints(arcA).every(
+        (point) =>
+          Math.abs(this.arcCenterGeometryService.getPointEllipseValue(point, arcB)) <= tolerance.implicitEquation,
+      ) &&
+      this.getEllipseSamplePoints(arcB).every(
+        (point) =>
+          Math.abs(this.arcCenterGeometryService.getPointEllipseValue(point, arcA)) <= tolerance.implicitEquation,
+      )
+    );
+  }
+
   private areSameEllipse(
     arcA: PathPrimitiveArcCenter,
     arcB: PathPrimitiveArcCenter,
@@ -81,14 +102,15 @@ export class ArcArcIntersectionService {
       return false;
     }
 
-    return (
+    const hasMatchingParameters =
       (Math.abs(arcA.radiusX - arcB.radiusX) <= tolerance.distance &&
         Math.abs(arcA.radiusY - arcB.radiusY) <= tolerance.distance &&
         this.haveSameOrientation(arcA, arcB, tolerance)) ||
       (Math.abs(arcA.radiusX - arcB.radiusY) <= tolerance.distance &&
         Math.abs(arcA.radiusY - arcB.radiusX) <= tolerance.distance &&
-        this.havePerpendicularOrientation(arcA, arcB, tolerance))
-    );
+        this.havePerpendicularOrientation(arcA, arcB, tolerance));
+
+    return hasMatchingParameters && this.areEllipseSamplesMutuallyConsistent(arcA, arcB, tolerance);
   }
 
   private deduplicateIntersections(
