@@ -4,5 +4,6 @@ export * from './arc-center.service';
 export * from './geometry-tolerance.service';
 export * from './path-primitive-intersection.service';
 export * from './path-primitive-pair.service';
+export * from './quadratic-equation.service';
 export * from './segment-arc-intersection.service';
 export * from './segment-segment-intersection.service';

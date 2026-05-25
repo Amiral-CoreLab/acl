@@ -478,6 +478,8 @@ Reference:
 ## Segment/Arc Intersection
 
 `SegmentArcIntersectionService` intersects a finite segment with a center-parameterized arc.
+`QuadraticEquationService` solves the resulting quadratic and classifies near-zero
+discriminants as tangent roots.
 
 Algorithm:
 
@@ -634,7 +636,6 @@ Reference:
 
 - Add tests for line tangent to arc, line crossing full ellipse but outside arc sweep, endpoint
   hits, tiny radii, and large coordinates.
-- Consider sharing quadratic solving through a small polynomial helper.
 
 Reference:
 

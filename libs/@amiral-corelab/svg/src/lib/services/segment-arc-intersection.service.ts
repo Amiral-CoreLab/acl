@@ -3,6 +3,7 @@ import type { PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
 import { PathPrimitiveIntersection, PathPrimitiveIntersectionKind, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
+import { QuadraticEquationService } from './quadratic-equation.service';
 
 /**
  * Computes exact intersections between a finite straight segment and a center arc.
@@ -16,6 +17,7 @@ import { type GeometryTolerance, GeometryToleranceService } from './geometry-tol
 export class SegmentArcIntersectionService {
   private readonly arcCenterService = getSingleton(ArcCenterService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
+  private readonly quadraticEquationService = getSingleton(QuadraticEquationService);
 
   private isZero(value: number, tolerance: number): boolean {
     return Math.abs(value) <= tolerance;
@@ -68,19 +70,12 @@ export class SegmentArcIntersectionService {
       ((localSegmentStart.x * localSegmentDirection.x) / radiusXSquared +
         (localSegmentStart.y * localSegmentDirection.y) / radiusYSquared);
     const quadraticC = localSegmentStart.x ** 2 / radiusXSquared + localSegmentStart.y ** 2 / radiusYSquared - 1;
-    const discriminant = quadraticB ** 2 - 4 * quadraticA * quadraticC;
-
-    if (this.isZero(quadraticA, tolerance.implicitEquation) || discriminant < -tolerance.implicitEquation) {
-      return [];
-    }
-
-    const isTangent = this.isZero(discriminant, tolerance.implicitEquation);
-    const segmentParameters = isTangent
-      ? [-quadraticB / (2 * quadraticA)]
-      : [
-          (-quadraticB - Math.sqrt(discriminant)) / (2 * quadraticA),
-          (-quadraticB + Math.sqrt(discriminant)) / (2 * quadraticA),
-        ];
+    const { isTangent, roots: segmentParameters } = this.quadraticEquationService.getRealRoots(
+      quadraticA,
+      quadraticB,
+      quadraticC,
+      tolerance.implicitEquation,
+    );
 
     return segmentParameters.flatMap((segmentParameter) => {
       if (!this.isInUnitInterval(segmentParameter, tolerance)) {
