@@ -465,10 +465,11 @@ Parallel cases:
 - if not collinear -> no intersection
 - if collinear -> project segment B endpoints on segment A
 - overlap returns overlap boundary points
+- non-zero overlap also attaches the shared overlap interval to those boundary points
 - a single-point overlap is deduplicated to one intersection
 
-The service does not return an overlap interval object. It returns concrete intersection
-points because the current next step is split-point discovery.
+The service still returns concrete boundary points for split-point discovery. Non-zero
+overlaps additionally carry interval metadata for later edge/graph reconstruction.
 
 Reference:
 
@@ -625,7 +626,6 @@ References:
 
 ### Segment/Segment
 
-- Represent collinear overlaps as intervals in addition to boundary points.
 - Add tests for endpoint touch, reversed segments, zero-length segments, partial overlap, full
   overlap, and near-collinear large-coordinate cases.
 

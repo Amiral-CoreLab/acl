@@ -1,6 +1,11 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitiveSegment } from '../classes';
-import { PathPrimitiveIntersection, Point } from '../classes';
+import {
+  PathPrimitiveIntersection,
+  PathPrimitiveIntersectionKind,
+  type PathPrimitiveIntersectionOverlap,
+  Point,
+} from '../classes';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 
 /**
@@ -71,8 +76,12 @@ export class SegmentSegmentIntersectionService {
     segmentB: PathPrimitiveSegment,
     parameterA: number,
     parameterB: number,
+    kind = PathPrimitiveIntersectionKind.Crossing,
+    overlap?: PathPrimitiveIntersectionOverlap,
   ): PathPrimitiveIntersection {
     return new PathPrimitiveIntersection({
+      kind,
+      overlap,
       point: this.getPointAtParameter(segmentA, parameterA),
       primitiveA: segmentA,
       primitiveB: segmentB,
@@ -118,18 +127,47 @@ export class SegmentSegmentIntersectionService {
       return [];
     }
 
-    return this.deduplicateIntersections(
-      [overlapStartParameterA, overlapEndParameterA].map((parameterA) => {
-        const point = this.getPointAtParameter(segmentA, this.clampUnitParameter(parameterA));
-        const parameterB = segmentB.start.getVectorTo(point).getDotProduct(vectorB) / lengthBSquared;
+    const clampedStartParameterA = this.clampUnitParameter(overlapStartParameterA);
+    const clampedEndParameterA = this.clampUnitParameter(overlapEndParameterA);
+    const startPoint = this.getPointAtParameter(segmentA, clampedStartParameterA);
+    const endPoint = this.getPointAtParameter(segmentA, clampedEndParameterA);
+    const startParameterB = this.clampUnitParameter(
+      segmentB.start.getVectorTo(startPoint).getDotProduct(vectorB) / lengthBSquared,
+    );
+    const endParameterB = this.clampUnitParameter(
+      segmentB.start.getVectorTo(endPoint).getDotProduct(vectorB) / lengthBSquared,
+    );
+    const overlap: PathPrimitiveIntersectionOverlap | undefined =
+      Math.abs(clampedEndParameterA - clampedStartParameterA) > tolerance.parameter
+        ? {
+            end: endPoint,
+            endParameterA: clampedEndParameterA,
+            endParameterB,
+            start: startPoint,
+            startParameterA: clampedStartParameterA,
+            startParameterB,
+          }
+        : undefined;
 
-        return this.createIntersection(
+    return this.deduplicateIntersections(
+      [
+        this.createIntersection(
           segmentA,
           segmentB,
-          this.clampUnitParameter(parameterA),
-          this.clampUnitParameter(parameterB),
-        );
-      }),
+          clampedStartParameterA,
+          startParameterB,
+          overlap ? PathPrimitiveIntersectionKind.OverlapBoundary : PathPrimitiveIntersectionKind.Crossing,
+          overlap,
+        ),
+        this.createIntersection(
+          segmentA,
+          segmentB,
+          clampedEndParameterA,
+          endParameterB,
+          overlap ? PathPrimitiveIntersectionKind.OverlapBoundary : PathPrimitiveIntersectionKind.Crossing,
+          overlap,
+        ),
+      ],
       tolerance,
     );
   }
