@@ -45,6 +45,19 @@ export class AppComponent implements AfterViewInit {
       ],
     });
 
+    const path4 = new Path({
+      closed: true,
+      vertices: [
+        new Vertex({ x: 50, y: 150, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 400, y: 125, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 75, y: 275, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 150, y: 50, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 400, y: 400, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 200, y: 0, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+        new Vertex({ x: 150, y: 350, cornerDefinition: new CornerDefinitionRadius({ radius: 0 }) }),
+      ],
+    });
+
     const svg = document.getElementById('svg') as unknown as SVGSVGElement;
     const pathEL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     pathEL.style.fill = 'none';
@@ -59,9 +72,10 @@ export class AppComponent implements AfterViewInit {
         ...path.toPrimitivesWithOrigin('path'),
         ...path2.toPrimitivesWithOrigin('path2'),
         ...path3.toPrimitivesWithOrigin('path3'),
+        ...path4.toPrimitivesWithOrigin('path4'),
       ]),
     );
 
-    pathEL.setAttribute('d', path.toD() + path2.toD() + path3.toD());
+    pathEL.setAttribute('d', path.toD() + path2.toD() + path3.toD() + path4.toD());
   }
 }

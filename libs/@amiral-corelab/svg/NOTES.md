@@ -398,6 +398,10 @@ regions. Boundary-spanning boxes intentionally stay on parent nodes so they are 
 queries that cross child boundaries. The exact bounding-box overlap check remains the final
 broad-phase guard.
 
+An R-tree is not necessary for the current library scope. If broad-phase pairing becomes a
+measured performance bottleneck for rectangular bounding-box workloads, the next structure
+to evaluate is an R-tree.
+
 Adjacent primitives from the same source path are intentionally kept at this broad-phase
 stage. `getSplitIntersections()` filters only exact endpoint-to-endpoint continuity after
 intersection checks, so self-intersections inside the same path are not pruned too early.
@@ -597,8 +601,8 @@ References:
 
 ### Bounding Boxes And Broad Phase
 
-- Tune quadtree thresholds or replace it with an R-tree if rectangular-box workloads need
-  better broad-phase performance.
+- Tune quadtree thresholds only after benchmarks show broad-phase pairing is a bottleneck.
+- Evaluate an R-tree only if rectangular bounding-box workloads outgrow the current quadtree.
 
 References:
 
