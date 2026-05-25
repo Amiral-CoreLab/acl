@@ -43,6 +43,7 @@ export class PathPrimitiveIntersectionService {
 
   private withPairOrigins(intersection: PathPrimitiveIntersection, pair: PathPrimitivePair): PathPrimitiveIntersection {
     return new PathPrimitiveIntersection({
+      kind: intersection.kind,
       point: intersection.point,
       primitiveA: intersection.primitiveA,
       primitiveB: intersection.primitiveB,

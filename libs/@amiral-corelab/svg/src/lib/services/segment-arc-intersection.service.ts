@@ -1,6 +1,6 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
-import { PathPrimitiveIntersection, Point } from '../classes';
+import { PathPrimitiveIntersection, PathPrimitiveIntersectionKind, Point } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 
@@ -70,7 +70,8 @@ export class SegmentArcIntersectionService {
       return [];
     }
 
-    const segmentParameters = this.isZero(discriminant, tolerance.implicitEquation)
+    const isTangent = this.isZero(discriminant, tolerance.implicitEquation);
+    const segmentParameters = isTangent
       ? [-quadraticB / (2 * quadraticA)]
       : [
           (-quadraticB - Math.sqrt(discriminant)) / (2 * quadraticA),
@@ -101,6 +102,7 @@ export class SegmentArcIntersectionService {
 
       return [
         new PathPrimitiveIntersection({
+          kind: isTangent ? PathPrimitiveIntersectionKind.Tangent : PathPrimitiveIntersectionKind.Crossing,
           point,
           primitiveA: reversePrimitiveOrder ? arc : segment,
           primitiveB: reversePrimitiveOrder ? segment : arc,

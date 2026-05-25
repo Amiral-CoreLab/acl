@@ -4,12 +4,19 @@ import { Point } from './point';
 import { PathPrimitiveSegment } from './path-primitive-segment';
 import type { PathPrimitive } from './path-primitive';
 
+export enum PathPrimitiveIntersectionKind {
+  Crossing = 'crossing',
+  Tangent = 'tangent',
+}
+
 /**
  * Represents an exact intersection result between two path primitives.
  *
  * The `point` stores the intersection position in the SVG user coordinate system.
  * `parameterA` and `parameterB` store the normalized position on each primitive: `0` is the
  * primitive start, `1` is the primitive end, and values between them are interior points.
+ * `kind` distinguishes ordinary crossings from tangent contacts when the intersection
+ * service can classify that case explicitly.
  *
  * These parameters are kept because the next operation after intersection detection is
  * usually splitting primitives at the intersection point.
@@ -17,6 +24,11 @@ import type { PathPrimitive } from './path-primitive';
  * @see https://www.w3.org/TR/SVG2/paths.html#PathDataGeneralInformation
  */
 export class PathPrimitiveIntersection {
+  /**
+   * Geometric classification of the intersection.
+   */
+  public readonly kind: PathPrimitiveIntersectionKind;
+
   /**
    * Intersection point in the SVG user coordinate system.
    */
@@ -58,6 +70,7 @@ export class PathPrimitiveIntersection {
    * @param initArg Source intersection values.
    */
   public constructor(initArg?: InitArg<PathPrimitiveIntersection>) {
+    this.kind = initArg?.kind ?? PathPrimitiveIntersectionKind.Crossing;
     this.point = initArg?.point ?? new Point();
     this.primitiveA = initArg?.primitiveA ?? new PathPrimitiveSegment();
     this.primitiveB = initArg?.primitiveB ?? new PathPrimitiveSegment();

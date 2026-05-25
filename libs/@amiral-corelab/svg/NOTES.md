@@ -488,7 +488,8 @@ Algorithm:
 5. keep segment parameters in `[0, 1]`
 6. compute the candidate ellipse angle
 7. keep candidates whose angle lies on the arc sweep
-8. return intersections in requested primitive order
+8. classify near-zero discriminant intersections as tangent contacts
+9. return intersections in requested primitive order
 
 Ellipse equation in local arc coordinates:
 
@@ -630,7 +631,6 @@ Reference:
 
 ### Segment/Arc
 
-- Add explicit tangent classification when the quadratic discriminant is near zero.
 - Add residual verification after computing candidate points.
 - Add tests for line tangent to arc, line crossing full ellipse but outside arc sweep, endpoint
   hits, tiny radii, and large coordinates.
