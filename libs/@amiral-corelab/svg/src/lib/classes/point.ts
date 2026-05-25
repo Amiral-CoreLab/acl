@@ -1,4 +1,3 @@
-import type { InitArg } from '@amiral-corelab/core';
 import { Vector } from './vector';
 
 /**
@@ -24,11 +23,12 @@ export class Point {
   /**
    * Creates a point from another point-like value.
    *
-   * @param initArg Source point coordinates.
+   * @param x
+   * @param y
    */
-  public constructor(initArg?: InitArg<Point>) {
-    this.x = initArg?.x ?? 0;
-    this.y = initArg?.y ?? 0;
+  public constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
   }
 
   /**
@@ -46,10 +46,7 @@ export class Point {
    * @see https://www.w3.org/TR/SVG/coords.html
    */
   public moveAlongVector(vector: Vector, scale = 1): Point {
-    return new Point({
-      x: this.x + vector.x * scale,
-      y: this.y + vector.y * scale,
-    });
+    return new Point(this.x + vector.x * scale, this.y + vector.y * scale);
   }
 
   /**

@@ -4,8 +4,8 @@ import {
   PathPrimitiveIntersection,
   PathPrimitiveIntersectionKind,
   type PathPrimitiveIntersectionOverlap,
-  type Vector,
   Point,
+  type Vector,
 } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
@@ -50,10 +50,10 @@ export class ArcArcIntersectionService {
     const cosA = Math.cos(arc.axisRotation);
     const sinA = Math.sin(arc.axisRotation);
 
-    return new Point({
-      x: arc.center.x + cosA * localAxisX - sinA * localAxisY,
-      y: arc.center.y + sinA * localAxisX + cosA * localAxisY,
-    });
+    return new Point(
+      arc.center.x + cosA * localAxisX - sinA * localAxisY,
+      arc.center.y + sinA * localAxisX + cosA * localAxisY,
+    );
   }
 
   private getLocalEllipseBasis(

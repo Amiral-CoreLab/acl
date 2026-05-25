@@ -31,12 +31,7 @@ export class BoundingBoxFactory {
     const resolvedMaxX = Math.max(minX, maxX);
     const resolvedMaxY = Math.max(minY, maxY);
 
-    return new BoundingBox({
-      minX: resolvedMinX,
-      minY: resolvedMinY,
-      maxX: resolvedMaxX,
-      maxY: resolvedMaxY,
-    });
+    return new BoundingBox(resolvedMinX, resolvedMinY, resolvedMaxX, resolvedMaxY);
   }
 
   /**
@@ -72,10 +67,10 @@ export class BoundingBoxFactory {
     }
 
     return this.fromMinMax(
-      Math.min(...boundingBoxes.map((boundingBox) => boundingBox.minX)),
-      Math.min(...boundingBoxes.map((boundingBox) => boundingBox.minY)),
-      Math.max(...boundingBoxes.map((boundingBox) => boundingBox.maxX)),
-      Math.max(...boundingBoxes.map((boundingBox) => boundingBox.maxY)),
+      Math.min(...boundingBoxes.map((boundingBox) => boundingBox.min.x)),
+      Math.min(...boundingBoxes.map((boundingBox) => boundingBox.min.y)),
+      Math.max(...boundingBoxes.map((boundingBox) => boundingBox.max.x)),
+      Math.max(...boundingBoxes.map((boundingBox) => boundingBox.max.y)),
     );
   }
 

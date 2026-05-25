@@ -68,10 +68,10 @@ export class PathPrimitivePairService {
 
   private createChildBounds(bounds: BoundingBox): BoundingBox[] {
     return [
-      new BoundingBox({ minX: bounds.minX, minY: bounds.minY, maxX: bounds.centerX, maxY: bounds.centerY }),
-      new BoundingBox({ minX: bounds.centerX, minY: bounds.minY, maxX: bounds.maxX, maxY: bounds.centerY }),
-      new BoundingBox({ minX: bounds.minX, minY: bounds.centerY, maxX: bounds.centerX, maxY: bounds.maxY }),
-      new BoundingBox({ minX: bounds.centerX, minY: bounds.centerY, maxX: bounds.maxX, maxY: bounds.maxY }),
+      new BoundingBox(bounds.min.x, bounds.min.y, bounds.center.x, bounds.center.y),
+      new BoundingBox(bounds.center.x, bounds.min.y, bounds.max.x, bounds.center.y),
+      new BoundingBox(bounds.min.x, bounds.center.y, bounds.center.x, bounds.max.y),
+      new BoundingBox(bounds.center.x, bounds.center.y, bounds.max.x, bounds.max.y),
     ];
   }
 

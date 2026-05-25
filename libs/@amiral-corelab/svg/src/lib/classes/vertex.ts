@@ -23,7 +23,7 @@ export class Vertex extends Point {
    * @param initArg Source vertex values.
    */
   public constructor(initArg?: InitArg<Vertex>) {
-    super(initArg);
+    super(initArg?.x ?? undefined, initArg?.y ?? undefined);
 
     this.cornerDefinition = initArg?.cornerDefinition ?? undefined;
   }

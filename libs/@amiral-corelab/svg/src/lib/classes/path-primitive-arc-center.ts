@@ -101,9 +101,9 @@ export class PathPrimitiveArcCenter extends PathPrimitive {
     const x = this.radiusX * Math.cos(angle);
     const y = this.radiusY * Math.sin(angle);
 
-    return new Point({
-      x: this.center.x + cosRotation * x - sinRotation * y,
-      y: this.center.y + sinRotation * x + cosRotation * y,
-    });
+    return new Point(
+      this.center.x + cosRotation * x - sinRotation * y,
+      this.center.y + sinRotation * x + cosRotation * y,
+    );
   }
 }

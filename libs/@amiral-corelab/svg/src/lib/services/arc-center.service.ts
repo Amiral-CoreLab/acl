@@ -33,10 +33,10 @@ export class ArcCenterService {
     const sinRotation = Math.sin(arc.axisRotation);
     const translatedPoint = arc.center.getVectorTo(point);
 
-    return new Point({
-      x: cosRotation * translatedPoint.x + sinRotation * translatedPoint.y,
-      y: -sinRotation * translatedPoint.x + cosRotation * translatedPoint.y,
-    });
+    return new Point(
+      cosRotation * translatedPoint.x + sinRotation * translatedPoint.y,
+      -sinRotation * translatedPoint.x + cosRotation * translatedPoint.y,
+    );
   }
 
   /**

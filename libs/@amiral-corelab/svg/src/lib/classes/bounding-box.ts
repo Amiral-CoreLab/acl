@@ -1,11 +1,4 @@
-import type { InitArg } from '@amiral-corelab/core';
-
-export interface BoundingBoxInit {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-}
+import { Point } from './point';
 
 /**
  * Represents an axis-aligned bounding box in the SVG user coordinate system.
@@ -21,86 +14,30 @@ export interface BoundingBoxInit {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getBBox
  */
 export class BoundingBox {
-  /**
-   * Minimum horizontal coordinate of the box.
-   */
-  public readonly minX: number;
-
-  /**
-   * Minimum vertical coordinate of the box.
-   */
-  public readonly minY: number;
-
-  /**
-   * Maximum horizontal coordinate of the box.
-   */
-  public readonly maxX: number;
-
-  /**
-   * Maximum vertical coordinate of the box.
-   */
-  public readonly maxY: number;
-
-  /**
-   * Horizontal size of the bounding box.
-   */
-  public get width(): number {
-    return this.maxX - this.minX;
-  }
-
-  /**
-   * Vertical size of the bounding box.
-   */
-  public get height(): number {
-    return this.maxY - this.minY;
-  }
-
-  /**
-   * Horizontal center coordinate of the box.
-   */
-  public get centerX(): number {
-    return (this.minX + this.maxX) / 2;
-  }
-
-  /**
-   * Vertical center coordinate of the box.
-   */
-  public get centerY(): number {
-    return (this.minY + this.maxY) / 2;
-  }
-
-  /**
-   * Computes a numeric scale from a bounding box.
-   *
-   * The scale includes absolute coordinates and box dimensions so tolerance policies can
-   * adapt both to large SVG user coordinates and to large local geometry.
-   *
-   * @returns Positive scale, with `1` as the minimum.
-   */
-  public get scale(): number {
-    return Math.max(
-      Math.abs(this.minX),
-      Math.abs(this.minY),
-      Math.abs(this.maxX),
-      Math.abs(this.maxY),
-      this.width,
-      this.height,
-      1,
-    );
-  }
+  public readonly min: Point;
+  public readonly max: Point;
+  public readonly width: number;
+  public readonly height: number;
+  public readonly center: Point;
+  public readonly scale: number;
 
   /**
    * Creates a bounding box from optional bound values.
    *
    * Width and height are derived from the minimum and maximum coordinates.
    *
-   * @param initArg Source bounding box values.
+   * @param minX
+   * @param minY
+   * @param maxX
+   * @param maxY
    */
-  public constructor(initArg?: InitArg<BoundingBoxInit>) {
-    this.minX = initArg?.minX ?? 0;
-    this.minY = initArg?.minY ?? 0;
-    this.maxX = initArg?.maxX ?? 0;
-    this.maxY = initArg?.maxY ?? 0;
+  public constructor(minX = 0, minY = 0, maxX = 0, maxY = 0) {
+    this.min = new Point(minX, minY);
+    this.max = new Point(maxX, maxY);
+    this.width = maxX - minX;
+    this.height = maxY - minY;
+    this.center = new Point((minX + maxX) / 2, (minY + maxY) / 2);
+    this.scale = Math.max(Math.abs(minX), Math.abs(minY), Math.abs(maxX), Math.abs(maxY), this.width, this.height, 1);
   }
 
   /**
@@ -115,10 +52,10 @@ export class BoundingBox {
    */
   public intersects(boundingBox: BoundingBox): boolean {
     return (
-      this.minX <= boundingBox.maxX &&
-      this.maxX >= boundingBox.minX &&
-      this.minY <= boundingBox.maxY &&
-      this.maxY >= boundingBox.minY
+      this.min.x <= boundingBox.max.x &&
+      this.max.x >= boundingBox.min.x &&
+      this.min.y <= boundingBox.max.y &&
+      this.max.y >= boundingBox.min.y
     );
   }
 
@@ -131,10 +68,10 @@ export class BoundingBox {
    */
   public contains(boundingBox: BoundingBox): boolean {
     return (
-      this.minX <= boundingBox.minX &&
-      this.maxX >= boundingBox.maxX &&
-      this.minY <= boundingBox.minY &&
-      this.maxY >= boundingBox.maxY
+      this.min.x <= boundingBox.min.x &&
+      this.max.x >= boundingBox.max.x &&
+      this.min.y <= boundingBox.min.y &&
+      this.max.y >= boundingBox.max.y
     );
   }
 
@@ -150,14 +87,9 @@ export class BoundingBox {
    */
   public inflate(distance: number): BoundingBox {
     if (!Number.isFinite(distance) || distance <= 0) {
-      return new BoundingBox(this);
+      return new BoundingBox(this.min.x, this.min.y, this.max.x, this.max.y);
     }
 
-    return new BoundingBox({
-      minX: this.minX - distance,
-      minY: this.minY - distance,
-      maxX: this.maxX + distance,
-      maxY: this.maxY + distance,
-    });
+    return new BoundingBox(this.min.x - distance, this.min.y - distance, this.max.x + distance, this.max.y + distance);
   }
 }
