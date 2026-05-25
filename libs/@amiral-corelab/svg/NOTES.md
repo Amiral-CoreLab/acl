@@ -534,10 +534,11 @@ Distinct-ellipse case:
 3. get a trigonometric equation in arc A's angle
 4. convert with `t = tan(angle / 2)`
 5. solve the resulting quartic polynomial numerically
-6. map roots back to angles with `angle = 2 * atan(t)`
-7. verify the implicit equation residual
-8. verify the candidate lies on arc B's sweep
-9. deduplicate nearly identical intersections
+6. repeat the same candidate generation in the opposite direction, from arc B into arc A
+7. map roots back to angles with `angle = 2 * atan(t)`
+8. verify the implicit equation residual against the other ellipse
+9. verify the candidate lies on both arc sweeps
+10. deduplicate nearly identical intersections
 
 `PolynomialEquationService` provides the root finder:
 
@@ -549,6 +550,9 @@ Distinct-ellipse case:
 - bisects intervals with sign changes
 
 Repeated roots are used to classify distinct-ellipse arc intersections as tangent contacts.
+Bidirectional candidate generation reduces dependence on one quartic's conditioning: if arc A
+substituted into arc B is numerically fragile, arc B substituted into arc A can still contribute
+the same geometric candidate before residual validation and deduplication.
 
 Remaining risks:
 
@@ -649,7 +653,6 @@ Reference:
 
 - Add tests for tangent arcs, overlapping same-ellipse arcs, perpendicular equivalent ellipses,
   tiny radii, and large coordinates.
-- Consider robust ellipse-intersection techniques if quartic conditioning becomes a real issue.
 
 Reference:
 

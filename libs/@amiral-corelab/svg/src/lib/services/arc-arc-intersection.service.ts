@@ -283,6 +283,10 @@ export class ArcArcIntersectionService {
     );
   }
 
+  private isPointOnEllipse(point: Point, arc: PathPrimitiveArcCenter, tolerance: GeometryTolerance): boolean {
+    return Math.abs(this.arcCenterGeometryService.getPointEllipseValue(point, arc)) <= tolerance.implicitEquation;
+  }
+
   private deduplicateAngleCandidates(angles: ArcIntersectionAngle[], tolerance: number): ArcIntersectionAngle[] {
     return [...angles]
       .sort((angleA, angleB) => angleA.angle - angleB.angle)
@@ -300,23 +304,33 @@ export class ArcArcIntersectionService {
       }, []);
   }
 
-  private createIntersections(
+  private createIntersectionsFromPoint(
     arcA: PathPrimitiveArcCenter,
     arcB: PathPrimitiveArcCenter,
-    angleA: number,
+    point: Point,
+    tolerance: GeometryTolerance,
     isTangent = false,
   ): PathPrimitiveIntersection[] {
-    const point = arcA.getPointAtAngle(angleA);
+    const angleA = this.arcCenterGeometryService.getPointAngleOnArc(point, arcA);
     const angleB = this.arcCenterGeometryService.getPointAngleOnArc(point, arcB);
 
-    if (!this.arcCenterGeometryService.isAngleOnArc(angleB, arcB.startAngle, arcB.deltaAngle)) {
+    if (
+      !this.arcCenterGeometryService.isAngleOnArc(angleA, arcA.startAngle, arcA.deltaAngle) ||
+      !this.arcCenterGeometryService.isAngleOnArc(angleB, arcB.startAngle, arcB.deltaAngle)
+    ) {
+      return [];
+    }
+
+    const normalizedPoint = arcA.getPointAtAngle(angleA);
+
+    if (!this.isPointOnEllipse(normalizedPoint, arcB, tolerance)) {
       return [];
     }
 
     return [
       new PathPrimitiveIntersection({
         kind: isTangent ? PathPrimitiveIntersectionKind.Tangent : PathPrimitiveIntersectionKind.Crossing,
-        point,
+        point: normalizedPoint,
         primitiveA: arcA,
         primitiveB: arcB,
         parameterA: this.arcCenterGeometryService.getAngleParameterOnArc(angleA, arcA),
@@ -325,14 +339,47 @@ export class ArcArcIntersectionService {
     ];
   }
 
+  private getDistinctEllipseIntersections(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+    tolerance: GeometryTolerance,
+  ): PathPrimitiveIntersection[] {
+    const arcAAngleIntersections = this.getEllipseIntersectionAngles(arcA, arcB, tolerance).flatMap(
+      ({ angle, isTangent }) => {
+        const point = arcA.getPointAtAngle(angle);
+
+        if (!this.isPointOnEllipse(point, arcB, tolerance)) {
+          return [];
+        }
+
+        return this.createIntersectionsFromPoint(arcA, arcB, point, tolerance, isTangent);
+      },
+    );
+    const arcBAngleIntersections = this.getEllipseIntersectionAngles(arcB, arcA, tolerance).flatMap(
+      ({ angle, isTangent }) => {
+        const point = arcB.getPointAtAngle(angle);
+
+        if (!this.isPointOnEllipse(point, arcA, tolerance)) {
+          return [];
+        }
+
+        return this.createIntersectionsFromPoint(arcA, arcB, point, tolerance, isTangent);
+      },
+    );
+
+    return this.deduplicateIntersections([...arcAAngleIntersections, ...arcBAngleIntersections], tolerance);
+  }
+
   /**
    * Computes intersections between two center arcs.
    *
    * Intersections between distinct ellipses are found by substituting the first arc's
    * center-parameterized equation into the second ellipse's implicit equation. The resulting
    * trigonometric quadratic is converted to a quartic with `tan(angle / 2)`, then real roots
-   * are isolated numerically. Same-ellipse overlaps return the overlap boundary points,
-   * which gives split points without manufacturing a single arbitrary overlap point.
+   * are isolated numerically. Distinct ellipses are solved in both substitution directions
+   * and residual-checked before deduplication to reduce dependence on one quartic's numerical
+   * conditioning. Same-ellipse overlaps return the overlap boundary points, which gives split
+   * points without manufacturing a single arbitrary overlap point.
    *
    * @param arcA First arc.
    * @param arcB Second arc.
@@ -355,15 +402,6 @@ export class ArcArcIntersectionService {
       return this.getSameEllipseArcIntersections(arcA, arcB, tolerance);
     }
 
-    return this.deduplicateIntersections(
-      this.getEllipseIntersectionAngles(arcA, arcB, tolerance).flatMap(({ angle, isTangent }) => {
-        if (Math.abs(this.getEllipseValue(arcA, arcB, angle)) > tolerance.implicitEquation) {
-          return [];
-        }
-
-        return this.createIntersections(arcA, arcB, angle, isTangent);
-      }),
-      tolerance,
-    );
+    return this.getDistinctEllipseIntersections(arcA, arcB, tolerance);
   }
 }
