@@ -16,6 +16,8 @@ import { type GeometryTolerance, GeometryToleranceService } from './geometry-tol
 export class SegmentSegmentIntersectionService {
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
+  private readonly floatingPointOrientationErrorMultiplier = 4;
+
   private isZero(value: number, tolerance: number): boolean {
     return Math.abs(value) <= tolerance;
   }
@@ -34,6 +36,27 @@ export class SegmentSegmentIntersectionService {
 
   private getAreaTolerance(tolerance: GeometryTolerance): number {
     return tolerance.distance * tolerance.scale;
+  }
+
+  private getOrientation(pointA: Point, pointB: Point, pointC: Point, tolerance: GeometryTolerance): number {
+    const abX = pointB.x - pointA.x;
+    const abY = pointB.y - pointA.y;
+    const acX = pointC.x - pointA.x;
+    const acY = pointC.y - pointA.y;
+    const determinant = abX * acY - abY * acX;
+    const determinantScale = Math.max(Math.abs(abX * acY), Math.abs(abY * acX), tolerance.scale, 1);
+    const floatingPointError = Number.EPSILON * this.floatingPointOrientationErrorMultiplier * determinantScale;
+    const orientationTolerance = Math.max(this.getAreaTolerance(tolerance), floatingPointError);
+
+    if (determinant > orientationTolerance) {
+      return 1;
+    }
+
+    if (determinant < -orientationTolerance) {
+      return -1;
+    }
+
+    return 0;
   }
 
   private getPointAtParameter(segment: PathPrimitiveSegment, parameter: number): Point {
@@ -127,15 +150,17 @@ export class SegmentSegmentIntersectionService {
     const vectorA = segmentA.start.getVectorTo(segmentA.end);
     const vectorB = segmentB.start.getVectorTo(segmentB.end);
     const startOffset = segmentA.start.getVectorTo(segmentB.start);
+    const vectorBPoint = new Point({
+      x: segmentA.start.x + vectorB.x,
+      y: segmentA.start.y + vectorB.y,
+    });
     const denominator = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
-    const areaTolerance = this.getAreaTolerance(tolerance);
+    const directionOrientation = this.getOrientation(segmentA.start, segmentA.end, vectorBPoint, tolerance);
 
-    if (this.isZero(denominator, areaTolerance)) {
-      const collinearity = startOffset.x * vectorA.y - startOffset.y * vectorA.x;
+    if (directionOrientation === 0) {
+      const startOrientation = this.getOrientation(segmentA.start, segmentA.end, segmentB.start, tolerance);
 
-      return this.isZero(collinearity, areaTolerance)
-        ? this.getCollinearIntersections(segmentA, segmentB, tolerance)
-        : [];
+      return startOrientation === 0 ? this.getCollinearIntersections(segmentA, segmentB, tolerance) : [];
     }
 
     const parameterA = (startOffset.x * vectorB.y - startOffset.y * vectorB.x) / denominator;

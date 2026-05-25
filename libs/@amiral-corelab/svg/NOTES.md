@@ -451,6 +451,15 @@ Non-parallel segments are solved with the 2D cross-product form of:
 A0 + t*r = B0 + u*s
 ```
 
+Parallel and collinearity decisions use an orientation predicate:
+
+```txt
+orient2d(A, B, C) = sign((B - A) x (C - A))
+```
+
+The predicate combines the scale-aware area tolerance with a floating-point error bound
+before returning clockwise, counterclockwise, or collinear.
+
 Parallel cases:
 
 - if not collinear -> no intersection
@@ -611,7 +620,6 @@ References:
 
 ### Segment/Segment
 
-- Replace cross-product near-zero tests with robust orientation predicates.
 - Represent collinear overlaps as intervals in addition to boundary points.
 - Add tests for endpoint touch, reversed segments, zero-length segments, partial overlap, full
   overlap, and near-collinear large-coordinate cases.
