@@ -1,13 +1,14 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import type { CornerVertices } from '../classes';
 import { CornerDefinitionRadius, CornerDefinitionRadiusGeometry, Vector } from '../classes';
-import { GeometryToleranceService } from '../services';
+import { GeometryMathService, GeometryToleranceService } from '../services';
 import type { Operation } from '../stores';
 import { OperationStore } from '../stores';
 
 @Singleton()
 export class CornerDefinitionRadiusGeometryFactory {
   private readonly operationStore = getSingleton(OperationStore);
+  private readonly geometryMathService = getSingleton(GeometryMathService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
   /**
@@ -68,8 +69,8 @@ export class CornerDefinitionRadiusGeometryFactory {
     }
 
     // 4. Convert the requested radius to the tangent offset along both adjacent edges.
-    const halfAngleTangent = Math.tan(cornerAngle / 2);
-    const tangentOffset = cornerDefinition.radius / halfAngleTangent;
+    const halfAngleTangent = this.geometryMathService.getHalfAngleTangent(cornerAngle);
+    const tangentOffset = this.geometryMathService.getRadiusTangentOffset(cornerDefinition.radius, halfAngleTangent);
 
     if (!Number.isFinite(halfAngleTangent) || !Number.isFinite(tangentOffset) || tangentOffset <= 0) {
       return this.operationStore.warn('Corner radius and angle must produce a valid tangent offset.');

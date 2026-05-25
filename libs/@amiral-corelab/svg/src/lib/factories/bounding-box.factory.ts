@@ -60,6 +60,26 @@ export class BoundingBoxFactory {
   }
 
   /**
+   * Creates a bounding box containing all provided bounding boxes.
+   *
+   * @param boundingBoxes Boxes to enclose.
+   *
+   * @returns Bounding box spanning the box set.
+   */
+  public fromBoundingBoxes(boundingBoxes: BoundingBox[]): BoundingBox {
+    if (boundingBoxes.length === 0) {
+      return new BoundingBox();
+    }
+
+    return this.fromMinMax(
+      Math.min(...boundingBoxes.map((boundingBox) => boundingBox.minX)),
+      Math.min(...boundingBoxes.map((boundingBox) => boundingBox.minY)),
+      Math.max(...boundingBoxes.map((boundingBox) => boundingBox.maxX)),
+      Math.max(...boundingBoxes.map((boundingBox) => boundingBox.maxY)),
+    );
+  }
+
+  /**
    * Creates a bounding box from a finite straight segment.
    *
    * @param segment Segment to enclose.

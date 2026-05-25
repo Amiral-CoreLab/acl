@@ -1,6 +1,7 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
 import { AngleService } from './angle.service';
 import { type PathPrimitiveArcCenter, Point } from '../classes';
+import { GeometryMathService } from './geometry-math.service';
 
 /**
  * Provides geometry helpers for center-parameterized arcs.
@@ -14,6 +15,7 @@ import { type PathPrimitiveArcCenter, Point } from '../classes';
 @Singleton()
 export class ArcCenterService {
   private readonly angleService = getSingleton(AngleService);
+  private readonly geometryMathService = getSingleton(GeometryMathService);
 
   /**
    * Converts a point from SVG user coordinates to the local coordinate system of an arc.
@@ -29,12 +31,11 @@ export class ArcCenterService {
   public getPointInLocalCoordinates(point: Point, arc: PathPrimitiveArcCenter): Point {
     const cosRotation = Math.cos(arc.axisRotation);
     const sinRotation = Math.sin(arc.axisRotation);
-    const x = point.x - arc.center.x;
-    const y = point.y - arc.center.y;
+    const translatedPoint = arc.center.getVectorTo(point);
 
     return new Point({
-      x: cosRotation * x + sinRotation * y,
-      y: -sinRotation * x + cosRotation * y,
+      x: cosRotation * translatedPoint.x + sinRotation * translatedPoint.y,
+      y: -sinRotation * translatedPoint.x + cosRotation * translatedPoint.y,
     });
   }
 
@@ -52,7 +53,7 @@ export class ArcCenterService {
   public getPointEllipseValue(point: Point, arc: PathPrimitiveArcCenter): number {
     const localPoint = this.getPointInLocalCoordinates(point, arc);
 
-    return localPoint.x ** 2 / arc.radiusX ** 2 + localPoint.y ** 2 / arc.radiusY ** 2 - 1;
+    return this.geometryMathService.getImplicitEllipseResidual(localPoint, arc.radiusX, arc.radiusY);
   }
 
   /**
@@ -66,7 +67,7 @@ export class ArcCenterService {
   public getPointAngleOnArc(point: Point, arc: PathPrimitiveArcCenter): number {
     const localPoint = this.getPointInLocalCoordinates(point, arc);
 
-    return Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
+    return this.geometryMathService.getEllipseParameterAngle(localPoint, arc.radiusX, arc.radiusY);
   }
 
   /**

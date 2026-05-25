@@ -7,6 +7,34 @@ import { PathPrimitiveArcCenter, Vector } from '../classes';
  */
 @Singleton()
 export class PathPrimitiveArcCenterFactory {
+  private static getAngleBisectorVector(radiusGeometry: CornerDefinitionRadiusGeometry): Vector {
+    return radiusGeometry.incomingUnitVector.add(radiusGeometry.outgoingUnitVector).normalize();
+  }
+
+  private static getCenterDistance(radiusGeometry: CornerDefinitionRadiusGeometry): number {
+    return radiusGeometry.radius / Math.sin(radiusGeometry.cornerAngle / 2);
+  }
+
+  private static getStartAngle(
+    center: CornerDefinitionRadiusGeometry['currentPoint'],
+    entry: CornerDefinitionRadiusGeometry['entry'],
+  ): number {
+    const startVector = Vector.fromPoints(center, entry);
+
+    return Math.atan2(startVector.y, startVector.x);
+  }
+
+  private static getDeltaAngle(
+    center: CornerDefinitionRadiusGeometry['currentPoint'],
+    entry: CornerDefinitionRadiusGeometry['entry'],
+    exit: CornerDefinitionRadiusGeometry['exit'],
+  ): number {
+    const startVector = Vector.fromPoints(center, entry);
+    const endVector = Vector.fromPoints(center, exit);
+
+    return startVector.getSignedAngleTo(endVector);
+  }
+
   /**
    * Converts fitted radius geometry to a center-parameterized circular arc primitive.
    *
@@ -22,16 +50,11 @@ export class PathPrimitiveArcCenterFactory {
    */
   // eslint-disable-next-line @typescript-eslint/class-methods-use-this
   public fromRadiusGeometry(radiusGeometry: CornerDefinitionRadiusGeometry): PathPrimitiveArcCenter {
-    const bisectorVector = new Vector({
-      x: radiusGeometry.incomingUnitVector.x + radiusGeometry.outgoingUnitVector.x,
-      y: radiusGeometry.incomingUnitVector.y + radiusGeometry.outgoingUnitVector.y,
-    }).normalize();
-    const centerDistance = radiusGeometry.radius / Math.sin(radiusGeometry.cornerAngle / 2);
+    const bisectorVector = PathPrimitiveArcCenterFactory.getAngleBisectorVector(radiusGeometry);
+    const centerDistance = PathPrimitiveArcCenterFactory.getCenterDistance(radiusGeometry);
     const center = radiusGeometry.currentPoint.moveAlongVector(bisectorVector, centerDistance);
-    const startVector = Vector.fromPoints(center, radiusGeometry.entry);
-    const endVector = Vector.fromPoints(center, radiusGeometry.exit);
-    const startAngle = Math.atan2(startVector.y, startVector.x);
-    const deltaAngle = startVector.getSignedAngleTo(endVector);
+    const startAngle = PathPrimitiveArcCenterFactory.getStartAngle(center, radiusGeometry.entry);
+    const deltaAngle = PathPrimitiveArcCenterFactory.getDeltaAngle(center, radiusGeometry.entry, radiusGeometry.exit);
 
     return new PathPrimitiveArcCenter({
       center,

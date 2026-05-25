@@ -8,7 +8,7 @@ import { PathPrimitiveSegment } from './path-primitive-segment';
 import { PathPrimitiveOrigin } from './path-primitive-origin';
 import { PathPrimitiveWithOrigin } from './path-primitive-with-origin';
 import { CornerDefinitionRadiusGeometryFactory, PathCommandFactory, PathPrimitiveArcCenterFactory } from '../factories';
-import { GeometryToleranceService } from '../services';
+import { GeometryMathService, GeometryToleranceService } from '../services';
 import type { PathPrimitive } from './path-primitive';
 
 /**
@@ -43,6 +43,7 @@ export class Path {
   private readonly cornerDefinitionRadiusGeometryFactory = getSingleton(CornerDefinitionRadiusGeometryFactory);
   private readonly pathPrimitiveArcCenterFactory = getSingleton(PathPrimitiveArcCenterFactory);
   private readonly pathCommandFactory = getSingleton(PathCommandFactory);
+  private readonly geometryMathService = getSingleton(GeometryMathService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
 
   /**
@@ -191,7 +192,7 @@ export class Path {
 
       // Two radius corners consume more than the straight edge can provide.
       // Keep their proportions but reduce both tangent offsets so their tangent points still lie on the same SVG path segment.
-      const tangentOffsetScale = pathEdgeLength / totalTangentOffset;
+      const tangentOffsetScale = this.geometryMathService.getFitScale(pathEdgeLength, totalTangentOffset);
 
       if (currentOutgoingTangentOffset > 0 && fittedTangentOffsets[currentIndex]) {
         fittedTangentOffsets[currentIndex].outgoing = currentOutgoingTangentOffset * tangentOffsetScale;

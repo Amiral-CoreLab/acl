@@ -6,6 +6,11 @@ export interface PolynomialRoot {
   value: number;
 }
 
+interface PolynomialInterval {
+  end: number;
+  start: number;
+}
+
 /**
  * Provides tolerance-aware helpers for real polynomial equations.
  *
@@ -13,6 +18,30 @@ export interface PolynomialRoot {
  */
 @Singleton()
 export class PolynomialEquationService {
+  private isZero(value: number, tolerance: GeometryTolerance): boolean {
+    return Math.abs(value) <= tolerance.implicitEquation;
+  }
+
+  private hasSignChange(valueA: number, valueB: number): boolean {
+    return valueA * valueB < 0;
+  }
+
+  private isInsideRootBound(root: number, bound: number, tolerance: GeometryTolerance): boolean {
+    return root >= -bound - tolerance.parameter && root <= bound + tolerance.parameter;
+  }
+
+  private getUsableInterval(
+    start: number | undefined,
+    end: number | undefined,
+    tolerance: GeometryTolerance,
+  ): PolynomialInterval | undefined {
+    if (start === undefined || end === undefined || Math.abs(end - start) <= tolerance.parameter) {
+      return undefined;
+    }
+
+    return { end, start };
+  }
+
   public getValue(coefficients: number[], value: number): number {
     return [...coefficients].reverse().reduce((result, coefficient) => result * value + coefficient, 0);
   }
@@ -33,7 +62,7 @@ export class PolynomialEquationService {
       0,
     );
 
-    if (largestCoefficient <= tolerance.implicitEquation) {
+    if (this.isZero(largestCoefficient, tolerance)) {
       return coefficients;
     }
 
@@ -48,7 +77,7 @@ export class PolynomialEquationService {
     const trimmedCoefficients = this.trim(coefficients, tolerance);
     const leadingCoefficient = Math.abs(trimmedCoefficients[trimmedCoefficients.length - 1] ?? 1);
 
-    if (leadingCoefficient <= tolerance.implicitEquation) {
+    if (this.isZero(leadingCoefficient, tolerance)) {
       return 1;
     }
 
@@ -76,7 +105,7 @@ export class PolynomialEquationService {
       const middle = (bracketStart + bracketEnd) / 2;
       const middleValue = this.getValue(coefficients, middle);
 
-      if (Math.abs(middleValue) <= tolerance.implicitEquation) {
+      if (this.isZero(middleValue, tolerance)) {
         return middle;
       }
 
@@ -106,7 +135,7 @@ export class PolynomialEquationService {
     if (degree === 1) {
       const [constant = 0, linear = 0] = trimmedCoefficients;
 
-      return Math.abs(linear) <= tolerance.implicitEquation
+      return this.isZero(linear, tolerance)
         ? []
         : [
             {
@@ -117,14 +146,14 @@ export class PolynomialEquationService {
     }
 
     const bound = this.getRootBound(trimmedCoefficients, tolerance);
-    const derivativeRoots = this.getRealRoots(this.getDerivative(trimmedCoefficients), tolerance).filter(
-      (root) => root >= -bound - tolerance.parameter && root <= bound + tolerance.parameter,
+    const derivativeRoots = this.getRealRoots(this.getDerivative(trimmedCoefficients), tolerance).filter((root) =>
+      this.isInsideRootBound(root, bound, tolerance),
     );
     const criticalPoints = this.deduplicateNumbers([-bound, ...derivativeRoots, bound], tolerance.parameter);
     const roots: PolynomialRoot[] = [];
 
     for (const criticalPoint of criticalPoints) {
-      if (Math.abs(this.getValue(trimmedCoefficients, criticalPoint)) <= tolerance.implicitEquation) {
+      if (this.isZero(this.getValue(trimmedCoefficients, criticalPoint), tolerance)) {
         roots.push({
           isRepeated: true,
           value: criticalPoint,
@@ -136,28 +165,23 @@ export class PolynomialEquationService {
       const intervalStart = criticalPoints[index];
       const intervalEnd = criticalPoints[index + 1];
 
-      if (
-        intervalStart === undefined ||
-        intervalEnd === undefined ||
-        Math.abs(intervalEnd - intervalStart) <= tolerance.parameter
-      ) {
+      const interval = this.getUsableInterval(intervalStart, intervalEnd, tolerance);
+
+      if (!interval) {
         continue;
       }
 
-      const intervalStartValue = this.getValue(trimmedCoefficients, intervalStart);
-      const intervalEndValue = this.getValue(trimmedCoefficients, intervalEnd);
+      const intervalStartValue = this.getValue(trimmedCoefficients, interval.start);
+      const intervalEndValue = this.getValue(trimmedCoefficients, interval.end);
 
-      if (
-        Math.abs(intervalStartValue) <= tolerance.implicitEquation ||
-        Math.abs(intervalEndValue) <= tolerance.implicitEquation
-      ) {
+      if (this.isZero(intervalStartValue, tolerance) || this.isZero(intervalEndValue, tolerance)) {
         continue;
       }
 
-      if (intervalStartValue * intervalEndValue < 0) {
+      if (this.hasSignChange(intervalStartValue, intervalEndValue)) {
         roots.push({
           isRepeated: false,
-          value: this.bisectRoot(trimmedCoefficients, intervalStart, intervalEnd, tolerance),
+          value: this.bisectRoot(trimmedCoefficients, interval.start, interval.end, tolerance),
         });
       }
     }
@@ -176,7 +200,7 @@ export class PolynomialEquationService {
           return deduplicatedRoots;
         }
 
-        previousRoot.isRepeated = previousRoot.isRepeated || root.isRepeated;
+        previousRoot.isRepeated ||= root.isRepeated;
 
         return deduplicatedRoots;
       }, []);

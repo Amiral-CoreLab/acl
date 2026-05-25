@@ -42,6 +42,18 @@ export class Vector {
   }
 
   /**
+   * Computes the squared vector length.
+   *
+   * Use this when only relative length or projection math is needed and taking a square root
+   * would add noise without changing the result.
+   *
+   * @returns Squared Euclidean length of the vector.
+   */
+  public getLengthSquared(): number {
+    return this.x ** 2 + this.y ** 2;
+  }
+
+  /**
    * Computes the dot product with another vector.
    *
    * The dot product is used to measure the angle between two directions.
@@ -54,6 +66,33 @@ export class Vector {
    */
   public getDotProduct(vector: Vector): number {
     return this.x * vector.x + this.y * vector.y;
+  }
+
+  /**
+   * Computes the 2D cross product determinant with another vector.
+   *
+   * The sign gives orientation and the magnitude is the parallelogram area.
+   *
+   * @param vector Vector to compare with this vector.
+   *
+   * @returns Scalar 2D cross product.
+   */
+  public getCrossProduct(vector: Vector): number {
+    return this.x * vector.y - this.y * vector.x;
+  }
+
+  /**
+   * Adds another vector component-wise.
+   *
+   * @param vector Vector to add.
+   *
+   * @returns Sum vector.
+   */
+  public add(vector: Vector): Vector {
+    return new Vector({
+      x: this.x + vector.x,
+      y: this.y + vector.y,
+    });
   }
 
   /**
@@ -90,7 +129,7 @@ export class Vector {
    * @see https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
    */
   public getSignedAngleTo(vector: Vector): number {
-    const crossProduct = this.x * vector.y - this.y * vector.x;
+    const crossProduct = this.getCrossProduct(vector);
     const dotProduct = this.getDotProduct(vector);
 
     return Math.atan2(crossProduct, dotProduct);

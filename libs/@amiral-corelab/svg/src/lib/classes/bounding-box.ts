@@ -56,6 +56,20 @@ export class BoundingBox {
   }
 
   /**
+   * Horizontal center coordinate of the box.
+   */
+  public get centerX(): number {
+    return (this.minX + this.maxX) / 2;
+  }
+
+  /**
+   * Vertical center coordinate of the box.
+   */
+  public get centerY(): number {
+    return (this.minY + this.maxY) / 2;
+  }
+
+  /**
    * Computes a numeric scale from a bounding box.
    *
    * The scale includes absolute coordinates and box dimensions so tolerance policies can
@@ -105,6 +119,22 @@ export class BoundingBox {
       this.maxX >= boundingBox.minX &&
       this.minY <= boundingBox.maxY &&
       this.maxY >= boundingBox.minY
+    );
+  }
+
+  /**
+   * Tests whether this box fully contains another axis-aligned bounding box.
+   *
+   * @param boundingBox Bounding box that should be contained by this one.
+   *
+   * @returns Whether every side of the other box lies inside this box.
+   */
+  public contains(boundingBox: BoundingBox): boolean {
+    return (
+      this.minX <= boundingBox.minX &&
+      this.maxX >= boundingBox.maxX &&
+      this.minY <= boundingBox.minY &&
+      this.maxY >= boundingBox.maxY
     );
   }
 

@@ -68,4 +68,21 @@ export class AngleService {
   public normalizeDegrees(degrees: number): number {
     return ((degrees % 360) + 360) % 360;
   }
+
+  /**
+   * Gets the smallest difference between two axis rotations.
+   *
+   * Ellipse axes are equivalent after half a turn, so this compares angles modulo `π`.
+   *
+   * @param radiansA First axis angle.
+   * @param radiansB Second axis angle.
+   *
+   * @returns Smallest absolute axis-angle difference in radians.
+   */
+  public getSmallestAxisAngleDifference(radiansA: number, radiansB: number): number {
+    const halfTurn = Math.PI;
+    const difference = (((radiansA - radiansB) % halfTurn) + halfTurn) % halfTurn;
+
+    return Math.min(difference, halfTurn - difference);
+  }
 }

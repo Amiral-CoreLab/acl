@@ -373,11 +373,30 @@ Remaining risk:
 
 - constants still need tuning for extreme SVG coordinate ranges
 - this is not exact arithmetic
-- robust predicates are not implemented
+- orientation predicates are still floating-point predicates, but they include scale-aware
+  tolerance and an explicit floating-point error bound
 
 Reference for possible future robust predicates:
 
 - Shewchuk, adaptive precision predicates: https://www.cs.cmu.edu/~quake/robust.html
+
+## Shared Geometry Math
+
+`GeometryMathService` centralizes small formulas used by the geometry services:
+
+- near-zero scalar checks
+- unit-parameter interval checks and clamping
+- point distance and nearly-same-point checks
+- 2D orientation with scale-aware area tolerance
+- segment interpolation `P(t) = P0 + t * (P1 - P0)`
+- collinear projection parameters
+- local ellipse quadratic form
+- local implicit ellipse residual
+- local ellipse parameter angle
+- rounded-corner half-angle tangent and fit scale
+
+The goal is readability: higher-level services describe the algorithm in named geometric
+steps, while the actual formulas live in one place.
 
 ## Broad-Phase Pairing
 
@@ -436,6 +455,8 @@ resulting shapes.
 ## Segment/Segment Intersection
 
 `SegmentSegmentIntersectionService` solves finite segment intersections.
+Low-level math helpers such as cross product, projection, orientation, parameter clamping,
+and point interpolation are delegated to `Vector` and `GeometryMathService`.
 
 Math model:
 
@@ -481,6 +502,7 @@ Reference:
 `SegmentArcIntersectionService` intersects a finite segment with a center-parameterized arc.
 `QuadraticEquationService` solves the resulting quadratic and classifies near-zero
 discriminants as tangent roots.
+Local ellipse residual and ellipse-angle formulas are delegated to `GeometryMathService`.
 
 Algorithm:
 
@@ -515,6 +537,8 @@ Reference:
 ## Arc/Arc Intersection
 
 `ArcArcIntersectionService` intersects two center-parameterized arc primitives.
+Angle-axis comparison is delegated to `AngleService`; local ellipse residual and quadratic
+form helpers are delegated to `GeometryMathService`.
 
 Zero-radius arcs are rejected.
 

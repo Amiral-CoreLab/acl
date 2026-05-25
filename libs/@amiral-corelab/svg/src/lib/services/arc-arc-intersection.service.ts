@@ -4,10 +4,12 @@ import {
   PathPrimitiveIntersection,
   PathPrimitiveIntersectionKind,
   type PathPrimitiveIntersectionOverlap,
+  type Vector,
   Point,
 } from '../classes';
 import { ArcCenterService } from './arc-center.service';
 import { AngleService } from './angle.service';
+import { GeometryMathService } from './geometry-math.service';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
 import { PolynomialEquationService } from './polynomial-equation.service';
 
@@ -30,28 +32,55 @@ interface ArcIntersectionAngle {
 export class ArcArcIntersectionService {
   private readonly arcCenterGeometryService = getSingleton(ArcCenterService);
   private readonly angleService = getSingleton(AngleService);
+  private readonly geometryMathService = getSingleton(GeometryMathService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
   private readonly polynomialEquationService = getSingleton(PolynomialEquationService);
 
   private readonly minimumOverlapParameterSpan = 1e-9;
 
-  private isZero(value: number, tolerance: number): boolean {
-    return Math.abs(value) <= tolerance;
-  }
-
   private isNearlySamePoint(pointA: Point, pointB: Point, tolerance: GeometryTolerance): boolean {
-    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= tolerance.distance;
+    return this.geometryMathService.areNearlySamePoints(pointA, pointB, tolerance);
   }
 
   private getPointInLocalCoordinates(point: Point, arc: PathPrimitiveArcCenter): Point {
     return this.arcCenterGeometryService.getPointInLocalCoordinates(point, arc);
   }
 
-  private getSmallestAxisAngleDifference(angleA: number, angleB: number): number {
-    const halfTurn = Math.PI;
-    const difference = (((angleA - angleB) % halfTurn) + halfTurn) % halfTurn;
+  private getEllipseAxisPoint(arc: PathPrimitiveArcCenter, localAxisX: number, localAxisY: number): Point {
+    const cosA = Math.cos(arc.axisRotation);
+    const sinA = Math.sin(arc.axisRotation);
 
-    return Math.min(difference, halfTurn - difference);
+    return new Point({
+      x: arc.center.x + cosA * localAxisX - sinA * localAxisY,
+      y: arc.center.y + sinA * localAxisX + cosA * localAxisY,
+    });
+  }
+
+  private getLocalEllipseBasis(
+    arcA: PathPrimitiveArcCenter,
+    arcB: PathPrimitiveArcCenter,
+  ): {
+    center: Point;
+    cosVector: Vector;
+    sinVector: Vector;
+  } {
+    const center = this.getPointInLocalCoordinates(arcA.center, arcB);
+    const localCosPoint = this.getPointInLocalCoordinates(this.getEllipseAxisPoint(arcA, arcA.radiusX, 0), arcB);
+    const localSinPoint = this.getPointInLocalCoordinates(this.getEllipseAxisPoint(arcA, 0, arcA.radiusY), arcB);
+
+    return {
+      center,
+      cosVector: center.getVectorTo(localCosPoint),
+      sinVector: center.getVectorTo(localSinPoint),
+    };
+  }
+
+  private getEllipseQuadraticFormCoefficient(
+    pointA: Point | Vector,
+    pointB: Point | Vector,
+    arc: PathPrimitiveArcCenter,
+  ): number {
+    return this.geometryMathService.getEllipseQuadraticFormValue(pointA, pointB, arc.radiusX, arc.radiusY);
   }
 
   private haveSameOrientation(
@@ -59,7 +88,9 @@ export class ArcArcIntersectionService {
     arcB: PathPrimitiveArcCenter,
     tolerance: GeometryTolerance,
   ): boolean {
-    return this.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= tolerance.parameter;
+    return (
+      this.angleService.getSmallestAxisAngleDifference(arcA.axisRotation, arcB.axisRotation) <= tolerance.parameter
+    );
   }
 
   private havePerpendicularOrientation(
@@ -68,7 +99,8 @@ export class ArcArcIntersectionService {
     tolerance: GeometryTolerance,
   ): boolean {
     return (
-      this.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <= tolerance.parameter
+      this.angleService.getSmallestAxisAngleDifference(arcA.axisRotation + Math.PI / 2, arcB.axisRotation) <=
+      tolerance.parameter
     );
   }
 
@@ -180,7 +212,7 @@ export class ArcArcIntersectionService {
     const sortedIntersections = [...boundaryIntersections].sort(
       (intersectionA, intersectionB) => intersectionA.parameterA - intersectionB.parameterA,
     );
-    const overlapStart = sortedIntersections[0];
+    const [overlapStart] = sortedIntersections;
     const overlapEnd = sortedIntersections[sortedIntersections.length - 1];
 
     if (
@@ -219,33 +251,13 @@ export class ArcArcIntersectionService {
   }
 
   private getEllipseIntersectionPolynomial(arcA: PathPrimitiveArcCenter, arcB: PathPrimitiveArcCenter): number[] {
-    const cosA = Math.cos(arcA.axisRotation);
-    const sinA = Math.sin(arcA.axisRotation);
-    const center = this.getPointInLocalCoordinates(arcA.center, arcB);
-    const localCosPoint = this.getPointInLocalCoordinates(
-      new Point({
-        x: arcA.center.x + cosA * arcA.radiusX,
-        y: arcA.center.y + sinA * arcA.radiusX,
-      }),
-      arcB,
-    );
-    const localSinPoint = this.getPointInLocalCoordinates(
-      new Point({
-        x: arcA.center.x - sinA * arcA.radiusY,
-        y: arcA.center.y + cosA * arcA.radiusY,
-      }),
-      arcB,
-    );
-    const cosVector = center.getVectorTo(localCosPoint);
-    const sinVector = center.getVectorTo(localSinPoint);
-    const radiusXSquared = arcB.radiusX ** 2;
-    const radiusYSquared = arcB.radiusY ** 2;
-    const cosSquared = cosVector.x ** 2 / radiusXSquared + cosVector.y ** 2 / radiusYSquared;
-    const sinSquared = sinVector.x ** 2 / radiusXSquared + sinVector.y ** 2 / radiusYSquared;
-    const sinCos = 2 * ((cosVector.x * sinVector.x) / radiusXSquared + (cosVector.y * sinVector.y) / radiusYSquared);
-    const cos = 2 * ((center.x * cosVector.x) / radiusXSquared + (center.y * cosVector.y) / radiusYSquared);
-    const sin = 2 * ((center.x * sinVector.x) / radiusXSquared + (center.y * sinVector.y) / radiusYSquared);
-    const constant = center.x ** 2 / radiusXSquared + center.y ** 2 / radiusYSquared - 1;
+    const { center, cosVector, sinVector } = this.getLocalEllipseBasis(arcA, arcB);
+    const cosSquared = this.getEllipseQuadraticFormCoefficient(cosVector, cosVector, arcB);
+    const sinSquared = this.getEllipseQuadraticFormCoefficient(sinVector, sinVector, arcB);
+    const sinCos = 2 * this.getEllipseQuadraticFormCoefficient(cosVector, sinVector, arcB);
+    const cos = 2 * this.getEllipseQuadraticFormCoefficient(center, cosVector, arcB);
+    const sin = 2 * this.getEllipseQuadraticFormCoefficient(center, sinVector, arcB);
+    const constant = this.geometryMathService.getImplicitEllipseResidual(center, arcB.radiusX, arcB.radiusY);
 
     return [
       cosSquared + cos + constant,
@@ -298,7 +310,7 @@ export class ArcArcIntersectionService {
           return deduplicatedAngles;
         }
 
-        previousAngle.isTangent = previousAngle.isTangent || angle.isTangent;
+        previousAngle.isTangent ||= angle.isTangent;
 
         return deduplicatedAngles;
       }, []);
@@ -390,10 +402,10 @@ export class ArcArcIntersectionService {
     const tolerance = this.geometryToleranceService.fromPrimitives(arcA, arcB);
 
     if (
-      this.isZero(arcA.radiusX, tolerance.distance) ||
-      this.isZero(arcA.radiusY, tolerance.distance) ||
-      this.isZero(arcB.radiusX, tolerance.distance) ||
-      this.isZero(arcB.radiusY, tolerance.distance)
+      this.geometryMathService.isNearlyZero(arcA.radiusX, tolerance.distance) ||
+      this.geometryMathService.isNearlyZero(arcA.radiusY, tolerance.distance) ||
+      this.geometryMathService.isNearlyZero(arcB.radiusX, tolerance.distance) ||
+      this.geometryMathService.isNearlyZero(arcB.radiusY, tolerance.distance)
     ) {
       return [];
     }

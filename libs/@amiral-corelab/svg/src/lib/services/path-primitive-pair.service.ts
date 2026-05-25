@@ -54,12 +54,7 @@ export class PathPrimitivePairService {
   }
 
   private createRootBounds(items: PathPrimitivePairItem[]): BoundingBox {
-    return new BoundingBox({
-      minX: Math.min(...items.map((item) => item.boundingBox.minX)),
-      minY: Math.min(...items.map((item) => item.boundingBox.minY)),
-      maxX: Math.max(...items.map((item) => item.boundingBox.maxX)),
-      maxY: Math.max(...items.map((item) => item.boundingBox.maxY)),
-    });
+    return this.boundingBoxFactory.fromBoundingBoxes(items.map((item) => item.boundingBox));
   }
 
   private createQuadTreeNode(bounds: BoundingBox, depth: number): QuadTreeNode {
@@ -71,29 +66,17 @@ export class PathPrimitivePairService {
     };
   }
 
-  private containsBoundingBox(container: BoundingBox, contained: BoundingBox): boolean {
-    return (
-      container.minX <= contained.minX &&
-      container.maxX >= contained.maxX &&
-      container.minY <= contained.minY &&
-      container.maxY >= contained.maxY
-    );
-  }
-
   private createChildBounds(bounds: BoundingBox): BoundingBox[] {
-    const centerX = (bounds.minX + bounds.maxX) / 2;
-    const centerY = (bounds.minY + bounds.maxY) / 2;
-
     return [
-      new BoundingBox({ minX: bounds.minX, minY: bounds.minY, maxX: centerX, maxY: centerY }),
-      new BoundingBox({ minX: centerX, minY: bounds.minY, maxX: bounds.maxX, maxY: centerY }),
-      new BoundingBox({ minX: bounds.minX, minY: centerY, maxX: centerX, maxY: bounds.maxY }),
-      new BoundingBox({ minX: centerX, minY: centerY, maxX: bounds.maxX, maxY: bounds.maxY }),
+      new BoundingBox({ minX: bounds.minX, minY: bounds.minY, maxX: bounds.centerX, maxY: bounds.centerY }),
+      new BoundingBox({ minX: bounds.centerX, minY: bounds.minY, maxX: bounds.maxX, maxY: bounds.centerY }),
+      new BoundingBox({ minX: bounds.minX, minY: bounds.centerY, maxX: bounds.centerX, maxY: bounds.maxY }),
+      new BoundingBox({ minX: bounds.centerX, minY: bounds.centerY, maxX: bounds.maxX, maxY: bounds.maxY }),
     ];
   }
 
   private getContainingChild(node: QuadTreeNode, item: PathPrimitivePairItem): QuadTreeNode | undefined {
-    return node.children.find((child) => this.containsBoundingBox(child.bounds, item.boundingBox));
+    return node.children.find((child) => child.bounds.contains(item.boundingBox));
   }
 
   private splitNode(node: QuadTreeNode): void {

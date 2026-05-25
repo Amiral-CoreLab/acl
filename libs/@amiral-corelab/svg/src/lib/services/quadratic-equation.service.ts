@@ -14,6 +14,23 @@ export class QuadraticEquationService {
     return Math.abs(value) <= tolerance;
   }
 
+  private getDiscriminant(coefficientA: number, coefficientB: number, coefficientC: number): number {
+    return coefficientB ** 2 - 4 * coefficientA * coefficientC;
+  }
+
+  private getDoubleRoot(coefficientA: number, coefficientB: number): number {
+    return -coefficientB / (2 * coefficientA);
+  }
+
+  private getDistinctRoots(coefficientA: number, coefficientB: number, discriminant: number): number[] {
+    const discriminantRoot = Math.sqrt(discriminant);
+
+    return [
+      (-coefficientB - discriminantRoot) / (2 * coefficientA),
+      (-coefficientB + discriminantRoot) / (2 * coefficientA),
+    ];
+  }
+
   /**
    * Gets real roots for `a*x^2 + b*x + c = 0`.
    *
@@ -40,7 +57,7 @@ export class QuadraticEquationService {
       };
     }
 
-    const discriminant = coefficientB ** 2 - 4 * coefficientA * coefficientC;
+    const discriminant = this.getDiscriminant(coefficientA, coefficientB, coefficientC);
 
     if (discriminant < -tolerance) {
       return {
@@ -52,18 +69,13 @@ export class QuadraticEquationService {
     if (this.isZero(discriminant, tolerance)) {
       return {
         isTangent: true,
-        roots: [-coefficientB / (2 * coefficientA)],
+        roots: [this.getDoubleRoot(coefficientA, coefficientB)],
       };
     }
 
-    const discriminantRoot = Math.sqrt(discriminant);
-
     return {
       isTangent: false,
-      roots: [
-        (-coefficientB - discriminantRoot) / (2 * coefficientA),
-        (-coefficientB + discriminantRoot) / (2 * coefficientA),
-      ],
+      roots: this.getDistinctRoots(coefficientA, coefficientB, discriminant),
     };
   }
 }

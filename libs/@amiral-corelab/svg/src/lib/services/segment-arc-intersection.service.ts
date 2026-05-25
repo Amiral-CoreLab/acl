@@ -1,8 +1,9 @@
 import { getSingleton, Singleton } from '@amiral-corelab/core';
-import type { PathPrimitiveArcCenter, PathPrimitiveSegment } from '../classes';
-import { PathPrimitiveIntersection, PathPrimitiveIntersectionKind, Point } from '../classes';
+import type { PathPrimitiveArcCenter, PathPrimitiveSegment, Point } from '../classes';
+import { PathPrimitiveIntersection, PathPrimitiveIntersectionKind } from '../classes';
 import { ArcCenterService } from './arc-center.service';
-import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
+import { GeometryToleranceService } from './geometry-tolerance.service';
+import { GeometryMathService } from './geometry-math.service';
 import { QuadraticEquationService } from './quadratic-equation.service';
 
 /**
@@ -17,22 +18,36 @@ import { QuadraticEquationService } from './quadratic-equation.service';
 export class SegmentArcIntersectionService {
   private readonly arcCenterService = getSingleton(ArcCenterService);
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
+  private readonly geometryMathService = getSingleton(GeometryMathService);
   private readonly quadraticEquationService = getSingleton(QuadraticEquationService);
 
-  private isZero(value: number, tolerance: number): boolean {
-    return Math.abs(value) <= tolerance;
+  private getLineEllipseQuadraticCoefficients(
+    localSegmentStart: Point,
+    localSegmentEnd: Point,
+    arc: PathPrimitiveArcCenter,
+  ): {
+    quadraticA: number;
+    quadraticB: number;
+    quadraticC: number;
+  } {
+    const localSegmentDirection = localSegmentStart.getVectorTo(localSegmentEnd);
+
+    return {
+      quadraticA: this.geometryMathService.getEllipseRadiusNormalizedSquared(
+        localSegmentDirection,
+        arc.radiusX,
+        arc.radiusY,
+      ),
+      quadraticB:
+        2 *
+        ((localSegmentStart.x * localSegmentDirection.x) / arc.radiusX ** 2 +
+          (localSegmentStart.y * localSegmentDirection.y) / arc.radiusY ** 2),
+      quadraticC: this.geometryMathService.getImplicitEllipseResidual(localSegmentStart, arc.radiusX, arc.radiusY),
+    };
   }
 
-  private isInUnitInterval(parameter: number, tolerance: GeometryTolerance): boolean {
-    return parameter >= -tolerance.parameter && parameter <= 1 + tolerance.parameter;
-  }
-
-  private clampUnitParameter(parameter: number): number {
-    return Math.max(0, Math.min(1, parameter));
-  }
-
-  private getImplicitEllipseResidual(localPoint: Point, radiusXSquared: number, radiusYSquared: number): number {
-    return localPoint.x ** 2 / radiusXSquared + localPoint.y ** 2 / radiusYSquared - 1;
+  private getLocalPointAtSegmentParameter(localSegmentStart: Point, localSegmentEnd: Point, parameter: number): Point {
+    return localSegmentStart.moveAlongVector(localSegmentStart.getVectorTo(localSegmentEnd), parameter);
   }
 
   /**
@@ -55,21 +70,20 @@ export class SegmentArcIntersectionService {
   ): PathPrimitiveIntersection[] {
     const tolerance = this.geometryToleranceService.fromPrimitives(segment, arc);
 
-    if (this.isZero(arc.radiusX, tolerance.distance) || this.isZero(arc.radiusY, tolerance.distance)) {
+    if (
+      this.geometryMathService.isNearlyZero(arc.radiusX, tolerance.distance) ||
+      this.geometryMathService.isNearlyZero(arc.radiusY, tolerance.distance)
+    ) {
       return [];
     }
 
     const localSegmentStart = this.arcCenterService.getPointInLocalCoordinates(segment.start, arc);
     const localSegmentEnd = this.arcCenterService.getPointInLocalCoordinates(segment.end, arc);
-    const localSegmentDirection = localSegmentStart.getVectorTo(localSegmentEnd);
-    const radiusXSquared = arc.radiusX ** 2;
-    const radiusYSquared = arc.radiusY ** 2;
-    const quadraticA = localSegmentDirection.x ** 2 / radiusXSquared + localSegmentDirection.y ** 2 / radiusYSquared;
-    const quadraticB =
-      2 *
-      ((localSegmentStart.x * localSegmentDirection.x) / radiusXSquared +
-        (localSegmentStart.y * localSegmentDirection.y) / radiusYSquared);
-    const quadraticC = localSegmentStart.x ** 2 / radiusXSquared + localSegmentStart.y ** 2 / radiusYSquared - 1;
+    const { quadraticA, quadraticB, quadraticC } = this.getLineEllipseQuadraticCoefficients(
+      localSegmentStart,
+      localSegmentEnd,
+      arc,
+    );
     const { isTangent, roots: segmentParameters } = this.quadraticEquationService.getRealRoots(
       quadraticA,
       quadraticB,
@@ -78,32 +92,30 @@ export class SegmentArcIntersectionService {
     );
 
     return segmentParameters.flatMap((segmentParameter) => {
-      if (!this.isInUnitInterval(segmentParameter, tolerance)) {
+      if (!this.geometryMathService.isInUnitInterval(segmentParameter, tolerance)) {
         return [];
       }
 
-      const clampedSegmentParameter = this.clampUnitParameter(segmentParameter);
-      const localPoint = new Point({
-        x: localSegmentStart.x + localSegmentDirection.x * clampedSegmentParameter,
-        y: localSegmentStart.y + localSegmentDirection.y * clampedSegmentParameter,
-      });
-      const residual = this.getImplicitEllipseResidual(localPoint, radiusXSquared, radiusYSquared);
+      const clampedSegmentParameter = this.geometryMathService.clampUnitParameter(segmentParameter);
+      const localPoint = this.getLocalPointAtSegmentParameter(
+        localSegmentStart,
+        localSegmentEnd,
+        clampedSegmentParameter,
+      );
+      const residual = this.geometryMathService.getImplicitEllipseResidual(localPoint, arc.radiusX, arc.radiusY);
 
       if (Math.abs(residual) > tolerance.implicitEquation) {
         return [];
       }
 
-      const angle = Math.atan2(localPoint.y / arc.radiusY, localPoint.x / arc.radiusX);
+      const angle = this.geometryMathService.getEllipseParameterAngle(localPoint, arc.radiusX, arc.radiusY);
 
       if (!this.arcCenterService.isAngleOnArc(angle, arc.startAngle, arc.deltaAngle)) {
         return [];
       }
 
       const arcParameter = this.arcCenterService.getAngleParameterOnArc(angle, arc);
-      const point = new Point({
-        x: segment.start.x + (segment.end.x - segment.start.x) * clampedSegmentParameter,
-        y: segment.start.y + (segment.end.y - segment.start.y) * clampedSegmentParameter,
-      });
+      const point = this.geometryMathService.getPointAtSegmentParameter(segment, clampedSegmentParameter);
 
       return [
         new PathPrimitiveIntersection({

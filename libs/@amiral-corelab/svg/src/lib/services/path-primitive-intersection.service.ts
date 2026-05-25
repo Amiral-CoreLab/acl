@@ -7,6 +7,7 @@ import { SegmentArcIntersectionService } from './segment-arc-intersection.servic
 import { ArcArcIntersectionService } from './arc-arc-intersection.service';
 import type { PathPrimitive } from '../classes/path-primitive';
 import { type GeometryTolerance, GeometryToleranceService } from './geometry-tolerance.service';
+import { GeometryMathService } from './geometry-math.service';
 
 /**
  * Computes exact intersections between path primitives.
@@ -20,6 +21,7 @@ import { type GeometryTolerance, GeometryToleranceService } from './geometry-tol
 @Singleton()
 export class PathPrimitiveIntersectionService {
   private readonly geometryToleranceService = getSingleton(GeometryToleranceService);
+  private readonly geometryMathService = getSingleton(GeometryMathService);
   private readonly pathPrimitivePairService = getSingleton(PathPrimitivePairService);
   private readonly segmentSegmentIntersectionService = getSingleton(SegmentSegmentIntersectionService);
   private readonly segmentArcIntersectionService = getSingleton(SegmentArcIntersectionService);
@@ -29,14 +31,11 @@ export class PathPrimitiveIntersectionService {
     return this.geometryToleranceService.fromPrimitives(intersection.primitiveA, intersection.primitiveB);
   }
 
-  private isNearlySamePoint(pointA: Point, pointB: Point, tolerance: GeometryTolerance): boolean {
-    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= tolerance.distance;
-  }
-
   private deduplicateNearlySamePoints(points: Point[], tolerance: GeometryTolerance): Point[] {
     return points.filter((point, index) =>
       points.every(
-        (otherPoint, otherIndex) => otherIndex >= index || !this.isNearlySamePoint(point, otherPoint, tolerance),
+        (otherPoint, otherIndex) =>
+          otherIndex >= index || !this.geometryMathService.areNearlySamePoints(point, otherPoint, tolerance),
       ),
     );
   }
